@@ -7,6 +7,8 @@ Complete installation guides for kotakneoapi SDK across different platforms and 
 
 ## 📚 Installation Guides by Platform
 
+> **📖 Complete Reference:** See [Installation Reference Guide](../INSTALLATION_REFERENCE.md) for comprehensive guide to all installation methods and platform-specific guides.
+
 ### Current Method (Development)
 - **[Local Installation](local-install.md)** - Install from source repository ⭐ **START HERE**
 
