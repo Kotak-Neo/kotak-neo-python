@@ -15,11 +15,14 @@ class APITestRunner:
         self.ws_connected = False
         self.ws_error = None
 
+        # Get consumer_key from environment variable, or use None
+        consumer_key = config("NEO_CONSUMER_KEY", default=None)
+
         self.client = NeoAPI(
             environment="prod",
             access_token=None,
             neo_fin_key=None,
-            consumer_key="bea95af0-6d9c-4d0e-95ef-f05993b4f77f",
+            consumer_key=consumer_key,
         )
 
         # Setup WebSocket callbacks

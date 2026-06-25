@@ -37,13 +37,13 @@ except Exception as e:
 ```json
 {
   "data": {
-    "token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIwM2FlMDlhMC0xMTczLTQwYWMtYWM3ZC01Yzk4ZTY0YjkwNzEiLCJpc3MiOiJsb2dpbi1zZXJ2aWNlIiwic3ViIjoiMjJmNGNkNGMtOGFjNy00NTdiLWFmZDMtYjFiZGNlMTU1YmIxIiwidWNjIjoiWFhDTTMiLCJuYXAiOiIiLCJ5Y2UiOiJlWVxcNiBcIiw1LnRcdTAwMDRcblx1MDAwN35cdTAwMDBcdTAwMTBiIiwiY2F0ZWdvcmlzYXRpb24iOiIiLCJzY29wZSI6WyJWaWV3Il0sImV4cCI6MTc4MjQxMjIwMCwiaWF0IjoxNzgyMzc0NjU3LCJmZXRjaGNhY2hpbmdydWxlIjowfQ.ilglfQzfJk0aYpgFB1YXE1vvgBX8K0S-ZYmny8vKXkTRYGd_b8qy5czfJ-dprsQRAtVCXPpKEURrnwuidWrKO0-Nisv-ZA1OE0t3HEgppwDFPagEYKxGTHT6q9y9j7EWhIpI3FoTcgPBtB02cU7SVRyE6RcN-Ljp1pUlUT8kDatLTgUGoWCY5YOqBYnQ5NWu14uoBRONgTg-klXYTdukYjJBA824Hn0R6ZTWAga-0NtkXS_ozeH-GRPDHBp8Xnpj_HtevW8eP3GWosQTbhS9ApjsH87SxxVa2JGZecl2vw7RbzCLCtkb_QMsxHOcW3AL1pX9b19iYcNvzJ8LeNDqzw",
-    "sid": "21436d9a-4396-4350-ad8b-02a1c0058906",
-    "rid": "9a761f31-f1f4-411c-a769-c51adb5a7515",
+    "token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "sid": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    "rid": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
     "hsServerId": "",
     "isUserPwdExpired": false,
-    "ucc": "XXCM3",
-    "greetingName": "DHRUV",
+    "ucc": "XXXXX",
+    "greetingName": "USER_NAME",
     "isTrialAccount": false,
     "dataCenter": "E43",
     "derivativesRiskDisclosure": "Risk Disclosure on Derivatives\n\nAs per a SEBI study dated 25 Jan 2023- \n• 9 out of 10 individual traders in equity Futures and Options Segment, incurred net losses.\n• On an average, loss makers registered net trading loss close to Rs.50,000.\n• Over and above the net trading losses incurred, loss makers expended an additional 28% of net trading losses as transaction costs.\n• Those making net trading profits, incurred between 15% to 50% of such profits as transaction cost.\n\nFor more information please check out : https://www.sebi.gov.in/reports-and-statistics/research/jan-2023/study-analysis-of-profit-and-loss-of-individual-traders-dealing-in-equity-fando-segment_67525.html",
@@ -53,7 +53,7 @@ except Exception as e:
     "asbaStatus": "",
     "clientType": "RI",
     "isNRI": false,
-    "kId": "AIBPA4432H",
+    "kId": "XXXXXXXXXX",
     "kType": "View",
     "status": "success",
     "incRange": 0,
@@ -75,13 +75,15 @@ except Exception as e:
 | `ucc` | string | Unique Client Code |
 | `greetingName` | string | User's name |
 | `dataCenter` | string | Data center location (e.g., E43, GDC) |
+| `kId` | string | Client PAN Card number |
 | `kType` | string | Token type - "View" (needs 2FA for "Trade" access) |
 | `status` | string | Login status - "success" or "failed" |
 | `isUserPwdExpired` | boolean | Whether password has expired |
 | `isTrialAccount` | boolean | Whether it's a trial account |
 | `clientType` | string | Client type (e.g., "RI" for Retail Individual) |
-| `isNRI` | boolean | Whether user is NRI |
+| `isNRI` | boolean | Whether user is NRI (Non-Resident Indian) |
 | `dormancyStatus` | string | Account dormancy status |
+| `derivativesRiskDisclosure` | string | SEBI risk disclosure message for derivatives trading |
 
 ### Performance
 - **Average Latency**: 367 ms

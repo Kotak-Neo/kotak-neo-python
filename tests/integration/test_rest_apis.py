@@ -1,6 +1,8 @@
 import time
 import traceback
 
+from decouple import config
+
 from neo_api_client import NeoAPI
 
 
@@ -8,11 +10,14 @@ class APITestRunner:
     def __init__(self):
         self.results = []
 
+        # Get consumer_key from environment variable, or use None
+        consumer_key = config("NEO_CONSUMER_KEY", default=None)
+
         self.client = NeoAPI(
             environment="prod",
             access_token=None,
             neo_fin_key=None,
-            consumer_key="bea95af0-6d9c-4d0e-95ef-f05993b4f77f",
+            consumer_key=consumer_key,
         )
 
     def validate_response(self, response, api_name):

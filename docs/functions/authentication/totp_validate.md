@@ -31,36 +31,62 @@ except Exception as e:
 
 **object**
 
-### Sample response
+### Sample Response (Real API Response)
 ```json
 {
-	"data": {
-		"token": "",
-		"sid": "",
-		"rid": "",
-		"hsServerId": "",
-		"isUserPwdExpired": false,
-		"ucc": "",
-		"greetingName": "",
-		"isTrialAccount": false,
-		"dataCenter": "",
-		"searchAPIKey": "",
-		"derivativesRiskDisclosure": "",
-		"mfAccess": 1,
-		"dataCenterMap": null,
-		"dormancyStatus": "A",
-		"asbaStatus": "",
-		"clientType": "RI",
-		"isNRI": false,
-		"kId": "",
-		"kType": "Trade",
-		"status": "success",
-		"incRange": 0,
-		"incUpdFlag": "",
-		"clientGroup": ""
-	}
+  "data": {
+    "token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "sid": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    "rid": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    "baseUrl": "https://eXX.kotaksecurities.com",
+    "hsServerId": "",
+    "isUserPwdExpired": false,
+    "ucc": "XXXXX",
+    "greetingName": "USER_NAME",
+    "isTrialAccount": false,
+    "dataCenter": "E43",
+    "derivativesRiskDisclosure": "Risk Disclosure on Derivatives\n\nAs per a SEBI study dated 25 Jan 2023- \n• 9 out of 10 individual traders in equity Futures and Options Segment, incurred net losses.",
+    "mfAccess": 1,
+    "dataCenterMap": null,
+    "dormancyStatus": "A",
+    "asbaStatus": "",
+    "clientType": "RI",
+    "isNRI": false,
+    "kId": "XXXXXXXXXX",
+    "kType": "Trade",
+    "status": "success",
+    "incRange": 0,
+    "incUpdFlag": "",
+    "clientGroup": "",
+    "kraStatus": "",
+    "rcFlag": 0
+  }
 }
 ```
+
+### Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `token` | string | JWT trade token (full access) |
+| `sid` | string | Session ID |
+| `rid` | string | Request ID |
+| `baseUrl` | string | API base URL for the assigned data center |
+| `ucc` | string | Unique Client Code |
+| `greetingName` | string | User's name |
+| `dataCenter` | string | Data center location (e.g., E43, GDC) |
+| `kId` | string | Client PAN Card number |
+| `kType` | string | Token type - "Trade" (full trading access) |
+| `status` | string | Validation status - "success" or "failed" |
+| `isUserPwdExpired` | boolean | Whether password has expired |
+| `isTrialAccount` | boolean | Whether it's a trial account |
+| `clientType` | string | Client type (e.g., "RI" for Retail Individual) |
+| `isNRI` | boolean | Whether user is NRI (Non-Resident Indian) |
+| `dormancyStatus` | string | Account dormancy status |
+
+### Performance
+- **Average Latency**: 134 ms
+- **Typical Range**: 100-200 ms
 
 ### HTTP request headers
 

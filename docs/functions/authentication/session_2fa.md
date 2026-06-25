@@ -38,30 +38,32 @@ except Exception as e:
 
 object
 
-### Sample response
+### Sample Response
 
 ```json
 {
-        "data": {
-        "token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJWaWV3Il0sImV4cCI6MTY4Nzk3NzAwMCwianRpIjoiYzgyMzY2NjAtODkyNy00NzQ0LTk5YmQtMTAyNmRkYTA3MzUzIiwiaWF0IjoxNjg3OTQ2NDQyLCJpc3MiOiJsb2dpbi1zZXJ2aWNlIiwic3ViIjoiYTRlOGE5YzAtZmYyZi0xMWViLTlhMDMtMDI0MmFjMTMwMDAzIiwidWNjIjoiRDIwMTQiLCJuYXAiOiJEVU1NWTExMDVBIiwiZmV0Y2hjYWNoaW5ncnVsZSI6MCwiY2F0ZWdvcmlzYXRpb24iOiIifQ.PRDxhHjdAD2Z_hl3BF_-72l2uds5TzlAEyk57v9BgSnlUZrZ6S9khLi4l8Nfz1zNvwYHqwMPe4Gto6sXnbzbwim-U5c5dDey1hklLTD3kAb6y3bqSR-JcpdvpSGQQ6JVkxckKs_4qDgKEY-0qwnF6jtpB2D_CV0LCKMXfYWNBadZW9-cLLZkIc_C8n6DksyLQF2BWXbTUl6fEb9zSW7GYqI40YLB0q-FZgrOR7dfb3mNtJ4R4oQbeKf0GmR726JWcd3iOqVfFIzHUJvAeVu8FrjWEJfkxjPWf71BU5d_YAUYgtHvRxCweetuZqwa2HNN9xHTsNqr6FJdo3W4lhMp1g",
-        "sid": "8f8cd1ab-46e6-41cc-9bdd-9412c5fd4fb7",
-        "rid": "69404582-871b-4de8-8fdd-e3e6a5e15bbf",
-        "hsServerId": "server2",
-        "isUserPwdExpired": false,
-        "caches": {
-        "baskets": "1687845385",
-        "lastUpdatedTS": "1687845385",
-        "multiplewatchlists": "1683352919",
-        "techchartpreferences": "1683528608"
-        },
-        "ucc": "ABCD0",
-        "greetingName": "DUMMY",
-        "isTrialAccount": false,
-        "dataCenter": "gdc",
-        "searchAPIKey": ""
-        }
+  "data": {
+    "token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "sid": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    "rid": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    "hsServerId": "serverX",
+    "isUserPwdExpired": false,
+    "caches": {
+      "baskets": "1687845385",
+      "lastUpdatedTS": "1687845385",
+      "multiplewatchlists": "1683352919",
+      "techchartpreferences": "1683528608"
+    },
+    "ucc": "XXXXX",
+    "greetingName": "USER_NAME",
+    "isTrialAccount": false,
+    "dataCenter": "gdc",
+    "searchAPIKey": ""
+  }
 }
 ```
+
+**Note:** This is a legacy authentication method. For new implementations, please use [TOTP Login](./totp_login.md) and [TOTP Validate](./totp_validate.md).
 
 ### HTTP request headers
 
