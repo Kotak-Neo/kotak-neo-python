@@ -1,0 +1,93 @@
+name: Test Kotak Neo SDK
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - develop
+  pull_request:
+
+jobs:
+  test:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-24.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - "3.10"
+          - "3.11"
+          - "3.12"
+          - "3.13"
+          - "3.14"
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v5
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Upgrade Packaging Tools
+        run: |
+          python -m pip install --upgrade \
+            pip \
+            setuptools \
+            wheel \
+            build
+
+      - name: Install SDK and Development Dependencies
+        run: |
+          pip install -e ".[dev]"
+
+      - name: Verify Editable Installation
+        run: |
+          python - <<'EOF'
+          import neo_api_client
+          from neo_api_client import NeoAPI
+
+          print("SDK import successful")
+          print("Package location:", neo_api_client.__file__)
+          EOF
+
+      - name: Run Ruff Lint
+        run: |
+          ruff check .
+
+      - name: Run Ruff Format Check
+        run: |
+          ruff format --check .
+
+      - name: Run Unit Tests
+        run: |
+          python -m pytest tests -v
+
+      - name: Build Source and Wheel Distribution
+        run: |
+          python -m build
+
+      - name: Verify Built Artifacts
+        run: |
+          ls -lah dist/
+
+      - name: Verify Wheel Installation
+        run: |
+          pip uninstall -y neo-api-client || true
+          pip install --force-reinstall dist/*.whl
+
+          python - <<'EOF'
+          from neo_api_client import NeoAPI
+
+          print("Wheel installation successful")
+          EOF
+
+      - name: Upload Distribution Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-py${{ matrix.python-version }}
+          path: dist/
