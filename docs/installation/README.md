@@ -1,0 +1,244 @@
+# Installation Guide
+
+Complete installation guides for kotakneoapi SDK across different platforms and IDEs.
+
+## 📚 Installation Guides by Platform
+
+### Operating Systems
+- **[Windows](windows.md)** - Complete guide for Windows 10/11 with Visual Studio Code
+- **[macOS](macos.md)** - Installation on macOS with Homebrew and VS Code
+- **[Linux](linux.md)** - Ubuntu/Debian, CentOS/RHEL, and Arch Linux
+
+### IDEs & Editors
+- **[Visual Studio Code](vscode.md)** - Cross-platform VS Code setup
+- **[PyCharm](pycharm.md)** - JetBrains PyCharm Professional/Community
+- **[Jupyter Notebook](jupyter.md)** - Interactive development with Jupyter
+- **[Terminal/CLI](cli.md)** - Command-line only setup
+
+## 🚀 Quick Start (Any Platform)
+
+### Prerequisites
+- Python 3.10 or higher
+- pip (Python package manager)
+- Virtual environment support
+
+### Basic Installation
+
+```bash
+# Create virtual environment
+python -m venv venv
+
+# Activate it (varies by platform)
+# Linux/macOS: source venv/bin/activate
+# Windows (PowerShell): .\venv\Scripts\Activate.ps1
+# Windows (cmd): .\venv\Scripts\activate.bat
+
+# Install SDK
+pip install kotakneoapi
+
+# Verify installation
+python -c "from neo_api_client import NeoAPI; print('✓ Installation successful')"
+```
+
+## 📦 Installation Methods
+
+### Method 1: From PyPI (Recommended)
+```bash
+pip install kotakneoapi
+```
+
+### Method 2: From GitHub
+```bash
+pip install git+https://github.com/Kotak-Neo/kotak-neo-python.git
+```
+
+### Method 3: From Source (Development)
+```bash
+git clone https://github.com/Kotak-Neo/kotak-neo-python.git
+cd kotak-neo-python
+pip install -e ".[dev]"
+```
+
+## 🔧 Platform-Specific Quick Links
+
+### Windows Users
+1. [Install Python](windows.md#1-install-python)
+2. [Install VS Code](windows.md#2-install-visual-studio-code)
+3. [Create Virtual Environment](windows.md#step-2-create-virtual-environment)
+4. [Install SDK](windows.md#step-3-install-the-sdk)
+
+### macOS Users
+1. [Install Homebrew](macos.md#1-install-homebrew)
+2. [Install Python](macos.md#2-install-python)
+3. [Install VS Code](macos.md#3-install-visual-studio-code)
+4. [Install SDK](macos.md#installation-methods)
+
+### Linux Users
+1. [Install Python](linux.md#ubuntu-debian)
+2. [Create Virtual Environment](linux.md#create-virtual-environment)
+3. [Install SDK](linux.md#install-the-sdk)
+
+## 🎓 Learning Path
+
+**New to Python?**
+1. Start with [Windows Guide](windows.md) or [macOS Guide](macos.md)
+2. Follow the [Visual Studio Code Setup](vscode.md)
+3. Try the sample project in each guide
+
+**Experienced Developer?**
+1. Quick install: `pip install kotakneoapi`
+2. Check [CLI Setup](cli.md) for minimal setup
+3. See [Development Setup](#development-setup-for-contributors) below
+
+## 🧪 Development Setup (For Contributors)
+
+```bash
+# Clone repository
+git clone https://github.com/Kotak-Neo/kotak-neo-python.git
+cd kotak-neo-python
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # or appropriate command for your platform
+
+# Install with dev dependencies
+pip install -e ".[dev]"
+
+# Install pre-commit hooks
+pre-commit install
+
+# Run tests
+pytest
+
+# Check coverage
+pytest --cov=neo_api_client --cov-report=html
+```
+
+## 📋 System Requirements
+
+### Minimum Requirements
+- **Python:** 3.10 or higher
+- **pip:** 20.0 or higher
+- **RAM:** 512 MB minimum
+- **Disk Space:** 100 MB for SDK + dependencies
+- **Internet:** Required for installation and API calls
+
+### Recommended Requirements
+- **Python:** 3.12 or higher
+- **pip:** Latest version
+- **RAM:** 2 GB or more
+- **Disk Space:** 500 MB (for dev dependencies and testing)
+- **IDE:** VS Code, PyCharm, or Jupyter
+
+## 🔍 Verification Steps
+
+After installation, verify everything works:
+
+```python
+# test_install.py
+from neo_api_client import NeoAPI, __version__
+
+print(f"✓ kotakneoapi version: {__version__}")
+
+# Create client instance
+client = NeoAPI(
+    consumer_key="test_key",
+    environment="uat"
+)
+
+print("✓ NeoAPI client created successfully")
+print("✓ Installation verified!")
+```
+
+Run with:
+```bash
+python test_install.py
+```
+
+## 🐛 Common Issues
+
+### Issue: "python command not found"
+**Solution:** Python not in PATH. See platform-specific guides for PATH setup.
+
+### Issue: "pip command not found"
+**Solution:**
+```bash
+python -m ensurepip --upgrade
+python -m pip install --upgrade pip
+```
+
+### Issue: "Permission denied"
+**Solution:** Use virtual environment (recommended) or:
+```bash
+pip install --user kotakneoapi  # Not recommended
+```
+
+### Issue: SSL/Certificate errors
+**Solution:**
+```bash
+pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org kotakneoapi
+```
+
+### Issue: Virtual environment not activating
+**Solution:** See platform-specific activation commands in guides.
+
+## 📚 Additional Resources
+
+### Documentation
+- [Main README](../../README.md)
+- [API Documentation](../README.md)
+- [Publishing Guide](../../PUBLISH.md)
+
+### Platform-Specific
+- [Windows Installation](windows.md)
+- [macOS Installation](macos.md)
+- [Linux Installation](linux.md)
+
+### IDE Setup
+- [VS Code Setup](vscode.md)
+- [PyCharm Setup](pycharm.md)
+- [Jupyter Setup](jupyter.md)
+
+### External Links
+- [Python Downloads](https://www.python.org/downloads/)
+- [pip Documentation](https://pip.pypa.io/)
+- [Virtual Environments](https://docs.python.org/3/library/venv.html)
+- [Kotak Neo API Docs](https://developers.kotaksecurities.com/)
+
+## 💬 Getting Help
+
+**Found an issue with installation?**
+- Check the [Troubleshooting](#-common-issues) section
+- Review platform-specific guide
+- Open an issue: https://github.com/Kotak-Neo/kotak-neo-python/issues
+
+**Need support?**
+- Email: support@kotakneo.com
+- GitHub Issues: https://github.com/Kotak-Neo/kotak-neo-python/issues
+
+## 🔄 Updating the SDK
+
+```bash
+# Activate your virtual environment first
+pip install --upgrade kotakneoapi
+
+# Check new version
+pip show kotakneoapi
+```
+
+## 🗑️ Uninstalling
+
+```bash
+# Activate your virtual environment first
+pip uninstall kotakneoapi
+
+# Confirm with 'y'
+```
+
+---
+
+**Next Steps:**
+1. Choose your platform guide from the list above
+2. Follow the installation steps
+3. Set up your credentials in `.env` file
+4. Run your first trading bot!

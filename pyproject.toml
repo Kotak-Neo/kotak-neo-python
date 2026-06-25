@@ -1,0 +1,153 @@
+[build-system]
+requires = ["setuptools>=75.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kotakneoapi"
+version = "2.1.0"
+description = "Official Python SDK for Kotak Neo Trading APIs"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+
+authors = [
+    { name = "Kotak Neo", email = "support@kotakneo.com" }
+]
+
+maintainers = [
+    { name = "Dhruv Agarwal" }
+]
+
+keywords = [
+    "kotak",
+    "neo",
+    "trading",
+    "stocks",
+    "broker",
+    "api",
+    "market",
+    "equity",
+    "websocket",
+]
+
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Office/Business :: Financial :: Investment",
+]
+
+dependencies = [
+    "numpy>=1.26,<3",
+    "pandas>=2.2,<3",
+    "PyJWT>=2.10.1,<3",
+    "requests>=2.32.5,<3",
+    "websocket-client>=1.9.0,<2",
+    "structlog>=24.1.0,<25",
+    "tenacity>=8.2.3,<9",
+    "python-decouple>=3.8,<4",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=9.0",
+    "pytest-cov>=7.0",
+    "requests-mock>=1.12.1",
+    "coverage>=7.10",
+    "ruff>=0.12.0",
+    "mypy>=1.17",
+    "build>=1.3.0",
+    "twine>=6.0.0",
+    "bandit>=1.7.6",
+    "safety>=3.0.0",
+    "pre-commit>=3.6.0",
+    "pyotp>=2.9.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/Kotak-Neo/kotak-neo-python"
+Repository = "https://github.com/Kotak-Neo/kotak-neo-python"
+Issues = "https://github.com/Kotak-Neo/kotak-neo-python/issues"
+Documentation = "https://github.com/Kotak-Neo/kotak-neo-python/tree/main/docs"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["neo_api_client*"]
+exclude = [
+    "tests*",
+    "examples*",
+    "docs*",
+]
+
+[tool.setuptools.package-data]
+neo_api_client = [
+    "data/*.csv",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = [
+"-v",
+"--strict-markers",
+"--tb=short",
+"--log-cli-level=ERROR",
+]
+filterwarnings = [
+    "ignore::pytest.PytestUnraisableExceptionWarning",
+]
+
+[tool.coverage.run]
+source = ["neo_api_client"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+fail_under = 40
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+]
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_unreachable = true
+check_untyped_defs = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "I",
+    "UP",
+    "B",
+    "SIM",
+    "C4",
+]
+
+ignore = [
+    "E501",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false

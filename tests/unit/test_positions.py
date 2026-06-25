@@ -1,0 +1,35 @@
+import requests
+
+from neo_api_client.services.positions import PositionsAPI
+
+
+def test_positions(api_client, requests_mock):
+    url = api_client.configuration.get_url_details("positions")
+
+    requests_mock.get(
+        url,
+        json={"data": []},
+        status_code=200,
+    )
+
+    response = PositionsAPI(api_client).position_init()
+
+    assert response["data"] == []
+
+
+def test_positions_request_exception(api_client, monkeypatch, capsys):
+    def mock_request(*args, **kwargs):
+        raise requests.exceptions.RequestException("Connection error")
+
+    monkeypatch.setattr(
+        api_client.rest_client,
+        "request",
+        mock_request,
+    )
+
+    response = PositionsAPI(api_client).position_init()
+
+    captured = capsys.readouterr()
+
+    assert response is None
+    assert "Connection error" in captured.out

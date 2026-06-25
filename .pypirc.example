@@ -1,0 +1,18 @@
+# PyPI Configuration Example
+# Copy this file to ~/.pypirc and fill in your credentials
+# DO NOT commit ~/.pypirc to git - it contains sensitive tokens
+
+[distutils]
+index-servers =
+    pypi
+    testpypi
+
+[pypi]
+repository = https://upload.pypi.org/legacy/
+username = __token__
+password = pypi-YOUR_API_TOKEN_HERE
+
+[testpypi]
+repository = https://test.pypi.org/legacy/
+username = __token__
+password = pypi-YOUR_TESTPYPI_API_TOKEN_HERE

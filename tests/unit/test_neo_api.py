@@ -1,0 +1,378 @@
+import pytest
+
+from neo_api_client import NeoAPI
+
+
+def test_quotes_wrapper(monkeypatch):
+    client = NeoAPI(
+        environment="prod",
+        consumer_key="abc",
+    )
+
+    monkeypatch.setattr(
+        client,
+        "quotes",
+        lambda *args, **kwargs: {"stat": "Ok"},
+    )
+
+    result = client.quotes(
+        instrument_tokens=["12345"],
+        quote_type="all",
+    )
+
+    assert result["stat"] == "Ok"
+
+
+def test_neo_api_init_prod():
+    """Test NeoAPI initialization with prod environment."""
+    client = NeoAPI(
+        environment="prod",
+        consumer_key="test_key",
+    )
+
+    assert client.configuration.host == "prod"
+    assert client.configuration.consumer_key == "test_key"
+    assert client.api_client is not None
+
+
+def test_neo_api_init_uat():
+    """Test NeoAPI initialization with UAT environment."""
+    client = NeoAPI(
+        environment="uat",
+        consumer_key="test_key",
+    )
+
+    assert client.configuration.host == "uat"
+
+
+def test_neo_api_init_with_access_token():
+    """Test NeoAPI initialization with access token."""
+    client = NeoAPI(
+        environment="prod",
+        access_token="test_access_token",
+        consumer_key="test_key",
+    )
+
+    assert client.configuration.bearer_token == "test_access_token"
+
+
+def test_neo_api_init_with_neo_fin_key():
+    """Test NeoAPI initialization with neo_fin_key."""
+    client = NeoAPI(
+        environment="prod",
+        consumer_key="test_key",
+        neo_fin_key="test_fin_key",
+    )
+
+    assert client.configuration.neo_fin_key == "test_fin_key"
+
+
+def test_neo_api_websocket_callbacks():
+    """Test that WebSocket callbacks can be set."""
+    client = NeoAPI(
+        environment="prod",
+        consumer_key="test_key",
+    )
+
+    def on_message(_msg):
+        pass
+
+    def on_error(_err):
+        pass
+
+    def on_open():
+        pass
+
+    def on_close():
+        pass
+
+    client.on_message = on_message
+    client.on_error = on_error
+    client.on_open = on_open
+    client.on_close = on_close
+
+    assert client.on_message == on_message
+    assert client.on_error == on_error
+    assert client.on_open == on_open
+    assert client.on_close == on_close
+
+
+def test_neo_api_check_callbacks_all_set():
+    """Test check_callbacks when all callbacks are set."""
+    client = NeoAPI(
+        environment="prod",
+        consumer_key="test_key",
+    )
+
+    client.on_message = lambda _msg: None
+    client.on_error = lambda _err: None
+    client.on_open = lambda: None
+    client.on_close = lambda: None
+
+    # Should not raise any exception
+    client.check_callbacks()
+
+
+def test_neo_api_check_callbacks_missing():
+    """Test check_callbacks when callbacks are missing."""
+    client = NeoAPI(
+        environment="prod",
+        consumer_key="test_key",
+    )
+
+    # Should handle missing callbacks gracefully
+    try:
+        client.check_callbacks()
+    except Exception as e:
+        pytest.fail(f"check_callbacks raised unexpected exception: {e}")
+
+
+def test_neo_api_subscribe_without_login(monkeypatch):
+    """Test subscribe method without completing login."""
+    client = NeoAPI(
+        environment="prod",
+        consumer_key="test_key",
+    )
+
+    # Mock print to capture output
+    printed = []
+    monkeypatch.setattr("builtins.print", lambda x: printed.append(x))
+
+    client.subscribe(
+        instrument_tokens=[{"instrument_token": "1333", "exchange_segment": "nse_cm"}],
+        isIndex=False,
+        isDepth=False,
+    )
+
+    assert any("complete the Login Flow" in str(p) for p in printed)
+
+
+def test_neo_api_un_subscribe_without_login():
+    """Test un_subscribe method without completing login."""
+    client = NeoAPI(
+        environment="prod",
+        consumer_key="test_key",
+    )
+
+    with pytest.raises(ValueError) as exc_info:
+        client.un_subscribe(
+            instrument_tokens=[{"instrument_token": "1333", "exchange_segment": "nse_cm"}],
+            isIndex=False,
+            isDepth=False,
+        )
+
+    assert "Login Flow" in str(exc_info.value)
+
+
+def test_neo_api_subscribe_to_orderfeed_without_2fa(monkeypatch):
+    """Test subscribe_to_orderfeed without completing 2FA."""
+    client = NeoAPI(
+        environment="prod",
+        consumer_key="test_key",
+    )
+
+    result = client.subscribe_to_orderfeed()
+
+    assert "Error Message" in result
+    assert "2fa" in result["Error Message"]
+
+
+def test_neo_api_help_without_function():
+    """Test help method without function name."""
+    client = NeoAPI(
+        environment="prod",
+        consumer_key="test_key",
+    )
+
+    # Should not raise exception
+    try:
+        client.help()
+    except Exception as e:
+        pytest.fail(f"help() raised unexpected exception: {e}")
+
+
+def test_neo_api_help_with_function():
+    """Test help method with specific function name."""
+    client = NeoAPI(
+        environment="prod",
+        consumer_key="test_key",
+    )
+
+    # Should not raise exception
+    try:
+        client.help("quotes")
+    except Exception as e:
+        pytest.fail(f"help('quotes') raised unexpected exception: {e}")
+
+
+def test_neo_api_help_with_socket():
+    """Test help method with 'socket' keyword."""
+    client = NeoAPI(
+        environment="prod",
+        consumer_key="test_key",
+    )
+
+    # 'socket' should be mapped to 'subscribe'
+    try:
+        client.help("socket")
+    except Exception as e:
+        pytest.fail(f"help('socket') raised unexpected exception: {e}")
+
+
+def test_neo_api_help_invalid_function():
+    """Test help method with invalid function name."""
+    client = NeoAPI(
+        environment="prod",
+        consumer_key="test_key",
+    )
+
+    # Should handle gracefully
+    try:
+        client.help("invalid_function_name")
+    except Exception as e:
+        pytest.fail(f"help with invalid function raised unexpected exception: {e}")
+
+
+def test_neo_api_place_order_without_2fa():
+    """Test place_order without completing 2FA."""
+    client = NeoAPI(
+        environment="prod",
+        consumer_key="test_key",
+    )
+
+    result = client.place_order(
+        exchange_segment="nse_cm",
+        product="CNC",
+        price="100",
+        order_type="L",
+        quantity="1",
+        validity="DAY",
+        trading_symbol="RELIANCE-EQ",
+        transaction_type="B",
+    )
+
+    assert "Error Message" in result
+    assert "2fa" in result["Error Message"]
+
+
+def test_neo_api_cancel_order_without_2fa():
+    """Test cancel_order without completing 2FA."""
+    client = NeoAPI(
+        environment="prod",
+        consumer_key="test_key",
+    )
+
+    result = client.cancel_order(order_id="123456")
+
+    assert "Error Message" in result
+    assert "2fa" in result["Error Message"]
+
+
+def test_neo_api_modify_order_without_2fa():
+    """Test modify_order without completing 2FA."""
+    client = NeoAPI(
+        environment="prod",
+        consumer_key="test_key",
+    )
+
+    result = client.modify_order(
+        order_id="123456",
+        price="105",
+        quantity="2",
+        order_type="L",
+        validity="DAY",
+    )
+
+    assert "Error Message" in result
+    assert "2fa" in result["Error Message"]
+
+
+def test_neo_api_order_report_without_login():
+    """Test order_report without login."""
+    client = NeoAPI(
+        environment="prod",
+        consumer_key="test_key",
+    )
+
+    result = client.order_report()
+
+    assert "Error Message" in result
+    assert "2fa" in result["Error Message"]
+
+
+def test_neo_api_trade_report_without_login():
+    """Test trade_report without login."""
+    client = NeoAPI(
+        environment="prod",
+        consumer_key="test_key",
+    )
+
+    result = client.trade_report()
+
+    assert "Error Message" in result
+    assert "2fa" in result["Error Message"]
+
+
+def test_neo_api_positions_without_login():
+    """Test positions without login."""
+    client = NeoAPI(
+        environment="prod",
+        consumer_key="test_key",
+    )
+
+    result = client.positions()
+
+    assert "Error Message" in result
+    assert "2fa" in result["Error Message"]
+
+
+def test_neo_api_holdings_without_login():
+    """Test holdings without login."""
+    client = NeoAPI(
+        environment="prod",
+        consumer_key="test_key",
+    )
+
+    result = client.holdings()
+
+    assert "Error Message" in result
+    assert "2fa" in result["Error Message"]
+
+
+def test_neo_api_limits_without_login():
+    """Test limits without login."""
+    client = NeoAPI(
+        environment="prod",
+        consumer_key="test_key",
+    )
+
+    result = client.limits()
+
+    assert "Error Message" in result
+    assert "2fa" in result["Error Message"]
+
+
+def test_neo_api_scrip_master_without_login():
+    """Test scrip_master without login."""
+    client = NeoAPI(
+        environment="prod",
+        consumer_key="test_key",
+    )
+
+    result = client.scrip_master()
+
+    assert "Error Message" in result
+    assert "2fa" in result["Error Message"]
+
+
+def test_neo_api_order_history_without_login():
+    """Test order_history without login."""
+    client = NeoAPI(
+        environment="prod",
+        consumer_key="test_key",
+    )
+
+    result = client.order_history(order_id="123456")
+
+    assert "Error Message" in result
+    assert "2fa" in result["Error Message"]
