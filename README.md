@@ -20,9 +20,29 @@ Official Python SDK for Kotak Neo Trading APIs - A production-ready, enterprise-
 
 ## Installation
 
+### For Development (Local Installation)
+
+Since this package is not yet published to PyPI, install it locally:
+
+```bash
+# Clone the repository
+git clone https://github.com/Kotak-Neo/kotak-neo-python.git
+cd kotak-neo-python
+
+# Install in development/editable mode
+pip install -e .
+
+# Or install with development dependencies
+pip install -e ".[dev]"
+```
+
+### From PyPI (When Published)
+
 ```bash
 pip install kotakneoapi
 ```
+
+**Note:** The package is currently in development. For production use, install from the local repository as shown above.
 
 ## Quick Start
 

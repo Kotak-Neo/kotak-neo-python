@@ -2,7 +2,13 @@
 
 Complete installation guides for kotakneoapi SDK across different platforms and IDEs.
 
+> **⚠️ Important:** The package is currently in development and not yet published to PyPI.  
+> For installation instructions, see **[Local Installation Guide](./local-install.md)**
+
 ## 📚 Installation Guides by Platform
+
+### Current Method (Development)
+- **[Local Installation](local-install.md)** - Install from source repository ⭐ **START HERE**
 
 ### Operating Systems
 - **[Windows](windows.md)** - Complete guide for Windows 10/11 with Visual Studio Code
