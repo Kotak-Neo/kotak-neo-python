@@ -345,7 +345,7 @@ Create `.vscode/launch.json`:
 # Check installed packages
 pip list | grep kotakneoapi
 
-# Should show: kotakneoapi    2.1.0
+# Should show: kotakneoapi    2.1.1
 ```
 
 ### 2. Test Import
