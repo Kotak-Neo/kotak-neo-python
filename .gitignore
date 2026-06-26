@@ -216,3 +216,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Scrip Master CSV files (downloaded at runtime)
+neo_api_client/data/*.csv

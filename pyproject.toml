@@ -89,11 +89,6 @@ exclude = [
     "docs*",
 ]
 
-[tool.setuptools.package-data]
-neo_api_client = [
-    "data/*.csv",
-]
-
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
