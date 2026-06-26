@@ -115,16 +115,21 @@ Detailed documentation for all SDK functions with examples and real API response
 **WebSocket**
 - [Subscribe](docs/functions/websocket/subscribe.md) | [Unsubscribe](docs/functions/websocket/unsubscribe.md) | [Order Feed](docs/functions/websocket/order_feed.md)
 
-### 📖 Installation Guides
+### 📖 Guides & Documentation
 
+**Installation:**
 - **[Installation Overview](docs/installation/README.md)** - All installation options
-- **[Installation Reference](docs/INSTALLATION_REFERENCE.md)** - Complete guide to all platform-specific installations
+- **[Installation Reference](docs/guides/INSTALLATION_REFERENCE.md)** - Complete platform guide
 - **[Local Installation](docs/installation/local-install.md)** - Current method (before PyPI publish)
-- **[Windows Guide](docs/installation/windows.md)** - Windows 10/11 installation
-- **[macOS Guide](docs/installation/macos.md)** - macOS installation with Homebrew
-- **[Linux Guide](docs/installation/linux.md)** - Ubuntu, CentOS, Arch installation
-- **[VS Code Setup](docs/installation/vscode.md)** - VS Code configuration
-- **[Publishing Guide](docs/PUBLISHING.md)** - How to publish to PyPI (for maintainers)
+- **[Platform-Specific Guides](docs/installation/)** - Windows, macOS, Linux, VS Code
+
+**Publishing & Distribution:**
+- **[TestPyPI Upload Guide](docs/guides/TESTPYPI_UPLOAD_GUIDE.md)** - Upload to TestPyPI for testing
+- **[Publishing Guide](docs/guides/PUBLISHING.md)** - Publish to production PyPI
+
+**API Documentation:**
+- **[Complete API Reference](docs/functions/README.md)** - All SDK functions
+- **[All Guides](docs/guides/README.md)** - Complete guide index
 
 ## WebSocket Streaming Example
 

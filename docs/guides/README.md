@@ -1,0 +1,177 @@
+# Guides
+
+Comprehensive guides for developers, maintainers, and contributors.
+
+## 📚 Available Guides
+
+### For Developers
+
+#### [Installation Reference Guide](INSTALLATION_REFERENCE.md)
+Complete reference for installing the Kotak Neo Python SDK across different platforms.
+
+**Topics Covered:**
+- Platform-specific installation (Windows, macOS, Linux)
+- IDE setup (VS Code, PyCharm, Jupyter)
+- Installation decision tree
+- Quick reference matrix
+- Troubleshooting by platform
+
+**Who should read:**
+- New users choosing installation method
+- Developers setting up development environment
+- Contributors preparing for development
+- System administrators deploying to servers
+
+---
+
+### For Maintainers & Publishers
+
+#### [TestPyPI Upload Guide](TESTPYPI_UPLOAD_GUIDE.md) ⭐ **START HERE**
+Step-by-step guide for uploading your package to TestPyPI for testing before production release.
+
+**Topics Covered:**
+- Building package distributions
+- Getting TestPyPI API tokens
+- Uploading to TestPyPI
+- Testing installation
+- Troubleshooting common issues
+- Security best practices
+
+**Who should read:**
+- First-time publishers
+- Maintainers preparing for release
+- Anyone wanting to test package distribution
+
+**Current Status:**
+✅ Package built and validated, ready to upload!
+
+---
+
+#### [Publishing Guide](PUBLISHING.md)
+Complete guide for building and publishing the package to PyPI (production).
+
+**Topics Covered:**
+- Pre-publication checklist
+- Building distribution files
+- TestPyPI testing workflow
+- Production PyPI publishing
+- Version management
+- CI/CD automation
+- Security best practices
+- Post-publication steps
+
+**Who should read:**
+- Package maintainers
+- Release managers
+- Contributors preparing releases
+- DevOps engineers setting up CI/CD
+
+---
+
+## Quick Links
+
+### Installation & Setup
+- **[Installation Reference](INSTALLATION_REFERENCE.md)** - Complete platform guide
+- **[Local Installation](../installation/local-install.md)** - Current method (dev)
+- **[Windows Guide](../installation/windows.md)** - Windows 10/11
+- **[macOS Guide](../installation/macos.md)** - macOS with Homebrew
+- **[Linux Guide](../installation/linux.md)** - Ubuntu/CentOS/Arch
+- **[VS Code Setup](../installation/vscode.md)** - IDE configuration
+
+### Publishing & Distribution
+- **[TestPyPI Upload](TESTPYPI_UPLOAD_GUIDE.md)** - Testing release (current)
+- **[Publishing Guide](PUBLISHING.md)** - Production release
+- **[PyPI Best Practices](PUBLISHING.md#security-best-practices)** - Security guidelines
+
+### API Documentation
+- **[API Functions](../functions/README.md)** - Complete API reference
+- **[Authentication](../functions/authentication/)** - Login & auth
+- **[Orders](../functions/orders/)** - Order management
+- **[Portfolio](../functions/portfolio/)** - Holdings & positions
+- **[Market Data](../functions/market_data/)** - Quotes & scrips
+- **[WebSocket](../functions/websocket/)** - Real-time streaming
+
+---
+
+## Guide Selection Tool
+
+### I want to...
+
+**...install the SDK**
+→ [Installation Reference Guide](INSTALLATION_REFERENCE.md)
+
+**...set up my development environment**
+→ [Local Installation Guide](../installation/local-install.md)
+
+**...publish to TestPyPI (testing)**
+→ [TestPyPI Upload Guide](TESTPYPI_UPLOAD_GUIDE.md)
+
+**...publish to production PyPI**
+→ [Publishing Guide](PUBLISHING.md)
+
+**...learn the API**
+→ [API Functions Documentation](../functions/README.md)
+
+**...troubleshoot installation**
+→ [Installation Reference - Troubleshooting](INSTALLATION_REFERENCE.md#troubleshooting-guides)
+
+---
+
+## Documentation Structure
+
+```
+docs/
+├── guides/                          # 📖 You are here
+│   ├── README.md                    # This file
+│   ├── INSTALLATION_REFERENCE.md    # Complete installation guide
+│   ├── TESTPYPI_UPLOAD_GUIDE.md    # TestPyPI publishing
+│   └── PUBLISHING.md                # PyPI publishing
+│
+├── installation/                    # Platform-specific guides
+│   ├── README.md
+│   ├── local-install.md
+│   ├── windows.md
+│   ├── macos.md
+│   ├── linux.md
+│   └── vscode.md
+│
+└── functions/                       # API documentation
+    ├── README.md
+    ├── authentication/
+    ├── orders/
+    ├── portfolio/
+    ├── market_data/
+    └── websocket/
+```
+
+---
+
+## Contributing
+
+Found an issue or want to improve a guide?
+
+1. Check [GitHub Issues](https://github.com/Kotak-Neo/kotak-neo-python/issues)
+2. Submit a pull request with improvements
+3. Follow the documentation style guide
+
+---
+
+## Support
+
+**Need help?**
+- 📧 Email: support@kotakneo.com
+- 🐛 GitHub Issues: https://github.com/Kotak-Neo/kotak-neo-python/issues
+- 📖 Main README: [../../README.md](../../README.md)
+
+---
+
+## Recent Updates
+
+- **2026-06-26**: Added TestPyPI Upload Guide
+- **2026-06-25**: Created Installation Reference Guide
+- **2026-06-25**: Created Publishing Guide
+- **2026-06-25**: Organized guides into dedicated folder
+
+---
+
+[[Back to Main README]](../../README.md) | [[Installation Guides]](../installation/README.md) | [[API Documentation]](../functions/README.md)

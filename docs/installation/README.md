@@ -7,7 +7,7 @@ Complete installation guides for kotakneoapi SDK across different platforms and 
 
 ## 📚 Installation Guides by Platform
 
-> **📖 Complete Reference:** See [Installation Reference Guide](../INSTALLATION_REFERENCE.md) for comprehensive guide to all installation methods and platform-specific guides.
+> **📖 Complete Reference:** See [Installation Reference Guide](../guides/INSTALLATION_REFERENCE.md) for comprehensive guide to all installation methods and platform-specific guides.
 
 ### Current Method (Development)
 - **[Local Installation](local-install.md)** - Install from source repository ⭐ **START HERE**
@@ -194,8 +194,9 @@ pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org kotakn
 
 ### Documentation
 - [Main README](../../README.md)
-- [API Documentation](../README.md)
-- [Publishing Guide](../../PUBLISH.md)
+- [API Documentation](../functions/README.md)
+- [All Guides](../guides/README.md)
+- [Publishing Guide](../guides/PUBLISHING.md)
 
 ### Platform-Specific
 - [Windows Installation](windows.md)
