@@ -26,6 +26,15 @@ Complete installation guides for kotakneoapi SDK across different platforms and 
 ## 🚀 Quick Start (Any Platform)
 
 ### Prerequisites
+
+**Before Installation:**
+1. **Get Consumer Key (REQUIRED)**
+   - Login to Kotak NEO app/web
+   - Go to **Invest** tab → **Trade API** card
+   - Click **Generate application**
+   - Copy the token (needed for authentication)
+
+**System Requirements:**
 - Python 3.10 or higher
 - pip (Python package manager)
 - Virtual environment support
@@ -138,9 +147,54 @@ pytest --cov=neo_api_client --cov-report=html
 - **Disk Space:** 500 MB (for dev dependencies and testing)
 - **IDE:** VS Code, PyCharm, or Jupyter
 
+## 🔑 Setup Credentials
+
+After installation, configure your API credentials:
+
+### Step 1: Create .env file
+```bash
+cp .env.example .env
+nano .env  # or use your preferred editor
+```
+
+### Step 2: Add Required Credentials
+```bash
+# REQUIRED - Consumer Key from NEO app Trade API
+NEO_CONSUMER_KEY=your-token-here
+
+# Your registered mobile with country code
+NEO_MOBILE_NUMBER=+919876543210
+
+# Your UCC from NEO app Profile
+NEO_UCC=ABC123
+
+# TOTP secret from QR code during TOTP registration
+NEO_TOTP_SECRET=your-base32-secret
+
+# Your trading MPIN
+NEO_MPIN=123456
+```
+
+### How to Get Each Credential:
+
+**NEO_CONSUMER_KEY** (REQUIRED)
+1. Login to Kotak NEO app/web
+2. Go to **Invest** → **Trade API**
+3. Click **Generate application**
+4. Copy the token
+
+**NEO_UCC**
+- Find in NEO app under **Profile** section
+
+**NEO_TOTP_SECRET**
+1. Visit https://www.kotaksecurities.com/platform/kotak-neo-trade-api/
+2. Register for TOTP
+3. Scan QR code with authenticator app
+4. Save the base32 secret key (not the 6-digit code)
+
 ## 🔍 Verification Steps
 
-After installation, verify everything works:
+After installation and credentials setup:
 
 ```python
 # test_install.py
@@ -148,10 +202,10 @@ from neo_api_client import NeoAPI, __version__
 
 print(f"✓ kotakneoapi version: {__version__}")
 
-# Create client instance
+# Create client instance with your consumer_key
 client = NeoAPI(
-    consumer_key="test_key",
-    environment="uat"
+    consumer_key="your-consumer-key",  # REQUIRED
+    environment="prod"
 )
 
 print("✓ NeoAPI client created successfully")

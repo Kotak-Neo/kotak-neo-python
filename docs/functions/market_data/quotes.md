@@ -13,22 +13,29 @@ client.quotes(
 ### Example
 
 ```python
-
 from neo_api_client import NeoAPI
 
-#Only need to initialize session and generate session token
+# Initialize with consumer key (REQUIRED)
+client = NeoAPI(
+    consumer_key='your-token-from-neo-app',
+    environment='prod'
+)
 
-client = NeoAPI(environment='prod', access_token=None, neo_fin_key=None)
+# Authenticate first
+client.totp_login(mobile_number='+919876543210', ucc='ABC123', totp='123456')
+client.totp_validate(mpin='123456')
 
+# Get quotes
 instrument_tokens = [
-    {"instrument_token": "Nifty 50", "exchange_segment": "nse_cm"},
-    {"instrument_token": "Nifty Bank", "exchange_segment": "nse_cm"}
+    {"instrument_token": "1333", "exchange_segment": "nse_cm"},  # HDFCBANK
+    {"instrument_token": "2885", "exchange_segment": "nse_cm"}   # RELIANCE
 ]
 
 try:
-    client.quotes(instrument_tokens = instrument_tokens, quote_type = "all")
+    response = client.quotes(instrument_tokens=instrument_tokens, quote_type="all")
+    print(response)
 except Exception as e:
-    print("Exception when calling Quotes Api->quotes: %s\n" % e)
+    print("Exception when calling quotes: %s\n" % e)
 ```
 
 ## Parameters

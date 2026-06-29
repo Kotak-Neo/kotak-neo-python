@@ -10,7 +10,7 @@ class APITestRunner:
     def __init__(self):
         self.results = []
 
-        # Get consumer_key from environment variable, or use None
+        # Get consumer_key from environment variable (optional - for tracking)
         consumer_key = config("NEO_CONSUMER_KEY", default=None)
 
         self.client = NeoAPI(

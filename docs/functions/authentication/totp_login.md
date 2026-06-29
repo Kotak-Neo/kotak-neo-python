@@ -1,33 +1,64 @@
 # **Totp_login**
-TOTP login is the third step in TOTP login flow where view token is generated.
+
+TOTP login is the first step in TOTP authentication flow where the view token is generated.
+
+## Prerequisites
+
+### 1. Get Consumer Key
+- Login to Kotak NEO app/web
+- Navigate to **Invest** tab → **Trade API** card
+- Click **Generate application**
+- Copy the token shown with the default application
+- Use this token as `consumer_key` when initializing `NeoAPI`
+
+### 2. Register for TOTP (One-time setup)
+- Visit https://www.kotaksecurities.com/platform/kotak-neo-trade-api/
+- Click **Register for TOTP**
+- Verify mobile with OTP
+- Select account for TOTP registration
+- Scan QR code with authenticator app (Google Authenticator, Authy, etc.)
+- Save the secret key from QR code (for automated TOTP generation)
+- Submit TOTP to complete registration
+
+## Usage
 
 ```python
-client.totp_login(mobilenumber="", ucc="", totp='')
+client.totp_login(mobile_number="", ucc="", totp='')
 ```
 
 ### Example
 
-
 ```python
 from neo_api_client import NeoAPI
 
-
-client = NeoAPI(environment='prod', access_token=None, neo_fin_key=None)
-
+# Initialize with consumer key from NEO app Trade API card
+client = NeoAPI(
+    consumer_key='your-consumer-key-token',  # Required: Token from NEO app
+    environment='prod',
+    access_token=None,
+    neo_fin_key=None
+)
 
 try:
-    client.totp_login(mobilenumber="", ucc="", totp='')
+    # Login with TOTP
+    response = client.totp_login(
+        mobile_number="+919876543210",  # Registered mobile with country code
+        ucc="ABC123",  # Your UCC from NEO app Profile
+        totp='123456'  # 6-digit code from authenticator app
+    )
+    print(response)
 
 except Exception as e:
-    print("Exception when calling TOTPLogin ->login: %s\n" % e)
+    print("Exception when calling totp_login: %s\n" % e)
 ```
+
 ### Parameters
 
 | Name           | Description                                           | Type   |
 |----------------|-------------------------------------------------------|--------|
-| *mobilenumber* | Your registered mobile number Eg: "+919999996708"     | Str    |
-| *ucc*          | Your unique client code Eg: "ABC12"                   | Str    |
-| *totp* | TOTP recieved on google authenticator app Eg: "123456" | Str    |
+| *mobile_number* | Your registered mobile number with country code. Example: "+919876543210" | Str    |
+| *ucc*          | Your Unique Client Code. Find in NEO app under Profile section. Example: "ABC123" | Str    |
+| *totp* | 6-digit Time-based One-Time Password from authenticator app. Changes every 30 seconds. Example: "123456" | Str    |
 
 ### Return type
 

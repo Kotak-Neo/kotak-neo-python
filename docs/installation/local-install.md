@@ -229,12 +229,21 @@ nano .env  # or use your preferred editor
 
 Add your credentials:
 ```bash
+# REQUIRED - Get from NEO app: Invest → Trade API → Generate application
+NEO_CONSUMER_KEY=your-consumer-key-here
+
 NEO_MOBILE_NUMBER=+91XXXXXXXXXX
 NEO_UCC=XXXXX
 NEO_TOTP_SECRET=your-totp-secret-here
 NEO_MPIN=123456
-NEO_CONSUMER_KEY=your-consumer-key-here  # Optional
 ```
+
+**How to get NEO_CONSUMER_KEY:**
+1. Login to Kotak NEO app or website
+2. Navigate to **Invest** tab → **Trade API** card
+3. Click **Generate application**
+4. Copy the token from default application
+5. Paste it above as `NEO_CONSUMER_KEY`
 
 ## Running Tests
 

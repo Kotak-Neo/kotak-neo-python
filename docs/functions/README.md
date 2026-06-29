@@ -2,6 +2,30 @@
 
 Complete reference for all Kotak Neo Python SDK functions with examples and real API responses.
 
+## Getting Started
+
+Before using any API functions, you must:
+
+1. **Get Consumer Key** - Login to NEO app → Invest → Trade API → Generate application
+2. **Initialize Client** - Create NeoAPI instance with consumer_key
+3. **Authenticate** - Complete TOTP login and MPIN validation
+
+```python
+from neo_api_client import NeoAPI
+
+# Initialize with consumer key (REQUIRED)
+client = NeoAPI(
+    consumer_key='your-token-from-neo-app',
+    environment='prod'
+)
+
+# Authenticate
+client.totp_login(mobile_number='+919876543210', ucc='ABC123', totp='123456')
+client.totp_validate(mpin='123456')
+
+# Now you can use all API functions
+```
+
 ## Table of Contents
 
 ### 1. Authentication

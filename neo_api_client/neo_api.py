@@ -21,55 +21,85 @@ from neo_api_client.websocket.NeoWebSocket import NeoWebSocket
 
 class NeoAPI:
     """
-    A class representing the NeoAPI, which is a client API for the Neo banking platform.
+    A class representing the NeoAPI client for Kotak Neo Trading Platform.
 
-    The `NeoAPI` class provides methods to initialize the API client, log in to the platform, generate OTP, and perform 2FA authentication.
+    The `NeoAPI` class provides methods to initialize the API client, authenticate using TOTP,
+    place orders, manage portfolio, and access real-time market data.
 
     Attributes:
-        environment (str): The environment for the API client.
-        configuration (neo_api_client.Configuration): The configuration for the API client.
-        consumer_key (str): The consumer key for the API client.
-        consumer_secret (str): The consumer secret for the API client.
-        username (str): The username for the API client.
-        password (str): The password for the API client.
+        environment (str): The environment for the API client ('prod' or 'uat').
+        consumer_key (str): Consumer key token from NEO app Trade API card (optional for tracking).
+        access_token (str): Pre-authenticated access token (optional).
+        neo_fin_key (str): Financial key for tracking purpose (optional).
+        configuration: The configuration for the API client.
         api_client (ApiClient): The API client instance.
 
-    Methods:
-        __init__(consumer_key=None, consumer_secret=None, host='uat', username=None, password=None):
-            Initializes the `NeoAPI` instance with the given consumer key, consumer secret, host, username, and password.
-            Validates the configuration and creates an API client instance.
+    Authentication Flow:
+        1. Get consumer_key from NEO app (Invest → Trade API → Generate application)
+        2. Initialize NeoAPI with consumer_key
+        3. Call totp_login() with mobile, UCC, and TOTP code
+        4. Call totp_validate() with MPIN to get trading access
 
-        login(mobileNumber, password):
-            Logs in to the platform using the given mobile number and password.
-            Sets the view token, SID, and server ID in the configuration.
+    Example:
+        ```python
+        from neo_api_client import NeoAPI
 
-        generateOTP():
-            Generates an OTP for 2FA authentication.
+        # Initialize client
+        client = NeoAPI(
+            consumer_key='your-token-from-neo-app',
+            environment='prod'
+        )
 
-        session_2fa(OTP):
-            Performs 2FA authentication using the given OTP.
-            Sets the edit token, SID, RID, and server ID in the configuration.
+        # Step 1: Login with TOTP
+        client.totp_login(
+            mobile_number='+919876543210',
+            ucc='ABC123',
+            totp='123456'
+        )
+
+        # Step 2: Validate with MPIN
+        client.totp_validate(mpin='123456')
+
+        # Now you can place orders, get quotes, etc.
+        ```
     """
 
-    def __init__(self, environment="uat", access_token=None, neo_fin_key=None, consumer_key=None):
+    def __init__(self, consumer_key=None, environment="prod", access_token=None, neo_fin_key=None):
         """
-        Initializes the class and sets up the necessary configurations for the API client.
+        Initializes the NeoAPI client with authentication credentials.
 
         Parameters:
-        environment (str): The environment has to pass by user to connect 'UAT' or 'PROD'.
-        access_token (str, optional): The access token used for authentication. Defaults to None.
-        consumer_key (str, optional): The consumer key used for authentication. Defaults to None.
-        consumer_secret (str, optional): The consumer secret used for authentication. Defaults to None.
-        neo_fin_key (str, optional): Finkey for tracking purpose
+            consumer_key (str): **REQUIRED** - Consumer key token from NEO app Trade API card.
+                How to get: Login to NEO app/web → Invest tab → Trade API → Generate application → Copy token.
+                This token is used in the Authorization header for all API requests.
+                Without this, authentication will fail.
+            environment (str): The environment to connect to. Options: 'prod' (production) or 'uat' (testing).
+                Default: 'prod'
+            access_token (str, optional): Pre-authenticated access token (if you already have one).
+                Default: None (use TOTP authentication flow instead)
+            neo_fin_key (str, optional): Financial key for tracking purpose.
+                Default: None
 
-        Updates:
-        self.on_message: sets the callback function for incoming messages for Websocket.
-        self.on_error: sets the callback function for errors for Websocket.
-        self.on_close: sets the callback function for connection close events for Websocket.
-        self.on_open: sets the callback function for connection open events for Websocket.
+        WebSocket Callbacks:
+            You can set these callback functions after initialization:
+            - self.on_message: Callback for incoming WebSocket messages
+            - self.on_error: Callback for WebSocket errors
+            - self.on_close: Callback for WebSocket connection close
+            - self.on_open: Callback for WebSocket connection open
 
-        Raises:
-        ApiException: if the session initiation fails.
+        Example:
+            ```python
+            # Initialize with consumer key from NEO app
+            client = NeoAPI(
+                consumer_key='your-token-from-neo-app',
+                environment='prod'
+            )
+            ```
+
+        Note:
+            After initialization, you need to authenticate using:
+            1. client.totp_login(mobile_number, ucc, totp)
+            2. client.totp_validate(mpin)
         """
 
         self.on_message = None
@@ -872,22 +902,48 @@ class NeoAPI:
 
     def totp_login(self, mobile_number=None, ucc=None, totp=None):
         """
-        Logs in to the system by generating a view token using mobile_number, totp and ucc
+        Step 1: Login using TOTP to generate a view token (read-only access).
+
+        Prerequisites:
+            - Register for TOTP at https://www.kotaksecurities.com/platform/kotak-neo-trade-api/
+            - Set up authenticator app (Google Authenticator, Authy, etc.)
+            - Have your consumer_key configured during NeoAPI initialization
 
         Args:
-            mobile_number (str): Registered mobile number
-            ucc (str): Unique Client Code which you will find in mobile application/website under profile section
-            totp (str): The 6 digit code generated on the authenticator app
+            mobile_number (str): Your registered mobile number with country code.
+                Example: "+919876543210"
+            ucc (str): Unique Client Code - find in NEO app under Profile section.
+                Example: "ABC123"
+            totp (str): 6-digit Time-based One-Time Password from authenticator app.
+                This code changes every 30 seconds.
+                Example: "123456"
 
         Returns:
+            dict: Response containing view token, session ID, and user details.
             {
-                "data": {"token": "", "sid": "", "rid": "", "hsServerId": "", "isUserPwdExpired": , "ucc": "",
-                    "greetingName": "", "isTrialAccount": , "dataCenter": "", "searchAPIKey": "",
-                    "derivativesRiskDisclosure": "", "mfAccess": 1, "dataCenterMap": null, "dormancyStatus": "",
-                    "asbaStatus": "", "clientType": "", "isNRI": false, "kId": "", "kType": "", "status": "",
-                    "incRange": 0, "incUpdFlag": "", "clientGroup": ""}
+                "data": {
+                    "token": "eyJhbGc...",  # View token (read-only)
+                    "sid": "session-id",
+                    "ucc": "ABC123",
+                    "greetingName": "User Name",
+                    "kId": "PAN_NUMBER",
+                    "kType": "View",  # Indicates view-only access
+                    "status": "success",
+                    ...
+                }
             }
 
+        Example:
+            ```python
+            response = client.totp_login(
+                mobile_number="+919876543210",
+                ucc="ABC123",
+                totp="123456"  # From authenticator app
+            )
+            ```
+
+        Note:
+            After totp_login, you must call totp_validate(mpin) to get trading access.
         """
         if not mobile_number or not ucc or not totp:
             error = {"error": [{"message": "Any of Mobile Number, UCC or totp is missing"}]}
@@ -899,21 +955,49 @@ class NeoAPI:
 
     def totp_validate(self, mpin=None):
         """
-        Establishes a session with the API using the generated view token and mpin.
+        Step 2: Validate MPIN to upgrade from view token to trade token (full trading access).
 
-        Parameters:
-        mpin (str): The 6 digit pin
+        This method must be called after totp_login() to complete the authentication flow
+        and obtain trading permissions.
 
-        Returns: {
-            "data": {"token": "", "sid": "", "rid": "", "hsServerId": "", "isUserPwdExpired": false, "ucc": "",
-                "greetingName": "", "isTrialAccount": false, "dataCenter": "gdc", "searchAPIKey": "",
-                "derivativesRiskDisclosure": "", "mfAccess": 1, "dataCenterMap": null, "dormancyStatus": "",
-                "asbaStatus": "", "clientType": "", "isNRI": false, "kId": "", "kType": "", "status": "",
-                "incRange": 0, "incUpdFlag": "", "clientGroup": ""}
-        }
+        Args:
+            mpin (str): Your 6-digit Mobile PIN for trading authorization.
+                This is the MPIN you set up for your Kotak NEO trading account.
+                Example: "123456"
+
+        Returns:
+            dict: Response containing trade token with full access permissions.
+            {
+                "data": {
+                    "token": "eyJhbGc...",  # Trade token (full access)
+                    "sid": "session-id",
+                    "rid": "request-id",
+                    "hsServerId": "server-id",
+                    "baseUrl": "api-url",
+                    "dataCenter": "gdc",
+                    "kType": "Trade",  # Indicates trading access enabled
+                    "status": "success",
+                    ...
+                }
+            }
+
+        Example:
+            ```python
+            # After successful totp_login()
+            response = client.totp_validate(mpin="123456")
+
+            # Now you have full trading access
+            # You can place orders, modify positions, etc.
+            ```
 
         Updates:
-        edit_token: sets the edit token obtained from the API response.
+            - Sets edit_token for trading operations
+            - Sets edit_sid, edit_rid for session management
+            - Configures base_url and data_center for API routing
+
+        Note:
+            Both totp_login() and totp_validate() must succeed before you can perform
+            trading operations like placing orders.
         """
         if not mpin:
             error = {"error": [{"message": "Mpin is missing"}]}

@@ -46,25 +46,35 @@ pip install kotakneoapi
 
 ## Quick Start
 
+### Prerequisites
+
+1. **Get Consumer Key (REQUIRED)**: Login to Kotak NEO app/web → **Invest** tab → **Trade API** card → Generate application → Copy the token
+   - This token is used in the Authorization header for all API requests
+   - Authentication will fail without this token
+2. **Register for TOTP**: Visit https://www.kotaksecurities.com/platform/kotak-neo-trade-api/ → Register for TOTP → Scan QR code with authenticator app (Google Authenticator, Authy, etc.)
+
+### Authentication
+
 ```python
 from neo_api_client import NeoAPI
 
 # Initialize the client
 client = NeoAPI(
+    consumer_key='your-consumer-key-token',  # Token from NEO app Trade API card
     environment='prod',  # or 'uat' for testing
-    consumer_key='your-consumer-key',
-    neo_fin_key='your-fin-key'  # optional, for tracking
+    access_token=None,  # Optional
+    neo_fin_key=None  # Optional
 )
 
-# Login with TOTP
+# Step 1: Login with TOTP
 login_response = client.totp_login(
-    mobile_number='+919876543210',
-    ucc='YOUR_UCC',
-    totp='123456'  # 6-digit TOTP from authenticator app
+    mobile_number='+919876543210',  # Your registered mobile with country code
+    ucc='YOUR_UCC',  # Find in NEO app/web under Profile section
+    totp='123456'  # 6-digit code from authenticator app (changes every 30 seconds)
 )
 
-# Complete 2FA with MPIN
-validate_response = client.totp_validate(mpin='123456')
+# Step 2: Validate with MPIN to complete authentication
+validate_response = client.totp_validate(mpin='123456')  # Your trading MPIN
 
 # Place an order
 order_response = client.place_order(
@@ -191,14 +201,31 @@ except NeoAPIException as e:
 
 ## Environment Setup
 
-Create a `.env` file for credentials:
+Create a `.env` file for credentials (copy from `.env.example`):
 
 ```bash
+# Consumer Key from NEO app (REQUIRED - Used in Authorization header)
+# Get it: NEO app → Invest → Trade API → Generate application → Copy token
+NEO_CONSUMER_KEY=your-consumer-key-token
+
+# Your registered mobile number with country code
 NEO_MOBILE_NUMBER=+919876543210
+
+# Your UCC (User Client Code) from NEO app Profile section
 NEO_UCC=YOUR_UCC
+
+# TOTP secret key (base32 string from QR code during TOTP registration)
+# This is NOT the 6-digit code - it's the secret key from authenticator setup
 NEO_TOTP_SECRET=YOUR_TOTP_SECRET_KEY
+
+# Your trading MPIN
 NEO_MPIN=123456
 ```
+
+**How to get credentials:**
+- **Consumer Key**: NEO app → Invest → Trade API → Generate application → Copy token
+- **UCC**: NEO app → Profile section
+- **TOTP Secret**: https://www.kotaksecurities.com/platform/kotak-neo-trade-api/ → Register for TOTP → Note the secret from QR code setup
 
 ## Performance Benchmarks
 
