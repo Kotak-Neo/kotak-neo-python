@@ -36,10 +36,30 @@ class OrderAPI:
     ):
         try:
             header_params = {
+                "Authorization": self.api_client.configuration.consumer_key,
                 "Sid": self.api_client.configuration.edit_sid,
                 "Auth": self.api_client.configuration.edit_token,
                 "Content-Type": "application/x-www-form-urlencoded",
             }
+
+            # Debug logging
+            import sys
+
+            print("\n[DEBUG] Place Order Headers:", file=sys.stderr)
+            print(
+                f"  Authorization: {self.api_client.configuration.consumer_key[:20]}..."
+                if self.api_client.configuration.consumer_key
+                else "  Authorization: None",
+                file=sys.stderr,
+            )
+            print(f"  Sid: {self.api_client.configuration.edit_sid}", file=sys.stderr)
+            print(
+                f"  Auth: {self.api_client.configuration.edit_token[:50]}..."
+                if self.api_client.configuration.edit_token
+                else "  Auth: None",
+                file=sys.stderr,
+            )
+            print(f"  serverId: {self.api_client.configuration.serverId}", file=sys.stderr)
 
             body_params = {
                 "am": amo,
@@ -67,7 +87,11 @@ class OrderAPI:
                 "os": self.order_source,
             }
 
-            query_params = {"sId": self.api_client.configuration.serverId}
+            # Only add serverId to query params if it's not empty
+            query_params = {}
+            if self.api_client.configuration.serverId:
+                query_params["sId"] = self.api_client.configuration.serverId
+
             URL = self.api_client.configuration.get_url_details("place_order")
             orders_resp = self.rest_client.request(
                 url=URL,
@@ -100,13 +124,18 @@ class OrderAPI:
                         }
 
         header_params = {
+            "Authorization": self.api_client.configuration.consumer_key,
             "Sid": self.api_client.configuration.edit_sid,
             "Auth": self.api_client.configuration.edit_token,
             "Content-Type": "application/x-www-form-urlencoded",
         }
         body_params = {"on": order_id, "am": amo}
 
-        query_params = {"sId": self.api_client.configuration.serverId}
+        query_params = (
+            {"sId": self.api_client.configuration.serverId}
+            if self.api_client.configuration.serverId
+            else {}
+        )
         URL = self.api_client.configuration.get_url_details("cancel_order")
         try:
             cancel_resp = self.rest_client.request(
@@ -139,13 +168,18 @@ class OrderAPI:
                         }
 
         header_params = {
+            "Authorization": self.api_client.configuration.consumer_key,
             "Sid": self.api_client.configuration.edit_sid,
             "Auth": self.api_client.configuration.edit_token,
             "Content-Type": "application/x-www-form-urlencoded",
         }
         body_params = {"on": order_id, "am": amo}
 
-        query_params = {"sId": self.api_client.configuration.serverId}
+        query_params = (
+            {"sId": self.api_client.configuration.serverId}
+            if self.api_client.configuration.serverId
+            else {}
+        )
 
         URL = self.api_client.configuration.get_url_details("cancel_cover_order")
         try:
@@ -179,13 +213,18 @@ class OrderAPI:
                         }
 
         header_params = {
+            "Authorization": self.api_client.configuration.consumer_key,
             "Sid": self.api_client.configuration.edit_sid,
             "Auth": self.api_client.configuration.edit_token,
             "Content-Type": "application/x-www-form-urlencoded",
         }
         body_params = {"on": order_id, "am": amo}
 
-        query_params = {"sId": self.api_client.configuration.serverId}
+        query_params = (
+            {"sId": self.api_client.configuration.serverId}
+            if self.api_client.configuration.serverId
+            else {}
+        )
         URL = self.api_client.configuration.get_url_details("cancel_bracket_order")
         try:
             cancel_resp = self.rest_client.request(

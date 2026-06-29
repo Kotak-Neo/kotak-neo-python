@@ -60,6 +60,20 @@ class APITestRunner:
             if response.get("Error"):
                 raise RuntimeError(f"{api_name} failed: {response}")
 
+            # Check for stat != "Ok" (API error format)
+            if response.get("stat") == "Not_Ok":
+                error_code = response.get("stCode", "Unknown code")
+                error_msg = response.get("errMsg", "Unknown error")
+
+                # 5203 = "No Data" - This is a valid response, not an error
+                # It just means there are no orders/trades/positions
+                if error_code == 5203:
+                    print(f"\n[INFO] {api_name}: {error_msg} - This is normal when there's no data")
+                    return response
+
+                # Other error codes are actual errors
+                raise RuntimeError(f"{api_name} failed: {error_msg} (Code: {error_code})")
+
         return response
 
     def run_test(self, api_name, func, request_params=None):
@@ -180,9 +194,21 @@ runner.run_test(
     request_params={"mpin": MPIN},
 )
 
-print("\nConfiguration")
+print("\n" + "=" * 80)
+print("AUTHENTICATION STATUS")
+print("=" * 80)
 print("base_url:", runner.client.api_client.configuration.base_url)
 print("sid:", runner.client.api_client.configuration.sid)
+print("edit_sid:", runner.client.api_client.configuration.edit_sid)
+print(
+    "edit_token:",
+    runner.client.api_client.configuration.edit_token[:50] + "..."
+    if runner.client.api_client.configuration.edit_token
+    else None,
+)
+print("serverId:", runner.client.api_client.configuration.serverId)
+print("data_center:", runner.client.api_client.configuration.data_center)
+print("=" * 80)
 
 # ---------------------------
 # MARKET DATA
@@ -304,6 +330,82 @@ runner.run_test(
         "symbol": "RELIANCE",
     },
 )
+
+# ---------------------------
+# ORDER MANAGEMENT (Place → Modify → Cancel)
+# ---------------------------
+
+# Store order_id for modify and cancel tests
+placed_order_id = None
+
+# Test Place Order
+place_order_params = {
+    "exchange_segment": "nse_cm",
+    "product": "CNC",
+    "price": "1.00",  # Very low price to avoid execution
+    "order_type": "L",  # Limit order
+    "quantity": "1",
+    "validity": "DAY",
+    "trading_symbol": "INFY-EQ",  # Infosys - highly liquid stock
+    "transaction_type": "B",  # Buy
+}
+
+place_order_response = runner.run_test(
+    "PLACE ORDER",
+    lambda: runner.client.place_order(**place_order_params),
+    request_params=place_order_params,
+)
+
+# Extract order_id from response for modify and cancel tests
+if place_order_response and isinstance(place_order_response, dict):
+    # Try different possible response structures
+    if "data" in place_order_response and isinstance(place_order_response["data"], dict):
+        placed_order_id = place_order_response["data"].get("nOrdNo") or place_order_response[
+            "data"
+        ].get("orderId")
+    elif "nOrdNo" in place_order_response:
+        placed_order_id = place_order_response.get("nOrdNo")
+    elif "orderId" in place_order_response:
+        placed_order_id = place_order_response.get("orderId")
+
+    if placed_order_id:
+        print(f"\n[ORDER PLACED] Order ID: {placed_order_id}")
+    else:
+        print("\n[WARNING] Could not extract order_id from place order response")
+        print(f"Response keys: {list(place_order_response.keys())}")
+
+# Test Modify Order (only if order was placed successfully)
+if placed_order_id:
+    modify_order_params = {
+        "order_id": placed_order_id,
+        "price": "2.00",  # Change price to ₹2.00
+        "order_type": "L",
+        "quantity": "1",
+        "validity": "DAY",
+    }
+
+    runner.run_test(
+        "MODIFY ORDER",
+        lambda: runner.client.modify_order(**modify_order_params),
+        request_params=modify_order_params,
+    )
+else:
+    print("\n[SKIPPED] MODIFY ORDER - No order_id available from place order")
+
+# Test Cancel Order (only if order was placed successfully)
+if placed_order_id:
+    cancel_order_params = {
+        "order_id": placed_order_id,
+        "isVerify": True,  # Verify order status before canceling
+    }
+
+    runner.run_test(
+        "CANCEL ORDER",
+        lambda: runner.client.cancel_order(**cancel_order_params),
+        request_params=cancel_order_params,
+    )
+else:
+    print("\n[SKIPPED] CANCEL ORDER - No order_id available from place order")
 
 # ---------------------------
 # WEBSOCKET

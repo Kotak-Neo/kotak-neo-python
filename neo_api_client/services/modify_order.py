@@ -29,6 +29,7 @@ class ModifyOrder:
         amo,
     ):
         header_params = {
+            "Authorization": self.api_client.configuration.consumer_key,
             "Sid": self.api_client.configuration.edit_sid,
             "Auth": self.api_client.configuration.edit_token,
             "Content-Type": "application/x-www-form-urlencoded",
@@ -54,7 +55,11 @@ class ModifyOrder:
             "os": self.order_source,
         }
 
-        query_params = {"sId": self.api_client.configuration.serverId}
+        query_params = (
+            {"sId": self.api_client.configuration.serverId}
+            if self.api_client.configuration.serverId
+            else {}
+        )
         try:
             URL = self.api_client.configuration.get_url_details("modify_order")
             orders_resp = self.rest_client.request(
@@ -90,6 +95,7 @@ class ModifyOrder:
         amo,
     ):
         header_params = {
+            "Authorization": self.api_client.configuration.consumer_key,
             "Sid": self.api_client.configuration.edit_sid,
             "Auth": self.api_client.configuration.edit_token,
             "Content-Type": "application/x-www-form-urlencoded",
@@ -137,7 +143,11 @@ class ModifyOrder:
                             "am": amo,
                             "os": self.order_source,
                         }
-                        query_params = {"sId": self.api_client.configuration.serverId}
+                        query_params = (
+                            {"sId": self.api_client.configuration.serverId}
+                            if self.api_client.configuration.serverId
+                            else {}
+                        )
                         try:
                             URL = self.api_client.configuration.get_url_details("modify_order")
                             orders_resp = self.rest_client.request(
