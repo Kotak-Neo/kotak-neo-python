@@ -73,7 +73,7 @@ def test_get_domain_prod_session_init():
 
     domain = utility.get_domain(session_init=True)
 
-    assert domain == "https://mis.kotaksecurities.com"
+    assert domain == "https://mis.kotaksecurities.com/"
 
 
 def test_get_domain_prod_normal():
@@ -92,7 +92,7 @@ def test_get_domain_uat_session_init():
 
     domain = utility.get_domain(session_init=True)
 
-    assert domain == "https://mis.kotaksecurities.com"
+    assert domain == "https://d-mis.kotaksecurities.com/"
 
 
 def test_get_domain_uat_normal():
@@ -121,7 +121,7 @@ def test_get_domain_case_insensitive():
 
     domain = utility.get_domain(session_init=True)
 
-    assert domain == "https://mis.kotaksecurities.com"
+    assert domain == "https://mis.kotaksecurities.com/"
 
 
 def test_get_url_details_prod():

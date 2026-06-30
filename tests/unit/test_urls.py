@@ -1,9 +1,10 @@
 """Tests for URL utilities."""
 
 from neo_api_client.utils.urls import (
-    BASE_URL,
     ORDER_FEED_URL,
     PROD_BASE_URL,
+    SESSION_PROD_BASE_URL,
+    SESSION_UAT_BASE_URL,
     UAT_BASE_URL,
     WEBSOCKET_URL,
 )
@@ -38,7 +39,9 @@ def test_order_feed_url():
     assert "wss://" in ORDER_FEED_URL
 
 
-def test_base_url():
-    """Test base URL."""
-    assert BASE_URL is not None
-    assert "https://" in BASE_URL
+def test_session_urls():
+    """Test session URLs for TOTP login/validate."""
+    assert SESSION_PROD_BASE_URL is not None
+    assert "https://" in SESSION_PROD_BASE_URL
+    assert SESSION_UAT_BASE_URL is not None
+    assert "https://" in SESSION_UAT_BASE_URL
