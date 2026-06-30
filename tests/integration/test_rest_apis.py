@@ -13,11 +13,14 @@ class APITestRunner:
         # Get consumer_key from environment variable (optional - for tracking)
         consumer_key = config("NEO_CONSUMER_KEY", default=None)
 
+        # Use UAT environment for tests (configurable via NEO_ENVIRONMENT)
+        environment = config("NEO_ENVIRONMENT", default="uat")
+
         self.client = NeoAPI(
-            environment="prod",
+            consumer_key=consumer_key,
+            environment=environment,
             access_token=None,
             neo_fin_key=None,
-            consumer_key=consumer_key,
         )
 
     def validate_response(self, response, api_name):

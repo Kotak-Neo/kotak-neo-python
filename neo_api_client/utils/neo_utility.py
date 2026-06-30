@@ -2,7 +2,12 @@ import jwt
 
 from neo_api_client.exceptions import ApiValueError
 from neo_api_client.settings import PROD_URL, UAT_URL
-from neo_api_client.utils.urls import BASE_URL, UAT_BASE_URL
+from neo_api_client.utils.urls import (
+    PROD_BASE_URL,
+    SESSION_PROD_BASE_URL,
+    SESSION_UAT_BASE_URL,
+    UAT_BASE_URL,
+)
 
 
 class NeoUtility:
@@ -64,9 +69,18 @@ class NeoUtility:
         host_list = ["prod", "uat"]
         if self.host.lower().strip() in host_list:
             if session_init:
-                base_url = BASE_URL
+                # Use SESSION URLs for TOTP login/validate only
+                base_url = (
+                    SESSION_UAT_BASE_URL
+                    if self.host.lower().strip() == "uat"
+                    else SESSION_PROD_BASE_URL
+                )
             else:
-                base_url = self.base_url if self.host.lower().strip() == "prod" else UAT_BASE_URL
+                # Return the appropriate base URL based on environment
+                if self.host.lower().strip() == "uat":
+                    base_url = UAT_BASE_URL
+                else:  # prod
+                    base_url = self.base_url if self.base_url else PROD_BASE_URL
             return base_url
         else:
             raise ApiValueError("Either UAT or PROD in Environment accepted")

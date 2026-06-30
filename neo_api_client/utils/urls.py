@@ -11,7 +11,7 @@ PROD_BASE_URL = "https://mis.kotaksecurities.com/"
 PROD_BASE_URL_ADC = "https://cis.kotaksecurities.com/"
 
 #############################################################################
-#                               PROD BASE URLs
+#                  SESSION URLs (for TOTP login/validate only)
 #############################################################################
 SESSION_UAT_BASE_URL = "https://d-mis.kotaksecurities.com/"
 SESSION_PROD_BASE_URL = "https://mis.kotaksecurities.com/"
@@ -26,8 +26,3 @@ ORDER_FEED_URL_E21 = "wss://e21.kotaksecurities.com/realtime"
 ORDER_FEED_URL_E22 = "wss://e22.kotaksecurities.com/realtime"
 ORDER_FEED_URL_E41 = "wss://e41.kotaksecurities.com/realtime"
 ORDER_FEED_URL_E43 = "wss://e43.kotaksecurities.com/realtime"
-
-#############################################################################
-#                               BASE_URL  URL
-#############################################################################
-BASE_URL = "https://mis.kotaksecurities.com"
