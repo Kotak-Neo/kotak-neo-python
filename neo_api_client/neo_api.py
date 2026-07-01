@@ -763,6 +763,10 @@ class NeoAPI:
         """
         Subscribe to live feeds for the given instrument tokens.
 
+        .. deprecated:: 2.2.0
+            Use :class:`~neo_api_client.websocket.srishti.SrishtiWebSocket` instead.
+            This callback-based WebSocket will be removed in v3.0.0.
+
         Args:
             instrument_tokens (List): A JSON-encoded list of instrument tokens to subscribe to.
             isIndex (bool): Whether the instrument is an index. Default is False.
@@ -775,7 +779,32 @@ class NeoAPI:
             Live Feed from the socket
 
         The function establishes a WebSocket connection to the trading platform and subscribes to live feeds for the specified instrument tokens. When a new feed is received, the function's internal callback functions are called with the feed data as their arguments. If an error occurs, the on_error function is called with the error message as its argument.
+
+        Example (Deprecated):
+            ```python
+            client = NeoAPI(...)
+            client.on_message = lambda msg: print(msg)
+            client.subscribe(instrument_tokens=[...])
+            ```
+
+        Recommended (New):
+            ```python
+            from neo_api_client.websocket.srishti import SrishtiWebSocket, WsToken
+
+            async with SrishtiWebSocket(access_token, sid) as ws:
+                await ws.subscribe_scrips([WsToken("nse_cm", "1333")])
+                async for message in ws:
+                    print(message)
+            ```
         """
+        import warnings
+
+        warnings.warn(
+            "subscribe() is deprecated and will be removed in v3.0.0. "
+            "Use neo_api_client.websocket.srishti.SrishtiWebSocket instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
         if self.configuration.edit_token and self.configuration.edit_sid:
             if not self.NeoWebSocket:
@@ -797,6 +826,10 @@ class NeoAPI:
         """
         Unsubscribe the live feeds for the subscribed instrument tokens.
 
+        .. deprecated:: 2.2.0
+            Use :class:`~neo_api_client.websocket.srishti.SrishtiWebSocket` instead.
+            This callback-based WebSocket will be removed in v3.0.0.
+
         Args:
             instrument_tokens (List): A JSON-encoded list of instrument tokens.
             isIndex (bool): Whether the instrument is an index. Default is False.
@@ -808,6 +841,14 @@ class NeoAPI:
         Returns:
             Message that its successfully unsubscribed
         """
+        import warnings
+
+        warnings.warn(
+            "un_subscribe() is deprecated and will be removed in v3.0.0. "
+            "Use neo_api_client.websocket.srishti.SrishtiWebSocket instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         if self.configuration.edit_token and self.configuration.edit_sid:
             if not self.NeoWebSocket:
                 self.NeoWebSocket = NeoWebSocket(
@@ -879,12 +920,24 @@ class NeoAPI:
         """
         Subscribe To OrderFeed
 
+        .. deprecated:: 2.2.0
+            Use :class:`~neo_api_client.websocket.srishti.SrishtiWebSocket` instead.
+            This callback-based WebSocket will be removed in v3.0.0.
+
         Raises:
             Exception: If the user hasn't completes his 2FA.
 
         Returns:
             Order Feed information.
         """
+        import warnings
+
+        warnings.warn(
+            "subscribe_to_orderfeed() is deprecated and will be removed in v3.0.0. "
+            "Use neo_api_client.websocket.srishti.SrishtiWebSocket instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         if self.configuration.edit_token and self.configuration.edit_sid:
             self.check_callbacks()
             if not self.NeoWebSocket:
@@ -1005,6 +1058,66 @@ class NeoAPI:
 
         totp_validate = TotpAPI(self.api_client).totp_validate(mpin=mpin)
         return totp_validate
+
+    def create_websocket(self, url: str = None, **kwargs):
+        """
+        Create a modern async/await Srishti WebSocket client.
+
+        This method provides a convenient way to create a SrishtiWebSocket instance
+        with authentication credentials already configured from the current session.
+
+        Args:
+            url: Optional WebSocket URL override (defaults to production Srishti URL)
+            **kwargs: Additional arguments passed to SrishtiWebSocket constructor
+                (e.g., heartbeat_interval, reconnect_delay, max_reconnect_attempts)
+
+        Returns:
+            SrishtiWebSocket: Configured WebSocket client ready to connect
+
+        Raises:
+            ValueError: If user is not authenticated (no edit_token or edit_sid)
+
+        Example:
+            ```python
+            import asyncio
+            from neo_api_client import NeoAPI
+            from neo_api_client.websocket.srishti import WsToken
+
+            async def main():
+                # Login
+                client = NeoAPI(consumer_key="...", environment="prod")
+                client.totp_login(mobile_number="+91...", ucc="...", totp="...")
+                client.totp_validate(mpin="...")
+
+                # Create and use WebSocket
+                async with client.create_websocket() as ws:
+                    await ws.subscribe_scrips([
+                        WsToken("nse_cm", "1333"),  # RELIANCE
+                    ])
+
+                    async for message in ws:
+                        print(f"LTP: {message.last_traded_price}")
+
+            asyncio.run(main())
+            ```
+
+        Note:
+            Requires Python 3.10+ and async/await support.
+            Make sure to call totp_login() and totp_validate() before creating WebSocket.
+        """
+        from neo_api_client.websocket.srishti import SrishtiWebSocket
+
+        if not self.configuration.edit_token or not self.configuration.edit_sid:
+            raise ValueError(
+                "Authentication required. Please call totp_login() and totp_validate() first."
+            )
+
+        return SrishtiWebSocket(
+            access_token=self.configuration.edit_token,
+            sid=self.configuration.edit_sid,
+            url=url,
+            **kwargs,
+        )
 
     def quotes(self, instrument_tokens=None, quote_type=None):
         """

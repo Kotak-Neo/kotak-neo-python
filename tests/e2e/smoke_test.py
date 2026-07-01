@@ -217,12 +217,12 @@ print("=" * 80)
 # MARKET DATA
 # ---------------------------
 
-runner.run_test(
+quotes_response = runner.run_test(
     "QUOTES",
     lambda: runner.client.quotes(
         instrument_tokens=[
             {
-                "instrument_token": "1333",
+                "instrument_token": "19084",
                 "exchange_segment": "nse_cm",
             }
         ],
@@ -231,13 +231,36 @@ runner.run_test(
     request_params={
         "instrument_tokens": [
             {
-                "instrument_token": "1333",
+                "instrument_token": "19084",
                 "exchange_segment": "nse_cm",
             }
         ],
         "quote_type": "all",
     },
 )
+
+# Extract LTP from quotes response for use in place order
+ltp = None
+trading_symbol = "ITBEES-EQ"  # Default
+if quotes_response and isinstance(quotes_response, dict):
+    try:
+        # Try to extract LTP from different possible response structures
+        if "data" in quotes_response and isinstance(quotes_response["data"], list):
+            if len(quotes_response["data"]) > 0:
+                quote_data = quotes_response["data"][0]
+                ltp = float(quote_data.get("ltp", 0))
+                trading_symbol = quote_data.get("trdSym", trading_symbol)
+        elif "ltp" in quotes_response:
+            ltp = float(quotes_response["ltp"])
+
+        if ltp and ltp > 0:
+            print(f"\n[LTP CAPTURED] {trading_symbol}: ₹{ltp}")
+        else:
+            print("\n[WARNING] Could not extract valid LTP from quotes response")
+            ltp = None
+    except (ValueError, TypeError, KeyError) as e:
+        print(f"\n[WARNING] Error extracting LTP: {e}")
+        ltp = None
 
 # ---------------------------
 # REPORTS
@@ -289,7 +312,7 @@ runner.run_test(
         order_type="MKT",
         product="CNC",
         quantity="1",
-        instrument_token="1333",
+        instrument_token="19084",
         transaction_type="B",
     ),
     request_params={
@@ -298,7 +321,7 @@ runner.run_test(
         "order_type": "MKT",
         "product": "CNC",
         "quantity": "1",
-        "instrument_token": "1333",
+        "instrument_token": "19084",
         "transaction_type": "B",
     },
 )
@@ -341,15 +364,26 @@ runner.run_test(
 # Store order_id for modify and cancel tests
 placed_order_id = None
 
+# Calculate order price based on LTP
+if ltp and ltp > 1:
+    order_price = f"{ltp - 1:.2f}"  # LTP - 1 to avoid execution
+    modify_price = f"{ltp - 2:.2f}"  # LTP - 2 for modify order
+    print(f"\n[ORDER PRICE] Using LTP-based pricing: Order=₹{order_price}, Modify=₹{modify_price}")
+else:
+    # Fallback to hardcoded price if LTP not available
+    order_price = "28.00"
+    modify_price = "27.00"
+    print(f"\n[ORDER PRICE] Using fallback pricing: Order=₹{order_price}, Modify=₹{modify_price}")
+
 # Test Place Order
 place_order_params = {
     "exchange_segment": "nse_cm",
     "product": "CNC",
-    "price": "1.00",  # Very low price to avoid execution
+    "price": order_price,  # LTP - 1 to avoid execution
     "order_type": "L",  # Limit order
     "quantity": "1",
     "validity": "DAY",
-    "trading_symbol": "INFY-EQ",  # Infosys - highly liquid stock
+    "trading_symbol": trading_symbol,
     "transaction_type": "B",  # Buy
 }
 
@@ -381,7 +415,7 @@ if place_order_response and isinstance(place_order_response, dict):
 if placed_order_id:
     modify_order_params = {
         "order_id": placed_order_id,
-        "price": "2.00",  # Change price to ₹2.00
+        "price": modify_price,  # LTP - 2 to avoid execution
         "order_type": "L",
         "quantity": "1",
         "validity": "DAY",
@@ -420,7 +454,7 @@ def test_websocket_subscribe():
     subscribe_params = {
         "instrument_tokens": [
             {
-                "instrument_token": "1333",
+                "instrument_token": "19084",
                 "exchange_segment": "nse_cm",
             }
         ],
@@ -461,7 +495,7 @@ runner.run_test(
     request_params={
         "instrument_tokens": [
             {
-                "instrument_token": "1333",
+                "instrument_token": "19084",
                 "exchange_segment": "nse_cm",
             }
         ],
@@ -476,7 +510,7 @@ def test_websocket_unsubscribe():
     unsubscribe_params = {
         "instrument_tokens": [
             {
-                "instrument_token": "1333",
+                "instrument_token": "19084",
                 "exchange_segment": "nse_cm",
             }
         ],
@@ -512,7 +546,7 @@ runner.run_test(
     request_params={
         "instrument_tokens": [
             {
-                "instrument_token": "1333",
+                "instrument_token": "19084",
                 "exchange_segment": "nse_cm",
             }
         ],
