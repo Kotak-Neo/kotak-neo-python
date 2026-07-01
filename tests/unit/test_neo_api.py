@@ -97,84 +97,51 @@ def test_neo_api_websocket_callbacks():
     assert client.on_close == on_close
 
 
-def test_neo_api_check_callbacks_all_set():
-    """Test check_callbacks when all callbacks are set."""
+def test_neo_api_subscribe_removed():
+    """Legacy subscribe() is removed in 2.2.0 and raises NotImplementedError."""
     client = NeoAPI(
         environment="prod",
         consumer_key="test_key",
     )
 
-    client.on_message = lambda _msg: None
-    client.on_error = lambda _err: None
-    client.on_open = lambda: None
-    client.on_close = lambda: None
+    with pytest.raises(NotImplementedError) as exc_info:
+        client.subscribe(
+            instrument_tokens=[{"instrument_token": "1333", "exchange_segment": "nse_cm"}],
+            isIndex=False,
+            isDepth=False,
+        )
 
-    # Should not raise any exception
-    client.check_callbacks()
+    assert "Shristi" in str(exc_info.value)
 
 
-def test_neo_api_check_callbacks_missing():
-    """Test check_callbacks when callbacks are missing."""
+def test_neo_api_un_subscribe_removed():
+    """Legacy un_subscribe() is removed in 2.2.0 and raises NotImplementedError."""
     client = NeoAPI(
         environment="prod",
         consumer_key="test_key",
     )
 
-    # Should handle missing callbacks gracefully
-    try:
-        client.check_callbacks()
-    except Exception as e:
-        pytest.fail(f"check_callbacks raised unexpected exception: {e}")
-
-
-def test_neo_api_subscribe_without_login(monkeypatch):
-    """Test subscribe method without completing login."""
-    client = NeoAPI(
-        environment="prod",
-        consumer_key="test_key",
-    )
-
-    # Mock print to capture output
-    printed = []
-    monkeypatch.setattr("builtins.print", lambda x: printed.append(x))
-
-    client.subscribe(
-        instrument_tokens=[{"instrument_token": "1333", "exchange_segment": "nse_cm"}],
-        isIndex=False,
-        isDepth=False,
-    )
-
-    assert any("complete the Login Flow" in str(p) for p in printed)
-
-
-def test_neo_api_un_subscribe_without_login():
-    """Test un_subscribe method without completing login."""
-    client = NeoAPI(
-        environment="prod",
-        consumer_key="test_key",
-    )
-
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(NotImplementedError) as exc_info:
         client.un_subscribe(
             instrument_tokens=[{"instrument_token": "1333", "exchange_segment": "nse_cm"}],
             isIndex=False,
             isDepth=False,
         )
 
-    assert "Login Flow" in str(exc_info.value)
+    assert "Shristi" in str(exc_info.value)
 
 
-def test_neo_api_subscribe_to_orderfeed_without_2fa(monkeypatch):
-    """Test subscribe_to_orderfeed without completing 2FA."""
+def test_neo_api_subscribe_to_orderfeed_removed():
+    """Legacy subscribe_to_orderfeed() is removed in 2.2.0 and raises NotImplementedError."""
     client = NeoAPI(
         environment="prod",
         consumer_key="test_key",
     )
 
-    result = client.subscribe_to_orderfeed()
+    with pytest.raises(NotImplementedError) as exc_info:
+        client.subscribe_to_orderfeed()
 
-    assert "Error Message" in result
-    assert "2fa" in result["Error Message"]
+    assert "Shristi" in str(exc_info.value)
 
 
 def test_neo_api_help_without_function():

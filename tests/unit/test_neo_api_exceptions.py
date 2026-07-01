@@ -115,49 +115,29 @@ def test_help_with_socket():
     client.help("socket")
 
 
-def test_check_callbacks_missing_on_message():
-    """Test check_callbacks when on_message is missing."""
+def test_legacy_subscribe_raises_not_implemented():
+    """Legacy subscribe() is removed in 2.2.0 and raises NotImplementedError."""
     client = NeoAPI(environment="prod", consumer_key="test_key")
-    client.on_error = lambda _err: None
-    client.on_open = lambda: None
-    client.on_close = lambda: None
 
-    result = client.check_callbacks()
-
-    assert result is None or (isinstance(result, dict) and "Error" in result)
+    with pytest.raises(NotImplementedError):
+        client.subscribe(
+            instrument_tokens=[{"instrument_token": "1333", "exchange_segment": "nse_cm"}]
+        )
 
 
-def test_check_callbacks_missing_on_error():
-    """Test check_callbacks when on_error is missing."""
+def test_legacy_un_subscribe_raises_not_implemented():
+    """Legacy un_subscribe() is removed in 2.2.0 and raises NotImplementedError."""
     client = NeoAPI(environment="prod", consumer_key="test_key")
-    client.on_message = lambda _msg: None
-    client.on_open = lambda: None
-    client.on_close = lambda: None
 
-    result = client.check_callbacks()
-
-    assert result is None or (isinstance(result, dict) and "Error" in result)
+    with pytest.raises(NotImplementedError):
+        client.un_subscribe(
+            instrument_tokens=[{"instrument_token": "1333", "exchange_segment": "nse_cm"}]
+        )
 
 
-def test_check_callbacks_missing_on_open():
-    """Test check_callbacks when on_open is missing."""
+def test_legacy_subscribe_to_orderfeed_raises_not_implemented():
+    """Legacy subscribe_to_orderfeed() is removed in 2.2.0 and raises NotImplementedError."""
     client = NeoAPI(environment="prod", consumer_key="test_key")
-    client.on_message = lambda _msg: None
-    client.on_error = lambda _err: None
-    client.on_close = lambda: None
 
-    result = client.check_callbacks()
-
-    assert result is None or (isinstance(result, dict) and "Error" in result)
-
-
-def test_check_callbacks_missing_on_close():
-    """Test check_callbacks when on_close is missing."""
-    client = NeoAPI(environment="prod", consumer_key="test_key")
-    client.on_message = lambda _msg: None
-    client.on_error = lambda _err: None
-    client.on_open = lambda: None
-
-    result = client.check_callbacks()
-
-    assert result is None or (isinstance(result, dict) and "Error" in result)
+    with pytest.raises(NotImplementedError):
+        client.subscribe_to_orderfeed()

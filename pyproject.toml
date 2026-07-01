@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "kotakneoapi"
-version = "2.1.1"
+version = "2.2.0"
 description = "Official Python SDK for Kotak Neo Trading APIs"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -56,8 +56,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Srishti WebSocket with modern async/await support
-srishti = [
+# Shristi WebSocket with modern async/await support
+shristi = [
     "websockets>=12.0",
     "pydantic>=2.0.0",
 ]
@@ -115,7 +115,7 @@ branch = true
 [tool.coverage.report]
 show_missing = true
 skip_covered = false
-fail_under = 40
+fail_under = 50
 exclude_lines = [
     "pragma: no cover",
     "if __name__ == .__main__.:",

@@ -4,6 +4,11 @@
 WEBSOCKET_URL = "wss://mlhsm.kotaksecurities.com"
 
 #############################################################################
+#                        Shristi WebSocket URLs
+#############################################################################
+SHRISTI_WEBSOCKET_URL = "wss://sfeed.kotaksecurities.com/wsfeed"
+
+#############################################################################
 #                               UAT BASE URLs
 #############################################################################
 UAT_BASE_URL = "https://d-mis.kotaksecurities.com/"

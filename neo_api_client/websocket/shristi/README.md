@@ -1,6 +1,6 @@
-# Srishti WebSocket Client
+# Shristi WebSocket Client
 
-Modern async/await WebSocket client for Kotak Neo's Srishti broadcast platform.
+Modern async/await WebSocket client for Kotak Neo's Shristi broadcast platform.
 
 ## Features
 
@@ -27,7 +27,7 @@ pip install kotakneoapi[websocket]
 ```python
 import asyncio
 from neo_api_client import NeoAPI
-from neo_api_client.websocket.srishti import SrishtiWebSocket, WsToken
+from neo_api_client.websocket.shristi import ShristiWebSocket, WsToken
 
 async def main():
     # Initialize client
@@ -45,7 +45,7 @@ async def main():
     client.totp_validate(mpin="123456")
     
     # Create WebSocket connection
-    async with SrishtiWebSocket(
+    async with ShristiWebSocket(
         access_token=client.configuration.edit_token,
         sid=client.configuration.edit_sid
     ) as ws:
@@ -66,7 +66,7 @@ asyncio.run(main())
 
 ```python
 async def main():
-    ws = SrishtiWebSocket(access_token, sid)
+    ws = ShristiWebSocket(access_token, sid)
     
     try:
         await ws.connect()
@@ -83,7 +83,7 @@ async def main():
 
 ```python
 async def main():
-    ws = SrishtiWebSocket(access_token, sid)
+    ws = ShristiWebSocket(access_token, sid)
     
     # Set callbacks
     def on_message(msg):
@@ -104,7 +104,7 @@ async def main():
 ### Full Scrip Data
 
 ```python
-from neo_api_client.websocket.srishti import SFeedScrip
+from neo_api_client.websocket.shristi import SFeedScrip
 
 async for message in ws:
     if isinstance(message, SFeedScrip):
@@ -179,7 +179,7 @@ await ws.unsubscribe_scrips(tokens)
 ### Custom Reconnection
 
 ```python
-ws = SrishtiWebSocket(
+ws = ShristiWebSocket(
     access_token=token,
     sid=sid,
     reconnect_delay=10,  # Wait 10 seconds before reconnecting
@@ -236,7 +236,7 @@ client.subscribe(
 client = NeoAPI(...)
 client.login(...)
 
-async with SrishtiWebSocket(...) as ws:
+async with ShristiWebSocket(...) as ws:
     await ws.subscribe_scrips([WsToken("nse_cm", "1333")])
     
     async for message in ws:
@@ -258,7 +258,7 @@ def main():
 **After:**
 ```python
 async def main():
-    async with SrishtiWebSocket(...) as ws:
+    async with ShristiWebSocket(...) as ws:
         await ws.subscribe_scrips(...)
         async for msg in ws:
             process(msg)
@@ -301,14 +301,14 @@ await ws.subscribe_scrips([
 ## Error Handling
 
 ```python
-from neo_api_client.websocket.srishti.exceptions import (
+from neo_api_client.websocket.shristi.exceptions import (
     ConnectionError,
     AuthenticationError,
     SubscriptionError,
 )
 
 try:
-    async with SrishtiWebSocket(...) as ws:
+    async with ShristiWebSocket(...) as ws:
         await ws.subscribe_scrips([WsToken("nse_cm", "1333")])
         
         async for message in ws:
@@ -354,4 +354,4 @@ The old callback-based WebSocket (`NeoAPI.subscribe()`) will be:
 - ⚠️ **Deprecated in v2.3.0** (with warnings)
 - ❌ **Removed in v3.0.0**
 
-Please migrate to `SrishtiWebSocket` for new projects.
+Please migrate to `ShristiWebSocket` for new projects.

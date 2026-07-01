@@ -1,13 +1,13 @@
-"""Example: Using Srishti WebSocket with async/await."""
+"""Example: Using Shristi WebSocket with async/await."""
 
 import asyncio
 
 from neo_api_client import NeoAPI
-from neo_api_client.websocket.srishti import SFeedScrip, WsToken
+from neo_api_client.websocket.shristi import SFeedScrip, WsToken
 
 
 async def main():
-    """Main async function demonstrating Srishti WebSocket usage."""
+    """Main async function demonstrating Shristi WebSocket usage."""
 
     # Initialize NeoAPI client
     client = NeoAPI(
@@ -30,7 +30,7 @@ async def main():
     print(f"Validate response: {validate_response.get('stat')}")
 
     # Step 3: Create WebSocket connection
-    print("\nConnecting to Srishti WebSocket...")
+    print("\nConnecting to Shristi WebSocket...")
     async with client.create_websocket() as ws:
         print("✓ Connected!")
 

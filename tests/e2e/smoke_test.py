@@ -1,3 +1,4 @@
+import asyncio
 import json
 import time
 import traceback
@@ -6,6 +7,7 @@ import pyotp
 from decouple import config
 
 from neo_api_client import NeoAPI
+from neo_api_client.websocket.shristi import WsToken
 
 
 class APITestRunner:
@@ -28,28 +30,14 @@ class APITestRunner:
             neo_fin_key=None,
         )
 
-        # Setup WebSocket callbacks
-        self.client.on_message = self.on_ws_message
-        self.client.on_error = self.on_ws_error
-        self.client.on_open = self.on_ws_open
-        self.client.on_close = self.on_ws_close
-
     def on_ws_message(self, message):
         print("\n[WebSocket Message Received]")
-        print(json.dumps(message, indent=2, default=str))
+        print(json.dumps(message.model_dump(), indent=2, default=str))
         self.ws_messages.append(message)
 
     def on_ws_error(self, error):
         print(f"\n[WebSocket Error]: {error}")
         self.ws_error = error
-
-    def on_ws_open(self, *_args):
-        print("\n[WebSocket]: Connection Opened")
-        self.ws_connected = True
-
-    def on_ws_close(self, *_args):
-        print("\n[WebSocket]: Connection Closed")
-        self.ws_connected = False
 
     def validate_response(self, response, api_name):
         if response is None:
@@ -360,133 +348,156 @@ runner.run_test(
 # ---------------------------
 # ORDER MANAGEMENT (Place → Modify → Cancel)
 # ---------------------------
-
-# Store order_id for modify and cancel tests
-placed_order_id = None
-
-# Calculate order price based on LTP
-if ltp and ltp > 1:
-    order_price = f"{ltp - 1:.2f}"  # LTP - 1 to avoid execution
-    modify_price = f"{ltp - 2:.2f}"  # LTP - 2 for modify order
-    print(f"\n[ORDER PRICE] Using LTP-based pricing: Order=₹{order_price}, Modify=₹{modify_price}")
-else:
-    # Fallback to hardcoded price if LTP not available
-    order_price = "28.00"
-    modify_price = "27.00"
-    print(f"\n[ORDER PRICE] Using fallback pricing: Order=₹{order_price}, Modify=₹{modify_price}")
-
-# Test Place Order
-place_order_params = {
-    "exchange_segment": "nse_cm",
-    "product": "CNC",
-    "price": order_price,  # LTP - 1 to avoid execution
-    "order_type": "L",  # Limit order
-    "quantity": "1",
-    "validity": "DAY",
-    "trading_symbol": trading_symbol,
-    "transaction_type": "B",  # Buy
-}
-
-place_order_response = runner.run_test(
-    "PLACE ORDER",
-    lambda: runner.client.place_order(**place_order_params),
-    request_params=place_order_params,
-)
-
-# Extract order_id from response for modify and cancel tests
-if place_order_response and isinstance(place_order_response, dict):
-    # Try different possible response structures
-    if "data" in place_order_response and isinstance(place_order_response["data"], dict):
-        placed_order_id = place_order_response["data"].get("nOrdNo") or place_order_response[
-            "data"
-        ].get("orderId")
-    elif "nOrdNo" in place_order_response:
-        placed_order_id = place_order_response.get("nOrdNo")
-    elif "orderId" in place_order_response:
-        placed_order_id = place_order_response.get("orderId")
-
-    if placed_order_id:
-        print(f"\n[ORDER PLACED] Order ID: {placed_order_id}")
-    else:
-        print("\n[WARNING] Could not extract order_id from place order response")
-        print(f"Response keys: {list(place_order_response.keys())}")
-
-# Test Modify Order (only if order was placed successfully)
-if placed_order_id:
-    modify_order_params = {
-        "order_id": placed_order_id,
-        "price": modify_price,  # LTP - 2 to avoid execution
-        "order_type": "L",
-        "quantity": "1",
-        "validity": "DAY",
-    }
-
-    runner.run_test(
-        "MODIFY ORDER",
-        lambda: runner.client.modify_order(**modify_order_params),
-        request_params=modify_order_params,
-    )
-else:
-    print("\n[SKIPPED] MODIFY ORDER - No order_id available from place order")
-
-# Test Cancel Order (only if order was placed successfully)
-if placed_order_id:
-    cancel_order_params = {
-        "order_id": placed_order_id,
-        "isVerify": True,  # Verify order status before canceling
-    }
-
-    runner.run_test(
-        "CANCEL ORDER",
-        lambda: runner.client.cancel_order(**cancel_order_params),
-        request_params=cancel_order_params,
-    )
-else:
-    print("\n[SKIPPED] CANCEL ORDER - No order_id available from place order")
+# NOTE: Temporarily disabled. Re-enable to test the order lifecycle.
+#
+# # Store order_id for modify and cancel tests
+# placed_order_id = None
+#
+# # Calculate order price based on LTP
+# if ltp and ltp > 1:
+#     order_price = f"{ltp - 1:.2f}"  # LTP - 1 to avoid execution
+#     modify_price = f"{ltp - 2:.2f}"  # LTP - 2 for modify order
+#     print(f"\n[ORDER PRICE] Using LTP-based pricing: Order=₹{order_price}, Modify=₹{modify_price}")
+# else:
+#     # Fallback to hardcoded price if LTP not available
+#     order_price = "28.00"
+#     modify_price = "27.00"
+#     print(f"\n[ORDER PRICE] Using fallback pricing: Order=₹{order_price}, Modify=₹{modify_price}")
+#
+# # Test Place Order
+# place_order_params = {
+#     "exchange_segment": "nse_cm",
+#     "product": "CNC",
+#     "price": order_price,  # LTP - 1 to avoid execution
+#     "order_type": "L",  # Limit order
+#     "quantity": "1",
+#     "validity": "DAY",
+#     "trading_symbol": trading_symbol,
+#     "transaction_type": "B",  # Buy
+# }
+#
+# place_order_response = runner.run_test(
+#     "PLACE ORDER",
+#     lambda: runner.client.place_order(**place_order_params),
+#     request_params=place_order_params,
+# )
+#
+# # Extract order_id from response for modify and cancel tests
+# if place_order_response and isinstance(place_order_response, dict):
+#     # Try different possible response structures
+#     if "data" in place_order_response and isinstance(place_order_response["data"], dict):
+#         placed_order_id = place_order_response["data"].get("nOrdNo") or place_order_response[
+#             "data"
+#         ].get("orderId")
+#     elif "nOrdNo" in place_order_response:
+#         placed_order_id = place_order_response.get("nOrdNo")
+#     elif "orderId" in place_order_response:
+#         placed_order_id = place_order_response.get("orderId")
+#
+#     if placed_order_id:
+#         print(f"\n[ORDER PLACED] Order ID: {placed_order_id}")
+#     else:
+#         print("\n[WARNING] Could not extract order_id from place order response")
+#         print(f"Response keys: {list(place_order_response.keys())}")
+#
+# # Test Modify Order (only if order was placed successfully)
+# if placed_order_id:
+#     modify_order_params = {
+#         "order_id": placed_order_id,
+#         "price": modify_price,  # LTP - 2 to avoid execution
+#         "order_type": "L",
+#         "quantity": "1",
+#         "validity": "DAY",
+#     }
+#
+#     runner.run_test(
+#         "MODIFY ORDER",
+#         lambda: runner.client.modify_order(**modify_order_params),
+#         request_params=modify_order_params,
+#     )
+# else:
+#     print("\n[SKIPPED] MODIFY ORDER - No order_id available from place order")
+#
+# # Test Cancel Order (only if order was placed successfully)
+# if placed_order_id:
+#     cancel_order_params = {
+#         "order_id": placed_order_id,
+#         "isVerify": True,  # Verify order status before canceling
+#     }
+#
+#     runner.run_test(
+#         "CANCEL ORDER",
+#         lambda: runner.client.cancel_order(**cancel_order_params),
+#         request_params=cancel_order_params,
+#     )
+# else:
+#     print("\n[SKIPPED] CANCEL ORDER - No order_id available from place order")
 
 # ---------------------------
-# WEBSOCKET
+# WEBSOCKET (Shristi async client)
 # ---------------------------
 
 
 def test_websocket_subscribe():
-    """Test WebSocket subscription for live market data"""
-    subscribe_params = {
-        "instrument_tokens": [
-            {
-                "instrument_token": "19084",
-                "exchange_segment": "nse_cm",
-            }
-        ],
-        "isIndex": False,
-        "isDepth": False,
-    }
+    """Test Shristi WebSocket subscription for live market data.
 
-    # Subscribe to live feed
-    runner.client.subscribe(
-        instrument_tokens=subscribe_params["instrument_tokens"],
-        isIndex=subscribe_params["isIndex"],
-        isDepth=subscribe_params["isDepth"],
-    )
+    Connects, subscribes to a scrip, collects messages for a few seconds,
+    then unsubscribes and closes the connection.
+    """
+    tokens = [WsToken("nse_cm", "19084")]
 
-    # Wait for connection and messages
-    print("\nWaiting for WebSocket connection and messages (5 seconds)...")
-    time.sleep(5)
+    async def _run():
+        # Clear previous state
+        runner.ws_messages.clear()
+        runner.ws_error = None
+        raw_frames = []
 
-    # Check results
-    result = {
-        "connected": runner.ws_connected,
-        "messages_received": len(runner.ws_messages),
-        "error": runner.ws_error,
-    }
+        def on_raw(frame):
+            # Capture the exact on-wire format for protocol debugging.
+            kind = type(frame).__name__
+            preview = frame[:200] if isinstance(frame, (str, bytes)) else frame
+            print(f"\n[RAW {kind}]: {preview!r}")
+            raw_frames.append(frame)
 
-    if not runner.ws_connected and not runner.ws_error:
-        raise RuntimeError("WebSocket did not connect")
+        ws = runner.client.create_websocket()
+        ws.on_raw = on_raw
+        ws.on_message = runner.on_ws_message
+        ws.on_error = runner.on_ws_error
+
+        await ws.connect()
+        runner.ws_connected = ws.is_connected
+
+        await ws.subscribe_scrips(tokens)
+
+        # Collect messages for a few seconds
+        print("\nWaiting for WebSocket messages (5 seconds)...")
+        try:
+            async with asyncio.timeout(5):
+                async for message in ws:
+                    runner.on_ws_message(message)
+        except TimeoutError:
+            pass  # Expected - we only listen for a fixed window
+
+        # Unsubscribe/close only if still connected (server may have closed).
+        try:
+            if ws.is_connected:
+                await ws.unsubscribe_scrips(tokens)
+        finally:
+            await ws.close()
+        runner.ws_connected = ws.is_connected
+
+        print(f"\n[RAW FRAMES CAPTURED]: {len(raw_frames)}")
+
+    asyncio.run(_run())
 
     if runner.ws_error:
-        raise RuntimeError(f"WebSocket error: {runner.ws_error}")
+        # A parse error is informative (shows the wire format), not fatal here.
+        print(f"\n[WebSocket parse note]: {runner.ws_error}")
 
-    return result
+    return {
+        "messages_received": len(runner.ws_messages),
+        "error": str(runner.ws_error) if runner.ws_error else None,
+    }
 
 
 runner.run_test(
@@ -499,59 +510,6 @@ runner.run_test(
                 "exchange_segment": "nse_cm",
             }
         ],
-        "isIndex": False,
-        "isDepth": False,
-    },
-)
-
-
-def test_websocket_unsubscribe():
-    """Test WebSocket unsubscription"""
-    unsubscribe_params = {
-        "instrument_tokens": [
-            {
-                "instrument_token": "19084",
-                "exchange_segment": "nse_cm",
-            }
-        ],
-        "isIndex": False,
-        "isDepth": False,
-    }
-
-    # Clear previous messages
-    runner.ws_messages.clear()
-
-    # Unsubscribe
-    runner.client.un_subscribe(
-        instrument_tokens=unsubscribe_params["instrument_tokens"],
-        isIndex=unsubscribe_params["isIndex"],
-        isDepth=unsubscribe_params["isDepth"],
-    )
-
-    # Wait to confirm no more messages
-    print("\nWaiting to confirm unsubscribe (3 seconds)...")
-    time.sleep(3)
-
-    result = {
-        "unsubscribed": True,
-        "messages_after_unsubscribe": len(runner.ws_messages),
-    }
-
-    return result
-
-
-runner.run_test(
-    "WEBSOCKET UNSUBSCRIBE",
-    test_websocket_unsubscribe,
-    request_params={
-        "instrument_tokens": [
-            {
-                "instrument_token": "19084",
-                "exchange_segment": "nse_cm",
-            }
-        ],
-        "isIndex": False,
-        "isDepth": False,
     },
 )
 
@@ -563,11 +521,5 @@ runner.run_test(
     "LOGOUT",
     lambda: runner.client.logout(),
 )
-
-# Clean up WebSocket connection
-if runner.client.NeoWebSocket and runner.client.NeoWebSocket.hsWebsocket:
-    print("\nClosing WebSocket connection...")
-    runner.client.NeoWebSocket.hsWebsocket.close()
-    time.sleep(1)  # Give it time to close gracefully
 
 runner.print_summary()

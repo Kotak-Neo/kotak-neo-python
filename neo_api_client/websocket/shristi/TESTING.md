@@ -1,10 +1,10 @@
-# Testing Srishti WebSocket
+# Testing Shristi WebSocket
 
 ## Installation
 
 ```bash
-# Install with Srishti WebSocket support
-pip install kotakneoapi[srishti]
+# Install with Shristi WebSocket support
+pip install kotakneoapi[shristi]
 
 # Or install dependencies manually
 pip install websockets>=12.0 pydantic>=2.0.0
@@ -15,7 +15,7 @@ pip install websockets>=12.0 pydantic>=2.0.0
 ```python
 import asyncio
 from neo_api_client import NeoAPI
-from neo_api_client.websocket.srishti import SrishtiWebSocket, WsToken
+from neo_api_client.websocket.shristi import ShristiWebSocket, WsToken
 
 async def test_websocket():
     # 1. Login
@@ -58,14 +58,14 @@ if __name__ == "__main__":
     asyncio.run(test_websocket())
 ```
 
-## Expected Issues (Until Srishti URL is updated)
+## Expected Issues (Until Shristi URL is updated)
 
 ### 1. Connection Error
 ```
 ConnectionError: Failed to connect: ...
 ```
 **Why**: Using placeholder URL `wss://mlhsm.kotaksecurities.com`
-**Fix**: Need actual Srishti WebSocket URL
+**Fix**: Need actual Shristi WebSocket URL
 
 ### 2. Authentication Error
 ```
@@ -98,7 +98,7 @@ async with client.create_websocket() as ws:
 Check connection manually:
 
 ```python
-ws = SrishtiWebSocket(access_token, sid)
+ws = ShristiWebSocket(access_token, sid)
 
 try:
     await ws.connect()
@@ -112,7 +112,7 @@ except Exception as e:
 
 ## Testing Checklist
 
-Once Srishti details are available:
+Once Shristi details are available:
 
 - [ ] Connection succeeds
 - [ ] Authentication succeeds
@@ -130,11 +130,11 @@ Once Srishti details are available:
 
 ## Unit Tests
 
-Create tests in `tests/unit/test_srishti_websocket.py`:
+Create tests in `tests/unit/test_shristi_websocket.py`:
 
 ```python
 import pytest
-from neo_api_client.websocket.srishti import WsToken, SFeedScrip
+from neo_api_client.websocket.shristi import WsToken, SFeedScrip
 
 def test_wstoken_creation():
     token = WsToken("nse_cm", "1333")
@@ -165,12 +165,12 @@ def test_sfeed_scrip_parsing():
 Run tests:
 
 ```bash
-pytest tests/unit/test_srishti_websocket.py -v
+pytest tests/unit/test_shristi_websocket.py -v
 ```
 
 ## Integration Tests
 
-Create tests in `tests/integration/test_srishti_integration.py`:
+Create tests in `tests/integration/test_shristi_integration.py`:
 
 ```python
 import asyncio
@@ -201,7 +201,7 @@ async def test_reconnection():
 Run integration tests (requires credentials):
 
 ```bash
-pytest tests/integration/test_srishti_integration.py -v
+pytest tests/integration/test_shristi_integration.py -v
 ```
 
 ## Load Testing
@@ -288,4 +288,4 @@ async def perf_test():
 Report issues or provide feedback:
 - File structure looks good
 - Code follows best practices
-- Ready for testing once Srishti details are available
+- Ready for testing once Shristi details are available

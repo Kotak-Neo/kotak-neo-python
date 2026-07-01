@@ -16,7 +16,6 @@ from neo_api_client.services.scrip_search import ScripSearch
 from neo_api_client.services.totp import TotpAPI
 from neo_api_client.services.trade_report import TradeReportAPI
 from neo_api_client.utils.neo_utility import NeoUtility
-from neo_api_client.websocket.NeoWebSocket import NeoWebSocket
 
 
 class NeoAPI:
@@ -715,156 +714,46 @@ class NeoAPI:
         else:
             return {"Error Message": "Complete the 2fa process before accessing this application"}
 
-    def __on_open(self):
-        if self.on_open:
-            self.on_open("The Session has been Opened!")
+    # ------------------------------------------------------------------
+    # Legacy WebSocket API (removed in 2.2.0)
+    #
+    # The callback-based HSWebSocket/NeoWebSocket implementation has been
+    # removed in favour of the modern async/await Shristi WebSocket client.
+    # The methods below are retained as stubs so that existing integrations
+    # fail with a clear, actionable message instead of an AttributeError.
+    #
+    # Migrate to:
+    #     from neo_api_client.websocket.shristi import ShristiWebSocket, WsToken
+    #
+    #     async with client.create_websocket() as ws:
+    #         await ws.subscribe_scrips([WsToken("nse_cm", "11536")])
+    #         async for message in ws:
+    #             print(message)
+    # ------------------------------------------------------------------
 
-    def __on_close(self):
-        # print("[Socket]: Disconnected Demo Func !")
-        if self.on_close:
-            self.on_close("The Session has been Closed!")
-
-    def __on_error(self, error):
-        # print("[Socket]: Error !")
-        if self.on_error:
-            self.on_error(error)
-
-    def __on_message(self, message):
-        # print('[NEO_API]: "In-side NeoAPI Class')
-        if self.on_message:
-            self.on_message(message)
-
-    def check_callbacks(self):
-        show_warning = (
-            not self.on_close or not self.on_open or not self.on_message or not self.on_error
-        )
-        if show_warning:
-            warnings = "Warning!\n"
-            if self.on_message is None:
-                warnings += "on_message callback is not Set\n"
-            if self.on_error is None:
-                warnings += "on_error callback is not Set\n"
-            if self.on_close is None:
-                warnings += "on_close callback is not Set\n"
-            if self.on_open is None:
-                warnings += "on_open callback is not Set\n"
-
-            warnings += "It is recommended to set callbacks to handle your own logic on events."
-            print(warnings)
-
-    def set_neowebsocket_callbacks(self):
-        if self.NeoWebSocket is not None:
-            self.NeoWebSocket.on_message = self.__on_message
-            self.NeoWebSocket.on_error = self.__on_error
-            self.NeoWebSocket.on_open = self.__on_open
-            self.NeoWebSocket.on_close = self.__on_close
+    _LEGACY_WS_MESSAGE = (
+        "The callback-based WebSocket (subscribe/un_subscribe/subscribe_to_orderfeed) "
+        "has been removed in 2.2.0. Use the async Shristi WebSocket instead: "
+        "`client.create_websocket()` (see neo_api_client.websocket.shristi.ShristiWebSocket)."
+    )
 
     def subscribe(self, instrument_tokens, isIndex=False, isDepth=False):
         """
-        Subscribe to live feeds for the given instrument tokens.
-
-        .. deprecated:: 2.2.0
-            Use :class:`~neo_api_client.websocket.srishti.SrishtiWebSocket` instead.
-            This callback-based WebSocket will be removed in v3.0.0.
-
-        Args:
-            instrument_tokens (List): A JSON-encoded list of instrument tokens to subscribe to.
-            isIndex (bool): Whether the instrument is an index. Default is False.
-            isDepth (bool): Whether to subscribe to depth data. Default is False.
+        Removed in 2.2.0. Use :meth:`create_websocket` (Shristi WebSocket) instead.
 
         Raises:
-            ValueError: If the login flow is not completed.
-
-        Returns:
-            Live Feed from the socket
-
-        The function establishes a WebSocket connection to the trading platform and subscribes to live feeds for the specified instrument tokens. When a new feed is received, the function's internal callback functions are called with the feed data as their arguments. If an error occurs, the on_error function is called with the error message as its argument.
-
-        Example (Deprecated):
-            ```python
-            client = NeoAPI(...)
-            client.on_message = lambda msg: print(msg)
-            client.subscribe(instrument_tokens=[...])
-            ```
-
-        Recommended (New):
-            ```python
-            from neo_api_client.websocket.srishti import SrishtiWebSocket, WsToken
-
-            async with SrishtiWebSocket(access_token, sid) as ws:
-                await ws.subscribe_scrips([WsToken("nse_cm", "1333")])
-                async for message in ws:
-                    print(message)
-            ```
+            NotImplementedError: Always. The legacy WebSocket has been removed.
         """
-        import warnings
-
-        warnings.warn(
-            "subscribe() is deprecated and will be removed in v3.0.0. "
-            "Use neo_api_client.websocket.srishti.SrishtiWebSocket instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        if self.configuration.edit_token and self.configuration.edit_sid:
-            if not self.NeoWebSocket:
-                self.check_callbacks()
-                self.NeoWebSocket = NeoWebSocket(
-                    self.configuration.edit_sid,
-                    self.configuration.edit_token,
-                    self.configuration.serverId,
-                    data_center=None,
-                )
-                self.set_neowebsocket_callbacks()
-            self.NeoWebSocket.get_live_feed(
-                instrument_tokens=instrument_tokens, isIndex=isIndex, isDepth=isDepth
-            )
-        else:
-            print("Please complete the Login Flow to Subscribe the Scrips")
+        raise NotImplementedError(self._LEGACY_WS_MESSAGE)
 
     def un_subscribe(self, instrument_tokens, isIndex=False, isDepth=False):
         """
-        Unsubscribe the live feeds for the subscribed instrument tokens.
-
-        .. deprecated:: 2.2.0
-            Use :class:`~neo_api_client.websocket.srishti.SrishtiWebSocket` instead.
-            This callback-based WebSocket will be removed in v3.0.0.
-
-        Args:
-            instrument_tokens (List): A JSON-encoded list of instrument tokens.
-            isIndex (bool): Whether the instrument is an index. Default is False.
-            isDepth (bool): Whether to subscribe to depth data. Default is False.
+        Removed in 2.2.0. Use :meth:`create_websocket` (Shristi WebSocket) instead.
 
         Raises:
-            ValueError: If the login flow is not completed.
-
-        Returns:
-            Message that its successfully unsubscribed
+            NotImplementedError: Always. The legacy WebSocket has been removed.
         """
-        import warnings
-
-        warnings.warn(
-            "un_subscribe() is deprecated and will be removed in v3.0.0. "
-            "Use neo_api_client.websocket.srishti.SrishtiWebSocket instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        if self.configuration.edit_token and self.configuration.edit_sid:
-            if not self.NeoWebSocket:
-                self.NeoWebSocket = NeoWebSocket(
-                    self.configuration.edit_sid,
-                    self.configuration.edit_token,
-                    self.configuration.serverId,
-                    data_center=None,
-                )
-
-            self.set_neowebsocket_callbacks()
-            self.NeoWebSocket.un_subscribe_list(
-                instrument_tokens=instrument_tokens, isIndex=isIndex, isDepth=isDepth
-            )
-            print("The Data has been Un-Subscribed")
-        else:
-            raise ValueError("Please complete the Login Flow to Un_Subscribe the Scrips")
+        raise NotImplementedError(self._LEGACY_WS_MESSAGE)
 
     def help(self, function_name=None):
         class_name = NeoAPI.__name__
@@ -874,7 +763,7 @@ class NeoAPI:
             else:
                 function_name = str(function_name).strip()
                 if function_name == "socket":
-                    function_name = "subscribe"
+                    function_name = "create_websocket"
                 obj = getattr(NeoAPI, function_name, None)
                 if obj is None:
                     print(f"{function_name} is not a valid function name.")
@@ -918,40 +807,12 @@ class NeoAPI:
 
     def subscribe_to_orderfeed(self):
         """
-        Subscribe To OrderFeed
-
-        .. deprecated:: 2.2.0
-            Use :class:`~neo_api_client.websocket.srishti.SrishtiWebSocket` instead.
-            This callback-based WebSocket will be removed in v3.0.0.
+        Removed in 2.2.0. Use :meth:`create_websocket` (Shristi WebSocket) instead.
 
         Raises:
-            Exception: If the user hasn't completes his 2FA.
-
-        Returns:
-            Order Feed information.
+            NotImplementedError: Always. The legacy WebSocket has been removed.
         """
-        import warnings
-
-        warnings.warn(
-            "subscribe_to_orderfeed() is deprecated and will be removed in v3.0.0. "
-            "Use neo_api_client.websocket.srishti.SrishtiWebSocket instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        if self.configuration.edit_token and self.configuration.edit_sid:
-            self.check_callbacks()
-            if not self.NeoWebSocket:
-                self.NeoWebSocket = NeoWebSocket(
-                    self.configuration.edit_sid,
-                    self.configuration.edit_token,
-                    self.configuration.serverId,
-                    self.configuration.data_center,
-                )
-            self.set_neowebsocket_callbacks()
-            self.NeoWebSocket.get_order_feed()
-
-        else:
-            return {"Error Message": "Complete the 2fa process before accessing this application"}
+        raise NotImplementedError(self._LEGACY_WS_MESSAGE)
 
     def totp_login(self, mobile_number=None, ucc=None, totp=None):
         """
@@ -1061,18 +922,24 @@ class NeoAPI:
 
     def create_websocket(self, url: str = None, **kwargs):
         """
-        Create a modern async/await Srishti WebSocket client.
+        Create a modern async/await Shristi WebSocket client.
 
-        This method provides a convenient way to create a SrishtiWebSocket instance
+        This method provides a convenient way to create a ShristiWebSocket instance
         with authentication credentials already configured from the current session.
 
+        The Shristi native_batch auth frame uses ``user``/``auth`` credentials.
+        By default these are derived from the current session (``user`` = edit_sid,
+        ``auth`` = edit_token); override via kwargs (``user=``, ``auth=``, ``source=``)
+        if your feed credentials differ.
+
         Args:
-            url: Optional WebSocket URL override (defaults to production Srishti URL)
-            **kwargs: Additional arguments passed to SrishtiWebSocket constructor
-                (e.g., heartbeat_interval, reconnect_delay, max_reconnect_attempts)
+            url: Optional WebSocket URL override (defaults to production Shristi URL)
+            **kwargs: Additional arguments passed to ShristiWebSocket constructor
+                (e.g., user, auth, source, sdk_version, sdk_date, reconnect_delay,
+                max_reconnect_attempts, ping_interval)
 
         Returns:
-            SrishtiWebSocket: Configured WebSocket client ready to connect
+            ShristiWebSocket: Configured WebSocket client ready to connect
 
         Raises:
             ValueError: If user is not authenticated (no edit_token or edit_sid)
@@ -1081,7 +948,7 @@ class NeoAPI:
             ```python
             import asyncio
             from neo_api_client import NeoAPI
-            from neo_api_client.websocket.srishti import WsToken
+            from neo_api_client.websocket.shristi import WsToken
 
             async def main():
                 # Login
@@ -1105,17 +972,21 @@ class NeoAPI:
             Requires Python 3.10+ and async/await support.
             Make sure to call totp_login() and totp_validate() before creating WebSocket.
         """
-        from neo_api_client.websocket.srishti import SrishtiWebSocket
+        from neo_api_client.websocket.shristi import ShristiWebSocket
 
         if not self.configuration.edit_token or not self.configuration.edit_sid:
             raise ValueError(
                 "Authentication required. Please call totp_login() and totp_validate() first."
             )
 
-        return SrishtiWebSocket(
+        # Only override the URL when one is explicitly provided, otherwise let
+        # ShristiWebSocket fall back to its default (SHRISTI_WEBSOCKET_URL).
+        if url is not None:
+            kwargs["url"] = url
+
+        return ShristiWebSocket(
             access_token=self.configuration.edit_token,
             sid=self.configuration.edit_sid,
-            url=url,
             **kwargs,
         )
 

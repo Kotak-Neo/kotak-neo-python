@@ -192,15 +192,17 @@ def test_totp_validate_success(requests_mock):
     assert client.configuration.edit_token == "edit_token_123"
 
 
-def test_check_callbacks_all_set(authenticated_client):
-    """Test check_callbacks when all callbacks are set."""
-    authenticated_client.on_message = lambda _msg: None
-    authenticated_client.on_error = lambda _err: None
-    authenticated_client.on_open = lambda: None
-    authenticated_client.on_close = lambda: None
+def test_create_websocket_returns_client(authenticated_client):
+    """create_websocket returns a configured Shristi WebSocket client when authenticated."""
+    from neo_api_client.websocket.shristi import ShristiWebSocket
 
-    # Should not raise
-    authenticated_client.check_callbacks()
+    ws = authenticated_client.create_websocket()
+
+    assert isinstance(ws, ShristiWebSocket)
+    assert ws.access_token == authenticated_client.configuration.edit_token
+    assert ws.sid == authenticated_client.configuration.edit_sid
+    # Defaults to the Shristi production URL when no override is given
+    assert ws.url == "wss://sfeed.kotaksecurities.com/wsfeed"
 
 
 def test_help_no_function():
@@ -227,13 +229,12 @@ def test_help_with_socket_keyword():
     client.help("socket")
 
 
-def test_subscribe_to_orderfeed_without_2fa():
-    """Test subscribe_to_orderfeed without 2FA."""
+def test_subscribe_to_orderfeed_removed():
+    """Legacy subscribe_to_orderfeed() is removed in 2.2.0 and raises NotImplementedError."""
     client = NeoAPI(environment="prod", consumer_key="test_key")
 
-    result = client.subscribe_to_orderfeed()
-
-    assert "Error Message" in result
+    with pytest.raises(NotImplementedError):
+        client.subscribe_to_orderfeed()
 
 
 def test_place_order_exception_handling(authenticated_client, requests_mock):

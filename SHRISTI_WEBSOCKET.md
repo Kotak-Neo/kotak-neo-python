@@ -1,11 +1,11 @@
-# Srishti WebSocket Implementation
+# Shristi WebSocket Implementation
 
-Modern async/await WebSocket client for Kotak Neo's Srishti broadcast platform.
+Modern async/await WebSocket client for Kotak Neo's Shristi broadcast platform.
 
 ## Status: ⚠️ Beta (v2.2.0)
 
 **Requires additional information before full release:**
-- [ ] Actual Srishti WebSocket URL
+- [ ] Actual Shristi WebSocket URL
 - [ ] Authentication protocol details
 - [ ] Message format specification (JSON vs Binary)
 - [ ] Subscription request/response format
@@ -29,7 +29,7 @@ Modern async/await WebSocket client for Kotak Neo's Srishti broadcast platform.
 ### ✅ Documentation
 - Complete API documentation with examples
 - Migration guide from old to new WebSocket
-- Example scripts in `examples/srishti_websocket_example.py`
+- Example scripts in `examples/shristi_websocket_example.py`
 
 ## File Structure
 
@@ -38,9 +38,9 @@ neo_api_client/
 ├── websocket/
 │   ├── HSWebSocketLib.py              # [OLD] Keep for backward compatibility
 │   ├── NeoWebSocket.py                # [OLD] Keep for backward compatibility
-│   └── srishti/
+│   └── shristi/
 │       ├── __init__.py                # Package exports
-│       ├── client.py                  # Main SrishtiWebSocket client
+│       ├── client.py                  # Main ShristiWebSocket client
 │       ├── models.py                  # Pydantic models
 │       ├── exceptions.py              # Custom exceptions
 │       └── README.md                  # Full documentation
@@ -52,7 +52,7 @@ neo_api_client/
 
 ```python
 import asyncio
-from neo_api_client import NeoAPI, SrishtiWebSocket, WsToken
+from neo_api_client import NeoAPI, ShristiWebSocket, WsToken
 
 async def main():
     # Login
@@ -73,9 +73,9 @@ asyncio.run(main())
 ### Direct Import
 
 ```python
-from neo_api_client.websocket.srishti import SrishtiWebSocket, WsToken
+from neo_api_client.websocket.shristi import ShristiWebSocket, WsToken
 
-async with SrishtiWebSocket(access_token, sid) as ws:
+async with ShristiWebSocket(access_token, sid) as ws:
     await ws.subscribe_scrips([WsToken("nse_cm", "1333")])
     async for msg in ws:
         print(msg)
@@ -140,14 +140,14 @@ async with client.create_websocket() as ws:
 
 | Version | Status | Action |
 |---------|--------|--------|
-| **v2.2.0** | ✅ Current | Srishti WebSocket available (beta) |
+| **v2.2.0** | ✅ Current | Shristi WebSocket available (beta) |
 | **v2.3.0** | 🔜 Q3 2026 | Old WebSocket marked deprecated with warnings |
 | **v3.0.0** | 🔜 Q4 2026 | Old WebSocket removed |
 
 ## TODO Before Release
 
 ### Critical
-1. **Get Srishti WebSocket URL**
+1. **Get Shristi WebSocket URL**
    - Production: `wss://???`
    - UAT: `wss://???`
 
@@ -174,7 +174,7 @@ async with client.create_websocket() as ws:
 - [ ] Error handling validation
 
 ### Documentation
-- [ ] Update main README with Srishti examples
+- [ ] Update main README with Shristi examples
 - [ ] Add API reference documentation
 - [ ] Create video tutorial
 - [ ] Update changelog
@@ -191,7 +191,7 @@ websocket = [
 
 ## Questions for Kotak Neo Team
 
-1. **URL**: What's the Srishti WebSocket production URL?
+1. **URL**: What's the Shristi WebSocket production URL?
 2. **Protocol**: JSON or Binary messages?
 3. **Auth**: Same token format as current HSWebSocket?
 4. **Messages**: Can you provide sample payloads for:
@@ -210,4 +210,4 @@ For questions or to provide the required information:
 
 ---
 
-**Note**: This is a beta implementation. The WebSocket client is fully functional but requires actual Srishti backend details for production use. All TODOs are marked with `# TODO:` comments in the code.
+**Note**: This is a beta implementation. The WebSocket client is fully functional but requires actual Shristi backend details for production use. All TODOs are marked with `# TODO:` comments in the code.
