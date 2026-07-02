@@ -4,14 +4,18 @@ import struct
 
 import pytest
 
-from neo_api_client.websocket.feed.models import (
+# Importing the feed subpackage pulls in the client, which requires the optional
+# `websockets` dependency (the `feed` extra). Skip cleanly when it's absent.
+pytest.importorskip("websockets")
+
+from neo_api_client.websocket.feed.models import (  # noqa: E402
     SFeedIndex,
     SFeedMarketStatus,
     SFeedScrip,
     SFeedScripLite,
     WsToken,
 )
-from neo_api_client.websocket.feed.protocol import (
+from neo_api_client.websocket.feed.protocol import (  # noqa: E402
     HEADER_SIZE,
     MSG_INDEX,
     MSG_MARKET_CLOSE,

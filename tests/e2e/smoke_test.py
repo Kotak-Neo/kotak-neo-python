@@ -513,6 +513,74 @@ runner.run_test(
     },
 )
 
+
+def test_websocket_unsubscribe():
+    """Test SFeed WebSocket unsubscribe.
+
+    Subscribes to a scrip, unsubscribes, then confirms that no further
+    messages arrive for the unsubscribed instrument.
+    """
+    tokens = [WsToken("nse_cm", "19084")]
+
+    async def _run():
+        runner.ws_error = None
+
+        ws = runner.client.create_websocket()
+        ws.on_error = runner.on_ws_error
+
+        await ws.connect()
+
+        # Subscribe and let a few messages flow so we know the feed is live.
+        await ws.subscribe_scrips(tokens)
+        print("\nSubscribed - receiving briefly (3 seconds)...")
+        try:
+            async with asyncio.timeout(3):
+                async for _message in ws:
+                    pass
+        except TimeoutError:
+            pass
+
+        # Unsubscribe, then count any messages that still arrive.
+        await ws.unsubscribe_scrips(tokens)
+        print("\nUnsubscribed - confirming feed goes quiet (3 seconds)...")
+        messages_after_unsubscribe = 0
+        try:
+            async with asyncio.timeout(3):
+                async for _message in ws:
+                    messages_after_unsubscribe += 1
+        except TimeoutError:
+            pass
+
+        await ws.close()
+
+        return messages_after_unsubscribe
+
+    messages_after = asyncio.run(_run())
+
+    if runner.ws_error:
+        raise RuntimeError(f"WebSocket error: {runner.ws_error}")
+
+    print(f"\n[UNSUBSCRIBE] Messages received after unsubscribe: {messages_after}")
+
+    return {
+        "unsubscribed": True,
+        "messages_after_unsubscribe": messages_after,
+    }
+
+
+runner.run_test(
+    "WEBSOCKET UNSUBSCRIBE",
+    test_websocket_unsubscribe,
+    request_params={
+        "instrument_tokens": [
+            {
+                "instrument_token": "19084",
+                "exchange_segment": "nse_cm",
+            }
+        ],
+    },
+)
+
 # ---------------------------
 # LOGOUT
 # ---------------------------

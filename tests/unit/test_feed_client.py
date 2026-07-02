@@ -5,7 +5,11 @@ import json
 
 import pytest
 
-from neo_api_client.websocket.feed import SFeedWebSocket, WsToken
+# The SFeed client requires the optional `websockets` dependency (the `feed`
+# extra). Skip this module cleanly when it isn't installed.
+pytest.importorskip("websockets")
+
+from neo_api_client.websocket.feed import SFeedWebSocket, WsToken  # noqa: E402
 
 
 class FakeWebSocket:

@@ -75,6 +75,9 @@ dev = [
     "safety>=3.0.0",
     "pre-commit>=3.6.0",
     "pyotp>=2.9.0",
+    # SFeed WebSocket deps so the feed tests run in CI/dev
+    "websockets>=12.0",
+    "pydantic>=2.0.0",
 ]
 
 [project.urls]
