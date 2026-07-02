@@ -27,6 +27,22 @@ await ws.unsubscribe_scrips(tokens)
 | `unsubscribe_full_depth(tokens)` | Full-depth feed |
 | `unsubscribe_index(tokens)` | Index feed |
 
+### LTP (single instrument)
+
+```python
+await ws.unsubscribe_scrips([WsToken("nse_cm", "Nifty 50")])
+```
+
+On the wire the unsubscribe frame omits the `json` field:
+`{"event": "unsubscribeScrips", "inputtoken": "nse_cm|Nifty 50"}`.
+
+### Option chain (batched)
+
+```python
+chain = [WsToken("nse_fo", str(t)) for t in range(44498, 44520)]
+await ws.unsubscribe_scrips(chain)   # one batched frame
+```
+
 ## Parameters
 
 | Name | Description | Type |

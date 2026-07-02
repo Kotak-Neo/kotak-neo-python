@@ -44,6 +44,21 @@ asyncio.run(main())
 | `subscribe_full_depth(tokens)` | Full depth | `SFeedScrip` with `buy`/`sell` rows |
 | `subscribe_index(tokens)` | Index | `SFeedIndex` |
 
+### LTP (single instrument)
+
+```python
+await ws.subscribe_scrips([WsToken("nse_cm", "Nifty 50")])
+```
+
+### Option chain (batched)
+
+All tokens are sent in a single frame (`inputtoken` becomes a comma-separated list):
+
+```python
+chain = [WsToken("nse_fo", str(t)) for t in range(44498, 44520)]
+await ws.subscribe_scrips(chain)
+```
+
 ## Parameters
 
 | Name | Description | Type |

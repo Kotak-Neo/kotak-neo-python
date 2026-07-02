@@ -106,11 +106,31 @@ Every subscribe/unsubscribe call **batches all tokens into a single frame**.
 Each has a matching `unsubscribe_*` method. A one-time snapshot is available via
 `snapshot(tokens, intent="scrips")` (intents: `scrips`, `scrips_lite`, `depth`, `index`).
 
+### LTP (single instrument)
+
+Subscribe to one instrument — by numeric token or index name — for last-traded-price
+updates:
+
 ```python
-tokens = [WsToken("nse_fo", str(t)) for t in range(44498, 44520)]
-await ws.subscribe_scrips(tokens)   # one batched frame
+await ws.subscribe_scrips([WsToken("nse_cm", "Nifty 50")])
 # ...
-await ws.unsubscribe_scrips(tokens)
+await ws.unsubscribe_scrips([WsToken("nse_cm", "Nifty 50")])
+```
+
+On the wire this is the documented LTP frame
+`{"event": "subscribeScrips", "inputtoken": "nse_cm|Nifty 50", "json": "false"}`
+(unsubscribe omits the `json` field).
+
+### Option chain (batched)
+
+Pass the whole chain in one call — all tokens are sent in a single frame as a
+comma-separated `inputtoken` (e.g. `nse_fo|44498,nse_fo|44500,...`):
+
+```python
+chain = [WsToken("nse_fo", str(t)) for t in range(44498, 44520)]
+await ws.subscribe_scrips(chain)     # one batched frame
+# ...
+await ws.unsubscribe_scrips(chain)   # one batched frame
 ```
 
 ## Message Types
@@ -276,6 +296,13 @@ socket and synthetic binary packets):
 pytest tests/unit/test_feed_client.py tests/unit/test_feed_protocol.py -v
 ```
 
-An end-to-end example lives at [`examples/feed_websocket_example.py`](../../examples/feed_websocket_example.py),
-and the smoke test ([`tests/e2e/smoke_test.py`](../../tests/e2e/smoke_test.py)) exercises
-a live subscribe/receive/unsubscribe cycle.
+An end-to-end example lives at [`examples/feed_websocket_example.py`](../../examples/feed_websocket_example.py).
+The smoke test ([`tests/e2e/smoke_test.py`](../../tests/e2e/smoke_test.py)) exercises live
+subscribe/receive/unsubscribe cycles for both documented flows:
+
+- **WEBSOCKET LTP SUBSCRIBE** / **WEBSOCKET LTP UNSUBSCRIBE** — a single index token
+  (`nse_cm|Nifty 50`)
+- **WEBSOCKET OPTION CHAIN SUBSCRIBE** / **WEBSOCKET OPTION CHAIN UNSUBSCRIBE** — a batch
+  of `nse_fo` option tokens sent in one frame
+
+The unsubscribe cases also confirm the feed goes quiet after unsubscribing.
