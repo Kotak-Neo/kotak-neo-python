@@ -1,10 +1,10 @@
-"""Modern async/await WebSocket client for the Shristi market-data feed.
+"""Modern async/await WebSocket client for the SFeed market-data feed.
 
 Implements the ``native_batch`` protocol:
 
 * Control plane — JSON text frames (auth, subscribe, unsubscribe, snapshot).
 * Data plane — binary frames (little-endian, packed, batched); decoded by
-  :mod:`neo_api_client.websocket.shristi.protocol`.
+  :mod:`neo_api_client.websocket.feed.protocol`.
 
 There is no application-level heartbeat in this mode; the WebSocket layer's
 native ping/pong keeps the connection alive.
@@ -20,20 +20,20 @@ from typing import Any
 
 import websockets
 
-from neo_api_client.utils.urls import SHRISTI_WEBSOCKET_URL
-from neo_api_client.websocket.shristi.exceptions import (
+from neo_api_client.utils.urls import SFEED_WEBSOCKET_URL
+from neo_api_client.websocket.feed.exceptions import (
     AlreadyConnectedError,
     AuthenticationError,
     ConnectionError,
     NotConnectedError,
     SubscriptionError,
 )
-from neo_api_client.websocket.shristi.models import (
+from neo_api_client.websocket.feed.models import (
     EXCHANGE_NAME_TO_ID,
     SFeedMessage,
     WsToken,
 )
-from neo_api_client.websocket.shristi.protocol import (
+from neo_api_client.websocket.feed.protocol import (
     MSG_AUTH_RESPONSE_CODES,
     decode_packet,
     split_batch,
@@ -62,12 +62,12 @@ _SNAPSHOT_EVENTS = {
 }
 
 
-class ShristiWebSocket:
-    """Async/await WebSocket client for the Shristi ``native_batch`` feed.
+class SFeedWebSocket:
+    """Async/await WebSocket client for the SFeed ``native_batch`` feed.
 
     Example:
         ```python
-        async with ShristiWebSocket(user="U", auth="TOKEN") as ws:
+        async with SFeedWebSocket(user="U", auth="TOKEN") as ws:
             await ws.subscribe_scrips([WsToken("nse_cm", "11536")])
             async for message in ws:
                 print(type(message).__name__, message.model_dump())
@@ -78,7 +78,7 @@ class ShristiWebSocket:
         self,
         access_token: str | None = None,
         sid: str | None = None,
-        url: str = SHRISTI_WEBSOCKET_URL,
+        url: str = SFEED_WEBSOCKET_URL,
         *,
         user: str = "neome",
         auth: str = "1",
@@ -98,7 +98,7 @@ class ShristiWebSocket:
             access_token: Session token (retained for compatibility; the feed
                 uses the ``user``/``auth`` credentials below, not this token).
             sid: Session id (retained for compatibility).
-            url: Feed URL (default: Shristi production ``/wsfeed``).
+            url: Feed URL (default: SFeed production ``/wsfeed``).
             user: ``user`` credential for the native_batch auth frame.
             auth: ``auth`` credential for the native_batch auth frame.
             source: Client identification (default 'SFeed').
@@ -258,9 +258,7 @@ class ShristiWebSocket:
 
             fmt = data.get("format")
             if fmt == "native_fallback":
-                raise AuthenticationError(
-                    "Server downgraded to native_fallback (out of scope)"
-                )
+                raise AuthenticationError("Server downgraded to native_fallback (out of scope)")
 
             # Persist dividers keyed by exchange_id for binary decoding.
             # Prefer the exchange_id from the response's own "value" field,
@@ -352,16 +350,12 @@ class ShristiWebSocket:
     async def _send_subscribe(self, event: str, tokens: list[WsToken]) -> None:
         """Send a batched subscribe frame (all tokens in one ``inputtoken``)."""
         await self._ws.send(
-            json.dumps(
-                {"event": event, "inputtoken": self._inputtoken(tokens), "json": "false"}
-            )
+            json.dumps({"event": event, "inputtoken": self._inputtoken(tokens), "json": "false"})
         )
 
     async def _send_unsubscribe(self, event: str, tokens: list[WsToken]) -> None:
         """Send a batched unsubscribe frame (no ``json`` field, per spec)."""
-        await self._ws.send(
-            json.dumps({"event": event, "inputtoken": self._inputtoken(tokens)})
-        )
+        await self._ws.send(json.dumps({"event": event, "inputtoken": self._inputtoken(tokens)}))
 
     async def _subscribe(self, tokens: list[WsToken], intent: str) -> None:
         if not self.is_connected:

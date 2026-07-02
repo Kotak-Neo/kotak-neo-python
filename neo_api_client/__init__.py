@@ -17,20 +17,20 @@ from neo_api_client.neo_api import NeoAPI
 from neo_api_client.services.order_report import OrderReportAPI
 from neo_api_client.utils.neo_utility import NeoUtility
 
-# Shristi WebSocket (modern async/await)
+# SFeed WebSocket (modern async/await)
 try:
-    from neo_api_client.websocket.shristi import (  # noqa: F401
+    from neo_api_client.websocket.feed import (  # noqa: F401
         DepthLevel,
         SFeedIndex,
         SFeedMarketStatus,
         SFeedScrip,
         SFeedScripLite,
-        ShristiWebSocket,
+        SFeedWebSocket,
         WsToken,
     )
 
-    __all_shristi__ = [
-        "ShristiWebSocket",
+    __all_feed__ = [
+        "SFeedWebSocket",
         "WsToken",
         "SFeedScrip",
         "SFeedScripLite",
@@ -40,7 +40,7 @@ try:
     ]
 except ImportError:
     # websockets package not installed
-    __all_shristi__ = []
+    __all_feed__ = []
 
 __all__ = [
     "NeoAPI",
@@ -61,4 +61,4 @@ __all__ = [
     "ConfigurationError",
     "OrderError",
     "WebSocketError",
-] + __all_shristi__
+] + __all_feed__

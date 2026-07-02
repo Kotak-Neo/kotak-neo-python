@@ -305,7 +305,7 @@ pip install git+https://github.com/Kotak-Neo/kotak-neo-python.git@develop
 
 **Specific tag/version:**
 ```bash
-pip install git+https://github.com/Kotak-Neo/kotak-neo-python.git@v2.1.1
+pip install git+https://github.com/Kotak-Neo/kotak-neo-python.git@v2.2.0
 ```
 
 ---
@@ -523,7 +523,7 @@ pip install kotakneoapi
 ---
 
 **Last Updated:** June 25, 2026  
-**Package Version:** 2.1.1  
+**Package Version:** 2.2.0  
 **Status:** In Development (Local Installation Only)
 
 [[Back to Main README]](../README.md) | [[Installation Overview]](installation/README.md)

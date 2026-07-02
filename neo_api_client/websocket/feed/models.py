@@ -1,8 +1,8 @@
-"""Pydantic models for Shristi WebSocket feed messages (native_batch).
+"""Pydantic models for SFeed WebSocket feed messages (native_batch).
 
 Field values here are already decoded and scaled (prices divided by the
 per-exchange divider, net_chg_percent divided by 100) by
-:mod:`neo_api_client.websocket.shristi.protocol`.
+:mod:`neo_api_client.websocket.feed.protocol`.
 """
 
 from enum import IntEnum

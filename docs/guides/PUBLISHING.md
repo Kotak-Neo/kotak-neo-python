@@ -53,8 +53,8 @@ ls -la
 python -m build
 
 # This creates:
-# - dist/kotakneoapi-2.1.1-py3-none-any.whl (wheel)
-# - dist/kotakneoapi-2.1.1.tar.gz (source)
+# - dist/kotakneoapi-2.2.0-py3-none-any.whl (wheel)
+# - dist/kotakneoapi-2.2.0.tar.gz (source)
 ```
 
 ### 3. Verify Build
@@ -64,10 +64,10 @@ python -m build
 ls -lh dist/
 
 # Inspect package contents
-tar -tzf dist/kotakneoapi-2.1.1.tar.gz | head -20
+tar -tzf dist/kotakneoapi-2.2.0.tar.gz | head -20
 
 # Check wheel contents
-unzip -l dist/kotakneoapi-2.1.1-py3-none-any.whl | head -20
+unzip -l dist/kotakneoapi-2.2.0-py3-none-any.whl | head -20
 ```
 
 ## Testing the Build
@@ -80,7 +80,7 @@ python -m venv test_env
 source test_env/bin/activate
 
 # Install from wheel
-pip install dist/kotakneoapi-2.1.1-py3-none-any.whl
+pip install dist/kotakneoapi-2.2.0-py3-none-any.whl
 
 # Test import
 python -c "from neo_api_client import NeoAPI; print('Success!')"
@@ -198,18 +198,18 @@ rm -rf verify_env
 
 ```bash
 # Create annotated tag
-git tag -a v2.1.1 -m "Release version 2.1.1"
+git tag -a v2.2.0 -m "Release version 2.2.0"
 
 # Push tag to GitHub
-git push origin v2.1.1
+git push origin v2.2.0
 ```
 
 ### 2. Create GitHub Release
 
 1. Go to https://github.com/Kotak-Neo/kotak-neo-python/releases
 2. Click "Draft a new release"
-3. Select the tag (v2.1.1)
-4. Add release title: "v2.1.1"
+3. Select the tag (v2.2.0)
+4. Add release title: "v2.2.0"
 5. Add release notes from CHANGELOG.md
 6. Attach distribution files (optional)
 7. Publish release
@@ -245,7 +245,7 @@ Edit `pyproject.toml`:
 ```toml
 [project]
 name = "kotakneoapi"
-version = "2.1.1"  # Update this
+version = "2.2.0"  # Update this
 ```
 
 ## Troubleshooting
@@ -344,8 +344,8 @@ python -m build                  # Build
 twine check dist/*              # Validate
 twine upload --repository testpypi dist/*  # Test
 twine upload dist/*             # Publish
-git tag -a v2.1.1 -m "Release" # Tag
-git push origin v2.1.1         # Push tag
+git tag -a v2.2.0 -m "Release" # Tag
+git push origin v2.2.0         # Push tag
 ```
 
 ## Resources

@@ -5,8 +5,8 @@ from neo_api_client.utils.urls import (
     PROD_BASE_URL,
     SESSION_PROD_BASE_URL,
     SESSION_UAT_BASE_URL,
+    SFEED_WEBSOCKET_URL,
     UAT_BASE_URL,
-    WEBSOCKET_URL,
 )
 
 
@@ -27,10 +27,10 @@ def test_urls_are_different():
     assert PROD_BASE_URL != UAT_BASE_URL
 
 
-def test_websocket_url():
-    """Test websocket URL."""
-    assert WEBSOCKET_URL is not None
-    assert "wss://" in WEBSOCKET_URL
+def test_feed_websocket_url():
+    """Test SFeed websocket URL."""
+    assert SFEED_WEBSOCKET_URL is not None
+    assert "wss://" in SFEED_WEBSOCKET_URL
 
 
 def test_order_feed_url():

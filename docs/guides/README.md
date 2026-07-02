@@ -6,6 +6,22 @@ Comprehensive guides for developers, maintainers, and contributors.
 
 ### For Developers
 
+#### [SFeed WebSocket Guide](websocket.md)
+Modern async/await streaming client for live market data (v2.2.0+).
+
+**Topics Covered:**
+- Async/await usage with `async for` iteration
+- Batched subscribe/unsubscribe and snapshot
+- Typed messages (`SFeedScrip`, `SFeedScripLite`, `SFeedIndex`, `SFeedMarketStatus`)
+- Configuration, error handling, and callbacks
+- Migration from the legacy callback-based WebSocket (removed in v2.2.0)
+
+**Who should read:**
+- Anyone consuming real-time market data
+- Developers migrating from the pre-2.2.0 WebSocket API
+
+---
+
 #### [Installation Reference Guide](INSTALLATION_REFERENCE.md)
 Complete reference for installing the Kotak Neo Python SDK across different platforms.
 
@@ -90,6 +106,7 @@ Complete guide for building and publishing the package to PyPI (production).
 - **[Portfolio](../functions/portfolio/)** - Holdings & positions
 - **[Market Data](../functions/market_data/)** - Quotes & scrips
 - **[WebSocket](../functions/websocket/)** - Real-time streaming
+- **[SFeed WebSocket Guide](websocket.md)** - Async streaming client & migration
 
 ---
 
@@ -123,6 +140,7 @@ Complete guide for building and publishing the package to PyPI (production).
 docs/
 ├── guides/                          # 📖 You are here
 │   ├── README.md                    # This file
+│   ├── websocket.md         # Async SFeed WebSocket guide
 │   ├── INSTALLATION_REFERENCE.md    # Complete installation guide
 │   ├── TESTPYPI_UPLOAD_GUIDE.md    # TestPyPI publishing
 │   └── PUBLISHING.md                # PyPI publishing
@@ -167,6 +185,7 @@ Found an issue or want to improve a guide?
 
 ## Recent Updates
 
+- **2026-07-01**: Added SFeed WebSocket Guide; legacy callback WebSocket removed in v2.2.0
 - **2026-06-26**: Added TestPyPI Upload Guide
 - **2026-06-25**: Created Installation Reference Guide
 - **2026-06-25**: Created Publishing Guide

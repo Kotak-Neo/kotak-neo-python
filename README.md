@@ -3,7 +3,7 @@
 Official Python SDK for Kotak Neo Trading APIs - A production-ready, enterprise-grade trading client for the Kotak Neo platform.
 
 [![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
-[![PyPI Version](https://img.shields.io/badge/pypi-v2.1.1-green.svg)](https://pypi.org/project/kotakneoapi/)
+[![PyPI Version](https://img.shields.io/badge/pypi-v2.2.0-green.svg)](https://pypi.org/project/kotakneoapi/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ## Features
@@ -12,7 +12,7 @@ Official Python SDK for Kotak Neo Trading APIs - A production-ready, enterprise-
 ✅ **Order Management** - Place, modify, cancel orders (Regular/AMO/Bracket/Cover)  
 ✅ **Portfolio & Positions** - Real-time holdings, positions, and limits  
 ✅ **Market Data** - Live quotes, scrip master, search functionality  
-✅ **WebSocket Streaming** - Real-time market feed and order updates  
+✅ **SFeed WebSocket Streaming** - Modern async/await live market feed with typed messages  
 ✅ **Enterprise-Grade Reliability** - Circuit breaker, rate limiting, retry logic  
 ✅ **Comprehensive Error Handling** - Detailed exception hierarchy  
 ✅ **Type Safety** - Full mypy type checking support  
@@ -122,8 +122,9 @@ Detailed documentation for all SDK functions with examples and real API response
 **Market Data**
 - [Quotes](docs/functions/market_data/quotes.md) | [Scrip Master](docs/functions/market_data/scrip_master.md) | [Search Scrip](docs/functions/market_data/search_scrip.md)
 
-**WebSocket**
+**WebSocket (SFeed)**
 - [Subscribe](docs/functions/websocket/subscribe.md) | [Unsubscribe](docs/functions/websocket/unsubscribe.md) | [Order Feed](docs/functions/websocket/order_feed.md)
+- Full guide: [SFeed WebSocket](docs/guides/websocket.md)
 
 ### 📖 Guides & Documentation
 
@@ -139,39 +140,44 @@ Detailed documentation for all SDK functions with examples and real API response
 
 **API Documentation:**
 - **[Complete API Reference](docs/functions/README.md)** - All SDK functions
+- **[SFeed WebSocket Guide](docs/guides/websocket.md)** - Async streaming client, protocol & migration
 - **[All Guides](docs/guides/README.md)** - Complete guide index
 
-## WebSocket Streaming Example
+## WebSocket Streaming Example (SFeed)
+
+Live market data is delivered through the modern async/await **SFeed** WebSocket
+client. It uses `async for` iteration and returns type-safe Pydantic messages.
 
 ```python
-# Setup callbacks
-def on_message(message):
-    print(f"Live Data: {message}")
+import asyncio
+from neo_api_client import NeoAPI
+from neo_api_client.websocket.feed import WsToken, SFeedScrip
 
-def on_error(error):
-    print(f"Error: {error}")
+async def main():
+    client = NeoAPI(consumer_key='your-consumer-key-token', environment='prod')
+    client.totp_login(mobile_number='+919876543210', ucc='YOUR_UCC', totp='123456')
+    client.totp_validate(mpin='123456')
 
-def on_open():
-    print("WebSocket Connected")
+    # create_websocket() builds a SFeedWebSocket from the current session
+    async with client.create_websocket() as ws:
+        # Batch-subscribe any number of instruments in a single call
+        await ws.subscribe_scrips([
+            WsToken('nse_cm', 'Nifty 50'),
+            WsToken('nse_cm', '11536'),
+        ])
 
-def on_close():
-    print("WebSocket Closed")
+        async for message in ws:
+            if isinstance(message, SFeedScrip):
+                print(f"{message.instrument_token} LTP: {message.last_traded_price}")
 
-# Assign callbacks
-client.on_message = on_message
-client.on_error = on_error
-client.on_open = on_open
-client.on_close = on_close
-
-# Subscribe to live feed
-client.subscribe(
-    instrument_tokens=[
-        {'instrument_token': '1333', 'exchange_segment': 'nse_cm'}
-    ],
-    isIndex=False,
-    isDepth=False
-)
+asyncio.run(main())
 ```
+
+> **Note:** The SFeed client requires the optional `websockets` dependency:
+> `pip install "kotakneoapi[feed]"`. The legacy callback-based WebSocket
+> (`client.subscribe(...)`, `on_message`, etc.) was **removed in v2.2.0** — see the
+> [SFeed WebSocket guide](docs/guides/websocket.md) for the full API and a
+> migration reference.
 
 ## Exception Handling
 
@@ -330,6 +336,7 @@ bandit -r neo_api_client
 
 - **Python**: 3.10 or higher
 - **Core Dependencies**: numpy, pandas, PyJWT, requests, websocket-client, structlog, tenacity
+- **Optional (`feed` extra)**: websockets, pydantic — required only for the SFeed WebSocket client (`pip install "kotakneoapi[feed]"`)
 
 See [pyproject.toml](pyproject.toml) for complete dependency list.
 
@@ -386,6 +393,6 @@ See [CHANGELOG.md](CHANGELOG.md) for version history and updates.
 
 ---
 
-**Version**: 2.1.1  
+**Version**: 2.2.0  
 **Status**: Production/Stable  
 **Built with ❤️ by Kotak Neo Team**

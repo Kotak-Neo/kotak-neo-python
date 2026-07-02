@@ -5,9 +5,12 @@ Complete guide for uploading kotakneoapi to TestPyPI.
 ## Current Status
 
 ✅ **Package Built Successfully**
-- Source distribution: `kotakneoapi-2.1.1.tar.gz` (1.6 MB)
-- Wheel distribution: `kotakneoapi-2.1.1-py3-none-any.whl` (1.8 MB)
+- Source distribution: `kotakneoapi-2.2.0.tar.gz`
+- Wheel distribution: `kotakneoapi-2.2.0-py3-none-any.whl`
 - Validation: **PASSED**
+
+> Note: bundled CSV scrip-master files were removed from the distribution, so the
+> package is now only tens of KB (they are downloaded on demand at runtime instead).
 
 ## Steps Completed
 
@@ -90,13 +93,13 @@ After successful upload, you'll see:
 
 ```
 Uploading distributions to https://test.pypi.org/legacy/
-Uploading kotakneoapi-2.1.1-py3-none-any.whl
+Uploading kotakneoapi-2.2.0-py3-none-any.whl
 100% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.8/1.8 MB • 0:00:00
-Uploading kotakneoapi-2.1.1.tar.gz
+Uploading kotakneoapi-2.2.0.tar.gz
 100% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.6/1.6 MB • 0:00:00
 
 View at:
-https://test.pypi.org/project/kotakneoapi/2.1.1/
+https://test.pypi.org/project/kotakneoapi/2.2.0/
 ```
 
 **Visit your package page:**
@@ -174,7 +177,7 @@ rm -rf test_install_env
 
 ### Error: "400 Bad Request: File already exists"
 
-**Cause:** Version 2.1.1 already uploaded
+**Cause:** Version 2.2.0 already uploaded
 
 **Solution:**
 You cannot overwrite existing versions on PyPI/TestPyPI. Options:
@@ -182,8 +185,8 @@ You cannot overwrite existing versions on PyPI/TestPyPI. Options:
 1. **Increment version** (recommended):
    ```bash
    # Edit pyproject.toml
-   # Change: version = "2.1.1"
-   # To:     version = "2.1.1"
+   # Change: version = "2.2.0"
+   # To:     version = "2.2.1"
    
    # Rebuild and upload
    rm -rf dist/ build/ *.egg-info
@@ -193,7 +196,7 @@ You cannot overwrite existing versions on PyPI/TestPyPI. Options:
 
 2. **Delete old version** (TestPyPI only):
    - Go to https://test.pypi.org/manage/project/kotakneoapi/releases/
-   - Delete the 2.1.1 release
+   - Delete the 2.2.0 release
    - Re-upload
 
 ---
@@ -248,7 +251,7 @@ twine upload --repository testpypi --verbose dist/*
 Add TestPyPI badge to README.md:
 
 ```markdown
-[![TestPyPI](https://img.shields.io/badge/TestPyPI-2.1.1-blue.svg)](https://test.pypi.org/project/kotakneoapi/)
+[![TestPyPI](https://img.shields.io/badge/TestPyPI-2.2.0-blue.svg)](https://test.pypi.org/project/kotakneoapi/)
 ```
 
 ### 2. Test from Different Machines

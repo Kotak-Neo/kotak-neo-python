@@ -718,12 +718,12 @@ class NeoAPI:
     # Legacy WebSocket API (removed in 2.2.0)
     #
     # The callback-based HSWebSocket/NeoWebSocket implementation has been
-    # removed in favour of the modern async/await Shristi WebSocket client.
+    # removed in favour of the modern async/await SFeed WebSocket client.
     # The methods below are retained as stubs so that existing integrations
     # fail with a clear, actionable message instead of an AttributeError.
     #
     # Migrate to:
-    #     from neo_api_client.websocket.shristi import ShristiWebSocket, WsToken
+    #     from neo_api_client.websocket.feed import SFeedWebSocket, WsToken
     #
     #     async with client.create_websocket() as ws:
     #         await ws.subscribe_scrips([WsToken("nse_cm", "11536")])
@@ -733,13 +733,13 @@ class NeoAPI:
 
     _LEGACY_WS_MESSAGE = (
         "The callback-based WebSocket (subscribe/un_subscribe/subscribe_to_orderfeed) "
-        "has been removed in 2.2.0. Use the async Shristi WebSocket instead: "
-        "`client.create_websocket()` (see neo_api_client.websocket.shristi.ShristiWebSocket)."
+        "has been removed in 2.2.0. Use the async SFeed WebSocket instead: "
+        "`client.create_websocket()` (see neo_api_client.websocket.feed.SFeedWebSocket)."
     )
 
     def subscribe(self, instrument_tokens, isIndex=False, isDepth=False):
         """
-        Removed in 2.2.0. Use :meth:`create_websocket` (Shristi WebSocket) instead.
+        Removed in 2.2.0. Use :meth:`create_websocket` (SFeed WebSocket) instead.
 
         Raises:
             NotImplementedError: Always. The legacy WebSocket has been removed.
@@ -748,7 +748,7 @@ class NeoAPI:
 
     def un_subscribe(self, instrument_tokens, isIndex=False, isDepth=False):
         """
-        Removed in 2.2.0. Use :meth:`create_websocket` (Shristi WebSocket) instead.
+        Removed in 2.2.0. Use :meth:`create_websocket` (SFeed WebSocket) instead.
 
         Raises:
             NotImplementedError: Always. The legacy WebSocket has been removed.
@@ -807,7 +807,7 @@ class NeoAPI:
 
     def subscribe_to_orderfeed(self):
         """
-        Removed in 2.2.0. Use :meth:`create_websocket` (Shristi WebSocket) instead.
+        Removed in 2.2.0. Use :meth:`create_websocket` (SFeed WebSocket) instead.
 
         Raises:
             NotImplementedError: Always. The legacy WebSocket has been removed.
@@ -922,24 +922,24 @@ class NeoAPI:
 
     def create_websocket(self, url: str = None, **kwargs):
         """
-        Create a modern async/await Shristi WebSocket client.
+        Create a modern async/await SFeed WebSocket client.
 
-        This method provides a convenient way to create a ShristiWebSocket instance
+        This method provides a convenient way to create a SFeedWebSocket instance
         with authentication credentials already configured from the current session.
 
-        The Shristi native_batch auth frame uses ``user``/``auth`` credentials.
+        The SFeed native_batch auth frame uses ``user``/``auth`` credentials.
         By default these are derived from the current session (``user`` = edit_sid,
         ``auth`` = edit_token); override via kwargs (``user=``, ``auth=``, ``source=``)
         if your feed credentials differ.
 
         Args:
-            url: Optional WebSocket URL override (defaults to production Shristi URL)
-            **kwargs: Additional arguments passed to ShristiWebSocket constructor
+            url: Optional WebSocket URL override (defaults to production SFeed URL)
+            **kwargs: Additional arguments passed to SFeedWebSocket constructor
                 (e.g., user, auth, source, sdk_version, sdk_date, reconnect_delay,
                 max_reconnect_attempts, ping_interval)
 
         Returns:
-            ShristiWebSocket: Configured WebSocket client ready to connect
+            SFeedWebSocket: Configured WebSocket client ready to connect
 
         Raises:
             ValueError: If user is not authenticated (no edit_token or edit_sid)
@@ -948,7 +948,7 @@ class NeoAPI:
             ```python
             import asyncio
             from neo_api_client import NeoAPI
-            from neo_api_client.websocket.shristi import WsToken
+            from neo_api_client.websocket.feed import WsToken
 
             async def main():
                 # Login
@@ -972,7 +972,7 @@ class NeoAPI:
             Requires Python 3.10+ and async/await support.
             Make sure to call totp_login() and totp_validate() before creating WebSocket.
         """
-        from neo_api_client.websocket.shristi import ShristiWebSocket
+        from neo_api_client.websocket.feed import SFeedWebSocket
 
         if not self.configuration.edit_token or not self.configuration.edit_sid:
             raise ValueError(
@@ -980,11 +980,11 @@ class NeoAPI:
             )
 
         # Only override the URL when one is explicitly provided, otherwise let
-        # ShristiWebSocket fall back to its default (SHRISTI_WEBSOCKET_URL).
+        # SFeedWebSocket fall back to its default (SFEED_WEBSOCKET_URL).
         if url is not None:
             kwargs["url"] = url
 
-        return ShristiWebSocket(
+        return SFeedWebSocket(
             access_token=self.configuration.edit_token,
             sid=self.configuration.edit_sid,
             **kwargs,

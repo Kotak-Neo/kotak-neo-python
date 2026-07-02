@@ -1,17 +1,17 @@
-"""Unit tests for the Shristi native_batch binary protocol decoder."""
+"""Unit tests for the SFeed native_batch binary protocol decoder."""
 
 import struct
 
 import pytest
 
-from neo_api_client.websocket.shristi.models import (
+from neo_api_client.websocket.feed.models import (
     SFeedIndex,
     SFeedMarketStatus,
     SFeedScrip,
     SFeedScripLite,
     WsToken,
 )
-from neo_api_client.websocket.shristi.protocol import (
+from neo_api_client.websocket.feed.protocol import (
     HEADER_SIZE,
     MSG_INDEX,
     MSG_MARKET_CLOSE,

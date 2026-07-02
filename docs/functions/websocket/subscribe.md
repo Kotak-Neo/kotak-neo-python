@@ -1,200 +1,68 @@
-# **webSocket**
-Get live feed details of the given tokens
-```python
-inst_tokens = [{"instrument_token": "", "exchange_segment": ""}]
+# WebSocket — Subscribe (SFeed)
 
-client.subscribe(instrument_tokens = inst_tokens, isIndex=False, isDepth=False)
-```
+Live market data is delivered through the modern async/await **SFeed** WebSocket
+client (introduced in v2.2.0). The legacy callback-based `client.subscribe(...)` API
+was **removed in v2.2.0** and now raises `NotImplementedError`.
 
-Un_Subscribe method first checks whether the token is already subscribed.<br/>
-If not Subscribed you will see an error message else; the given tokens will be unsubscribed.
-```python
-client.un_subscribe(instrument_tokens, isIndex=False, isDepth=False)
-```
+> Full reference: **[SFeed WebSocket Guide](../../guides/websocket.md)**
 
-### Example
+## Subscribe
+
+Create the client from an authenticated session with `create_websocket()`, then use the
+typed subscribe methods. Every call batches all tokens into a single frame.
 
 ```python
+import asyncio
 from neo_api_client import NeoAPI
+from neo_api_client.websocket.feed import WsToken, SFeedScrip
 
-def on_message(message):
-    print('[Res]: ', message)
+async def main():
+    client = NeoAPI(consumer_key="your-consumer-key", environment="prod")
+    client.totp_login(mobile_number="+919876543210", ucc="YOUR_UCC", totp="123456")
+    client.totp_validate(mpin="123456")
 
-def on_error(message):
-    result = message
-    print('[OnError]: ', result)
+    async with client.create_websocket() as ws:
+        await ws.subscribe_scrips([
+            WsToken("nse_cm", "11536"),
+            WsToken("nse_cm", "Nifty 50"),   # index/instrument by name is allowed
+        ])
 
-def on_open(message):
-    print('[OnOpen]: ', message)
+        async for message in ws:
+            if isinstance(message, SFeedScrip):
+                print(f"{message.instrument_token} LTP: {message.last_traded_price}")
 
-def on_close(message):
-    print('[OnClose]: ', message)
-
-client = NeoAPI(environment='prod', access_token=None, neo_fin_key=None)
-client.totp_login(mobilenumber="", ucc="", totp='')
-client.totp_validate(mpin="")
-
-# Setup Callbacks for websocket events (Optional)
-client.on_message = on_message  # called when message is received from websocket
-client.on_error = on_error  # called when any error or exception occurs in code or websocket
-client.on_close = on_close  # called when websocket connection is closed
-client.on_open = on_open  # called when websocket successfully connects
-
-inst_tokens = [{"instrument_token": "11536", "exchange_segment": "nse_cm"},
-               {"instrument_token": "1594", "exchange_segment": "nse_cm"},
-               {"instrument_token": "11915", "exchange_segment": "nse_cm"},
-               {"instrument_token": "13245", "exchange_segment": "nse_cm"}]
-
-try:
-    # Get live feed data
-    client.subscribe(instrument_tokens=inst_tokens)
-except Exception as e:
-    print("Exception while connection to socket->socket: %s\n" % e)
-
+asyncio.run(main())
 ```
-### Parameters
 
-| Name                | Description                                                                         | Type                   |
-|---------------------|-------------------------------------------------------------------------------------|------------------------|
-| *instrument_tokens* | List of instrument Token (wToken) to be passed                                       | list                    |
-| *exchange_segment*  | nse_cm - NSE<br/>bse_cm - BSE<br/>nse_fo - NFO<br/>bse_fo - BFO<br/>cde_fo - CDS<br/>mcx_fo - MCX<br/>Index -  INDEX | Str                    |
-| *isDepth*           | Pass True if want to subscribe Market Depth                                                                       | Boolean value [optional]  |
-| *isIndex*           | Pass True if want to subscribe Index                                                                       | Boolean value [optional]  |
+## Subscription methods
 
-### For Indexes
-Exchange Identifier is not a number in case of Indexes. Below is the Index Names that should be used in place of instrument token.
-For Example - `inst_tokens = [{"instrument_token": "Nifty 50", "exchange_segment": "nse_cm"}]`
+| Method | Data level | Message type |
+|--------|-----------|--------------|
+| `subscribe_scrips(tokens)` | Touch line | `SFeedScrip` |
+| `subscribe_scrips_lite(tokens)` | Mini touch line | `SFeedScripLite` |
+| `subscribe_depth(tokens)` | Depth | `SFeedScrip` with `buy`/`sell` rows |
+| `subscribe_full_depth(tokens)` | Full depth | `SFeedScrip` with `buy`/`sell` rows |
+| `subscribe_index(tokens)` | Index | `SFeedIndex` |
 
-| Exchange Identifier   |
-|--------|
-| Nifty 50<br/> |
-| Nifty Bank<br/> |
-| Nifty Fin Service<br/> |
-| SENSEX<br/> |
-| INDIA VIX<br/> |
-| NIFTY MIDCAP 100<br/> |
-| Nifty 100<br/> |
-| Nifty PSU Bank<br/> |
-| Nifty Pharma<br/> |
-| Nifty IT<br/> |
-| Nifty PSE<br/> |
-| Nifty FMCG<br/> |
-| Nifty 500<br/> |
-| Nifty Auto<br/> |
-| Nifty CPSE<br/> |
-| Nifty 200<br/> |
-| Nifty Next 50<br/> |
-| NIFTY MID SELECT <br/> |
+## Parameters
 
+| Name | Description | Type |
+|------|-------------|------|
+| `tokens` | List of `WsToken(exchange_segment, instrument_token)` | `list[WsToken]` |
 
-### Return type
+### Exchange segments
 
-**object**
+`nse_cm`, `bse_cm`, `nse_fo`, `bse_fo`, `cde_fo`, `mcx_fo` (see the guide for the full enum).
 
-### Sample response
+### Index tokens
 
-```python
-{
-    #Gets live data
-}
+For indices, use the index name as the token, e.g.
+`WsToken("nse_cm", "Nifty 50")`, `WsToken("nse_cm", "Nifty Bank")`, `WsToken("bse_cm", "SENSEX")`.
 
-```
-### Response Parameters
+## Return type
 
-#### For Index
+Messages are typed Pydantic models (`SFeedScrip`, `SFeedScripLite`, `SFeedIndex`,
+`SFeedMarketStatus`). All prices are pre-scaled by the per-exchange divider. Call
+`message.model_dump()` for a dict.
 
-| Name                | Description                                                                         |
-|---------------------|-------------------------------------------------------------------------------------|
-| *ftm0* | Ignore this value
-| *dtm1*  | Ignore this value
-| *iv*           | Last Traded Price
-| *ic*           | Previous Day Close
-| *tvalue*           | Index exchange feed time
-| *highPrice*           | High Price
-| *lowPrice*           | Low Price
-| *openingPrice*           | Open Price
-| *mul*           | Multiplier
-| *prec*           | Precision
-| *cng*           | Change
-| *nc*           | Net Change in Percentage
-| *name*           | if - Index <br/> sf - Stock <br/> dp - Depth
-| *tk*           | Intrument Token
-| *e*           | Exchange Segment
-
-#### For Stocks and Derivatives
-
-| Name                | Description                                                                         |
-|---------------------|-------------------------------------------------------------------------------------|
-| *ftm0* | Ignore this value
-| *dtm1*  | Ignore this value
-| *ftdm*  | Exchange Feeder Time
-| *ltt*  | Last Traded Time
-| *v*  | Volume
-| *ltp*           | Last Traded Price
-| *ltq*           | Last Traded Quantity
-| *tbq*           | Total Buy Quantity
-| *tsq*           | Total Sell Quantity
-| *bp*           | Bid Price 1
-| *sp*           | Offer Price 1
-| *bq*           | Bid Size 1
-| *bs*           | Offer Size 1
-| *ap*           | Average Price
-| *lo*           | Low Price
-| *h*           | High Price
-| *lcl*           | Lower Circuit Limit
-| *ucl*           | Upper Circuit Limit
-| *yh*           | 52 Week High
-| *yl*           | 52 Week Low
-| *op*           | Open Price
-| *c*           | Closing Price
-| *mul* | Multiplier
-| *prec* | Precision
-| *cng* | Change
-| *nc* | Net Change in Percentage
-| *to* | Turn Over
-| *name*           | if - Index <br/> sf - Stock <br/> dp - Depth
-| *tk* | Instrument Token
-| *e* | Exchange Segment
-| *ts* | Trading Symbol
-| *oi* | Open Interest
-
-#### For Depth
-
-| Name                | Description                                                                         |
-|---------------------|-------------------------------------------------------------------------------------|
-| *ftm0* | Ignore this value
-| *dtm1*  | Ignore this value
-| *bp, bp1,2,3,4* | Bid Price
-| *sp, sp1,2,3,4* | Offfer Price
-| *bq, bq1,2,3,4* | Bid Size
-| *bs, bs1,2,3,4* | Offer Size
-| *bno1,2,3,4,5* | Bid Orders
-| *sno1,2,3,4,5* | Offer Orders
-| *mul* | Multiplier
-| *prec* | Precision
-| *name*           | if - Index <br/> sf - Stock <br/> dp - Depth
-| *tk* | Instrument Token
-| *e* | Exchange Segment
-| *ts* | Trading Symbol
-
-
-
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: application/json
-
-### HTTP response details
-| Status Code | Description                                  |
-|-------------|----------------------------------------------|
-| *200*       | ok                                           |
-| *400*       | Invalid or missing input parameters          |
-| *403*       | Invalid session, please re-login to continue |
-| *429*       | Too many requests to the API                 |
-| *500*       | Unexpected error                             |
-| *502*       | Not able to communicate with OMS             |
-| *503*       | Trade API service is unavailable             |
-| *504*       | Gateway timeout, trade API is unreachable    |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)  [[Back to README]](../README.md)
+[[Back to top]](#) [[Back to SFeed guide]](../../guides/websocket.md) [[Back to README]](../README.md)

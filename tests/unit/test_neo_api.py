@@ -111,7 +111,7 @@ def test_neo_api_subscribe_removed():
             isDepth=False,
         )
 
-    assert "Shristi" in str(exc_info.value)
+    assert "SFeed" in str(exc_info.value)
 
 
 def test_neo_api_un_subscribe_removed():
@@ -128,7 +128,7 @@ def test_neo_api_un_subscribe_removed():
             isDepth=False,
         )
 
-    assert "Shristi" in str(exc_info.value)
+    assert "SFeed" in str(exc_info.value)
 
 
 def test_neo_api_subscribe_to_orderfeed_removed():
@@ -141,7 +141,7 @@ def test_neo_api_subscribe_to_orderfeed_removed():
     with pytest.raises(NotImplementedError) as exc_info:
         client.subscribe_to_orderfeed()
 
-    assert "Shristi" in str(exc_info.value)
+    assert "SFeed" in str(exc_info.value)
 
 
 def test_neo_api_help_without_function():

@@ -54,10 +54,11 @@ client.totp_validate(mpin='123456')
 - [Scrip Master](./market_data/scrip_master.md) - Download scrip master files
 - [Search Scrip](./market_data/search_scrip.md) - Search for instruments
 
-### 5. WebSocket
+### 5. WebSocket (SFeed, async/await — v2.2.0+)
 - [Subscribe](./websocket/subscribe.md) - Subscribe to live market feed
 - [Unsubscribe](./websocket/unsubscribe.md) - Unsubscribe from feed
-- [Order Feed](./websocket/order_feed.md) - Subscribe to order updates
+- [Order Feed](./websocket/order_feed.md) - Legacy order feed (removed in v2.2.0)
+- [SFeed WebSocket Guide](../guides/websocket.md) - Full async client reference & migration
 
 ## Quick Links
 

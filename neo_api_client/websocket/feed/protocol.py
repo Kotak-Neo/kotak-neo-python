@@ -1,15 +1,15 @@
-"""Binary wire-protocol decoding for the Shristi ``native_batch`` feed.
+"""Binary wire-protocol decoding for the SFeed ``native_batch`` feed.
 
 The data plane is little-endian, packed (``#pragma pack(1)``), and batched:
 one WebSocket binary frame may carry several packets laid end to end. Each
 packet begins with a ``uint16`` length prefix and a 9-byte common header.
 
-See the Shristi Feed Data Documentation (native_batch) for the wire layout.
+See the SFeed Feed Data Documentation (native_batch) for the wire layout.
 """
 
 import struct
 
-from neo_api_client.websocket.shristi.models import (
+from neo_api_client.websocket.feed.models import (
     EXCHANGE_ID_TO_NAME,
     DepthLevel,
     Level,

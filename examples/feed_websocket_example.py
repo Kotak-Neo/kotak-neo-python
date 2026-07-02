@@ -1,13 +1,13 @@
-"""Example: Using Shristi WebSocket with async/await."""
+"""Example: Using SFeed WebSocket with async/await."""
 
 import asyncio
 
 from neo_api_client import NeoAPI
-from neo_api_client.websocket.shristi import SFeedScrip, WsToken
+from neo_api_client.websocket.feed import SFeedScrip, WsToken
 
 
 async def main():
-    """Main async function demonstrating Shristi WebSocket usage."""
+    """Main async function demonstrating SFeed WebSocket usage."""
 
     # Initialize NeoAPI client
     client = NeoAPI(
@@ -30,15 +30,15 @@ async def main():
     print(f"Validate response: {validate_response.get('stat')}")
 
     # Step 3: Create WebSocket connection
-    print("\nConnecting to Shristi WebSocket...")
+    print("\nConnecting to SFeed WebSocket...")
     async with client.create_websocket() as ws:
         print("✓ Connected!")
 
-        # Subscribe to scrips
+        # Subscribe to scrips (numeric tokens or index/instrument names)
         tokens = [
-            WsToken("nse_cm", "1333"),  # RELIANCE
             WsToken("nse_cm", "11536"),  # TCS
-            WsToken("nse_cm", "2885"),  # INFY
+            WsToken("nse_cm", "2885"),  # RELIANCE
+            WsToken("nse_cm", "Nifty 50"),  # index by name
         ]
 
         print(f"\nSubscribing to {len(tokens)} scrips...")
@@ -54,8 +54,9 @@ async def main():
                     print(
                         f"[{message.exchange_segment}:{message.instrument_token}] "
                         f"LTP: ₹{message.last_traded_price:.2f} | "
-                        f"Change: {message.change:+.2f} ({message.percentage_change:+.2f}%) | "
-                        f"Volume: {message.trade_volume:,}"
+                        f"Change: {message.net_change:+.2f} "
+                        f"({message.net_change_percent:+.2f}%) | "
+                        f"Volume: {message.volume_traded_today:,}"
                     )
 
         except KeyboardInterrupt:
@@ -102,19 +103,25 @@ async def example_multiple_subscriptions():
 
     async with client.create_websocket() as ws:
         # Subscribe to different types
-        await ws.subscribe_scrips([WsToken("nse_cm", "1333")])  # Scrip
-        await ws.subscribe_index([WsToken("nse_cm", "26000")])  # NIFTY 50
-        await ws.subscribe_depth([WsToken("nse_cm", "11536")])  # TCS depth
+        await ws.subscribe_scrips([WsToken("nse_cm", "2885")])  # Touch-line scrip
+        await ws.subscribe_index([WsToken("nse_cm", "Nifty 50")])  # Index
+        await ws.subscribe_depth([WsToken("nse_cm", "11536")])  # Depth (SFeedScrip)
 
-        # Process all types
+        # Process all types. Depth arrives as SFeedScrip with buy/sell rows,
+        # so branch on the message class rather than an assumed "depth" type.
         async for message in ws:
             match message.type:
                 case "scrip":
-                    print(f"Scrip LTP: {message.last_traded_price}")
+                    depth = (
+                        f" | depth {len(message.buy)}x{len(message.sell)}" if message.buy else ""
+                    )
+                    print(
+                        f"Scrip {message.instrument_token} LTP: {message.last_traded_price}{depth}"
+                    )
                 case "index":
-                    print(f"Index: {message.last_traded_price}")
-                case "depth":
-                    print(f"Depth - Buy: {message.total_buy_qty}, Sell: {message.total_sell_qty}")
+                    print(f"Index {message.name}: {message.last_traded_price}")
+                case "market_status":
+                    print(f"Market {message.status} for {message.exchange_segment}")
 
 
 if __name__ == "__main__":

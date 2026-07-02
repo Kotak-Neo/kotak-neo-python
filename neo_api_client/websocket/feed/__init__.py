@@ -1,7 +1,7 @@
-"""Shristi WebSocket client - Modern async/await implementation."""
+"""SFeed WebSocket client - Modern async/await implementation."""
 
-from neo_api_client.websocket.shristi.client import ShristiWebSocket
-from neo_api_client.websocket.shristi.models import (
+from neo_api_client.websocket.feed.client import SFeedWebSocket
+from neo_api_client.websocket.feed.models import (
     DepthLevel,
     Exchange,
     Level,
@@ -13,7 +13,7 @@ from neo_api_client.websocket.shristi.models import (
 )
 
 __all__ = [
-    "ShristiWebSocket",
+    "SFeedWebSocket",
     "SFeedScrip",
     "SFeedScripLite",
     "SFeedIndex",

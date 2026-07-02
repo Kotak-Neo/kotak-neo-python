@@ -105,10 +105,10 @@ try:
 finally:
     # Always logout, even if errors occur
     client.logout()
-    
-    # Close WebSocket if used
-    if client.NeoWebSocket and client.NeoWebSocket.hsWebsocket:
-        client.NeoWebSocket.hsWebsocket.close()
 ```
+
+If you opened a SFeed WebSocket, close it via its own lifecycle (an `async with
+client.create_websocket()` block closes automatically, or call `await ws.close()`).
+See the [SFeed WebSocket Guide](../../guides/websocket.md).
 
 [[Back to top]](#) [[Back to API list]](../README.md) [[Back to README]](../../../README.md)

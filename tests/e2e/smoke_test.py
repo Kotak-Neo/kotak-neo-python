@@ -7,7 +7,7 @@ import pyotp
 from decouple import config
 
 from neo_api_client import NeoAPI
-from neo_api_client.websocket.shristi import WsToken
+from neo_api_client.websocket.feed import WsToken
 
 
 class APITestRunner:
@@ -434,12 +434,12 @@ runner.run_test(
 #     print("\n[SKIPPED] CANCEL ORDER - No order_id available from place order")
 
 # ---------------------------
-# WEBSOCKET (Shristi async client)
+# WEBSOCKET (SFeed async client)
 # ---------------------------
 
 
 def test_websocket_subscribe():
-    """Test Shristi WebSocket subscription for live market data.
+    """Test SFeed WebSocket subscription for live market data.
 
     Connects, subscribes to a scrip, collects messages for a few seconds,
     then unsubscribes and closes the connection.

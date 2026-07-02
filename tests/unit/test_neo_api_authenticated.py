@@ -193,15 +193,15 @@ def test_totp_validate_success(requests_mock):
 
 
 def test_create_websocket_returns_client(authenticated_client):
-    """create_websocket returns a configured Shristi WebSocket client when authenticated."""
-    from neo_api_client.websocket.shristi import ShristiWebSocket
+    """create_websocket returns a configured SFeed WebSocket client when authenticated."""
+    from neo_api_client.websocket.feed import SFeedWebSocket
 
     ws = authenticated_client.create_websocket()
 
-    assert isinstance(ws, ShristiWebSocket)
+    assert isinstance(ws, SFeedWebSocket)
     assert ws.access_token == authenticated_client.configuration.edit_token
     assert ws.sid == authenticated_client.configuration.edit_sid
-    # Defaults to the Shristi production URL when no override is given
+    # Defaults to the SFeed production URL when no override is given
     assert ws.url == "wss://sfeed.kotaksecurities.com/wsfeed"
 
 

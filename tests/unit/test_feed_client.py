@@ -1,11 +1,11 @@
-"""Unit tests for ShristiWebSocket control-plane frame formatting."""
+"""Unit tests for SFeedWebSocket control-plane frame formatting."""
 
 import asyncio
 import json
 
 import pytest
 
-from neo_api_client.websocket.shristi import ShristiWebSocket, WsToken
+from neo_api_client.websocket.feed import SFeedWebSocket, WsToken
 
 
 class FakeWebSocket:
@@ -27,7 +27,7 @@ class FakeWebSocket:
 
 
 def _client_with_fake_socket():
-    ws = ShristiWebSocket()
+    ws = SFeedWebSocket()
     ws._ws = FakeWebSocket()
     ws._connected = True
     return ws, ws._ws
@@ -40,9 +40,7 @@ def _last_json(fake):
 def test_subscribe_batches_tokens_into_single_frame():
     async def run():
         ws, fake = _client_with_fake_socket()
-        await ws.subscribe_scrips(
-            [WsToken("nse_fo", "44498"), WsToken("nse_fo", "44500")]
-        )
+        await ws.subscribe_scrips([WsToken("nse_fo", "44498"), WsToken("nse_fo", "44500")])
         return _last_json(fake)
 
     frame = asyncio.run(run())
@@ -132,7 +130,7 @@ _AUTH_1119 = {
 
 def test_authenticate_accepts_1119_and_stores_dividers():
     async def run():
-        ws = ShristiWebSocket()
+        ws = SFeedWebSocket()
         ws._ws = FakeWebSocket(incoming=[json.dumps(_AUTH_1119)])
         ws._connected = True
         await ws._authenticate()
@@ -148,7 +146,7 @@ def test_authenticate_accepts_1119_and_stores_dividers():
 
 def test_authenticate_rejects_unknown_message_code():
     async def run():
-        ws = ShristiWebSocket()
+        ws = SFeedWebSocket()
         ws._ws = FakeWebSocket(incoming=[json.dumps({"message_code": 9999})])
         ws._connected = True
         await ws._authenticate()
