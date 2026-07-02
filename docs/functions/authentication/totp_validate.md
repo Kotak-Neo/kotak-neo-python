@@ -39,7 +39,6 @@ except Exception as e:
     "sid": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
     "rid": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
     "baseUrl": "https://eXX.kotaksecurities.com",
-    "hsServerId": "",
     "isUserPwdExpired": false,
     "ucc": "XXXXX",
     "greetingName": "USER_NAME",

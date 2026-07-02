@@ -71,7 +71,6 @@ except Exception as e:
     "token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
     "sid": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
     "rid": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-    "hsServerId": "",
     "isUserPwdExpired": false,
     "ucc": "XXXXX",
     "greetingName": "USER_NAME",

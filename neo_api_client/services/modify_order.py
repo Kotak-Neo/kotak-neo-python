@@ -55,11 +55,7 @@ class ModifyOrder:
             "os": self.order_source,
         }
 
-        query_params = (
-            {"sId": self.api_client.configuration.serverId}
-            if self.api_client.configuration.serverId
-            else {}
-        )
+        query_params = {}
         try:
             URL = self.api_client.configuration.get_url_details("modify_order")
             orders_resp = self.rest_client.request(
@@ -143,11 +139,7 @@ class ModifyOrder:
                             "am": amo,
                             "os": self.order_source,
                         }
-                        query_params = (
-                            {"sId": self.api_client.configuration.serverId}
-                            if self.api_client.configuration.serverId
-                            else {}
-                        )
+                        query_params = {}
                         try:
                             URL = self.api_client.configuration.get_url_details("modify_order")
                             orders_resp = self.rest_client.request(

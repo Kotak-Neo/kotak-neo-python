@@ -197,7 +197,6 @@ print(
     if runner.client.api_client.configuration.edit_token
     else None,
 )
-print("serverId:", runner.client.api_client.configuration.serverId)
 print("data_center:", runner.client.api_client.configuration.data_center)
 print("=" * 80)
 

@@ -46,7 +46,6 @@ object
     "token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
     "sid": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
     "rid": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-    "hsServerId": "serverX",
     "isUserPwdExpired": false,
     "caches": {
       "baskets": "1687845385",

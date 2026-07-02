@@ -3,7 +3,6 @@ from neo_api_client.services.order import OrderAPI
 
 def test_order_placing_success(api_client, requests_mock):
     """Test successful order placement"""
-    api_client.configuration.serverId = "test_server"
     order_api_instance = OrderAPI(api_client)
     url = api_client.configuration.get_url_details("place_order")
     mock_response = {"stat": "Ok", "nOrdNo": "12345"}
@@ -26,7 +25,6 @@ def test_order_placing_success(api_client, requests_mock):
 
 def test_order_placing_with_optional_params(api_client, requests_mock):
     """Test order placement with optional parameters"""
-    api_client.configuration.serverId = "test_server"
     order_api_instance = OrderAPI(api_client)
     url = api_client.configuration.get_url_details("place_order")
     mock_response = {"stat": "Ok", "nOrdNo": "12345"}
@@ -65,7 +63,6 @@ def test_order_placing_api_exception(api_client, monkeypatch):
     """Test order placement with API exception"""
     from neo_api_client.exceptions import ApiException
 
-    api_client.configuration.serverId = "test_server"
     order_api_instance = OrderAPI(api_client)
 
     def fake_request(*args, **kwargs):
@@ -89,7 +86,6 @@ def test_order_placing_api_exception(api_client, monkeypatch):
 
 def test_order_cancelling_success(api_client, requests_mock):
     """Test successful order cancellation without verification"""
-    api_client.configuration.serverId = "test_server"
     order_api_instance = OrderAPI(api_client)
     url = api_client.configuration.get_url_details("cancel_order")
     mock_response = {"stat": "Ok", "result": "cancelled"}
@@ -103,7 +99,6 @@ def test_order_cancelling_success(api_client, requests_mock):
 
 def test_order_cancelling_with_verification_pending(api_client, requests_mock):
     """Test order cancellation with verification - order is pending"""
-    api_client.configuration.serverId = "test_server"
     order_api_instance = OrderAPI(api_client)
     order_book_url = api_client.configuration.get_url_details("order_book")
     cancel_url = api_client.configuration.get_url_details("cancel_order")
@@ -125,7 +120,6 @@ def test_order_cancelling_with_verification_pending(api_client, requests_mock):
 
 def test_order_cancelling_with_verification_rejected(api_client, requests_mock):
     """Test order cancellation with verification - order is rejected"""
-    api_client.configuration.serverId = "test_server"
     order_api_instance = OrderAPI(api_client)
     url = api_client.configuration.get_url_details("order_book")
 
@@ -146,7 +140,6 @@ def test_order_cancelling_with_verification_rejected(api_client, requests_mock):
 
 def test_order_cancelling_with_verification_complete(api_client, requests_mock):
     """Test order cancellation with verification - order is complete"""
-    api_client.configuration.serverId = "test_server"
     order_api_instance = OrderAPI(api_client)
     url = api_client.configuration.get_url_details("order_book")
 
@@ -166,7 +159,6 @@ def test_order_cancelling_with_verification_complete(api_client, requests_mock):
 
 def test_order_cancelling_with_verification_cancelled(api_client, requests_mock):
     """Test order cancellation with verification - order is already cancelled"""
-    api_client.configuration.serverId = "test_server"
     order_api_instance = OrderAPI(api_client)
     url = api_client.configuration.get_url_details("order_book")
 
@@ -186,7 +178,6 @@ def test_order_cancelling_with_verification_cancelled(api_client, requests_mock)
 
 def test_order_cancelling_with_amo(api_client, requests_mock):
     """Test order cancellation with AMO parameter"""
-    api_client.configuration.serverId = "test_server"
     order_api_instance = OrderAPI(api_client)
     url = api_client.configuration.get_url_details("cancel_order")
     mock_response = {"stat": "Ok", "result": "cancelled"}
@@ -201,7 +192,6 @@ def test_order_cancelling_api_exception(api_client, monkeypatch):
     """Test order cancellation with API exception"""
     from neo_api_client.exceptions import ApiException
 
-    api_client.configuration.serverId = "test_server"
     order_api_instance = OrderAPI(api_client)
 
     def fake_request(*args, **kwargs):
@@ -216,7 +206,6 @@ def test_order_cancelling_api_exception(api_client, monkeypatch):
 
 def test_cover_order_cancelling_success(api_client, requests_mock):
     """Test successful cover order cancellation"""
-    api_client.configuration.serverId = "test_server"
     order_api_instance = OrderAPI(api_client)
     url = api_client.configuration.get_url_details("cancel_cover_order")
     mock_response = {"stat": "Ok", "result": "cancelled"}
@@ -229,7 +218,6 @@ def test_cover_order_cancelling_success(api_client, requests_mock):
 
 def test_cover_order_cancelling_with_verification(api_client, requests_mock):
     """Test cover order cancellation with verification"""
-    api_client.configuration.serverId = "test_server"
     order_api_instance = OrderAPI(api_client)
     order_book_url = api_client.configuration.get_url_details("order_book")
     cancel_url = api_client.configuration.get_url_details("cancel_cover_order")
@@ -251,7 +239,6 @@ def test_cover_order_cancelling_with_verification(api_client, requests_mock):
 
 def test_cover_order_cancelling_verification_traded(api_client, requests_mock):
     """Test cover order cancellation - order is traded"""
-    api_client.configuration.serverId = "test_server"
     order_api_instance = OrderAPI(api_client)
     url = api_client.configuration.get_url_details("order_book")
 
@@ -273,7 +260,6 @@ def test_cover_order_cancelling_api_exception(api_client, monkeypatch):
     """Test cover order cancellation with API exception"""
     from neo_api_client.exceptions import ApiException
 
-    api_client.configuration.serverId = "test_server"
     order_api_instance = OrderAPI(api_client)
 
     def fake_request(*args, **kwargs):
@@ -288,7 +274,6 @@ def test_cover_order_cancelling_api_exception(api_client, monkeypatch):
 
 def test_bracket_order_cancelling_success(api_client, requests_mock):
     """Test successful bracket order cancellation"""
-    api_client.configuration.serverId = "test_server"
     order_api_instance = OrderAPI(api_client)
     url = api_client.configuration.get_url_details("cancel_bracket_order")
     mock_response = {"stat": "Ok", "result": "cancelled"}
@@ -301,7 +286,6 @@ def test_bracket_order_cancelling_success(api_client, requests_mock):
 
 def test_bracket_order_cancelling_with_verification(api_client, requests_mock):
     """Test bracket order cancellation with verification"""
-    api_client.configuration.serverId = "test_server"
     order_api_instance = OrderAPI(api_client)
     order_book_url = api_client.configuration.get_url_details("order_book")
     cancel_url = api_client.configuration.get_url_details("cancel_bracket_order")
@@ -323,7 +307,6 @@ def test_bracket_order_cancelling_with_verification(api_client, requests_mock):
 
 def test_bracket_order_cancelling_verification_rejected(api_client, requests_mock):
     """Test bracket order cancellation - order is rejected"""
-    api_client.configuration.serverId = "test_server"
     order_api_instance = OrderAPI(api_client)
     url = api_client.configuration.get_url_details("order_book")
 
@@ -349,7 +332,6 @@ def test_bracket_order_cancelling_api_exception(api_client, monkeypatch):
     """Test bracket order cancellation with API exception"""
     from neo_api_client.exceptions import ApiException
 
-    api_client.configuration.serverId = "test_server"
     order_api_instance = OrderAPI(api_client)
 
     def fake_request(*args, **kwargs):
@@ -364,7 +346,6 @@ def test_bracket_order_cancelling_api_exception(api_client, monkeypatch):
 
 def test_order_cancelling_with_whitespace(api_client, requests_mock):
     """Test order cancellation with order_id containing whitespace"""
-    api_client.configuration.serverId = "test_server"
     order_api_instance = OrderAPI(api_client)
     url = api_client.configuration.get_url_details("order_book")
 

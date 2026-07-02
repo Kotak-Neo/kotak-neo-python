@@ -12,7 +12,7 @@ class TradeReportAPI:
             "Auth": self.api_client.configuration.edit_token,
             "accept": "application/json",
         }
-        query_params = {"sId": self.api_client.configuration.serverId}
+        query_params = {}
         URL = self.api_client.configuration.get_url_details("trade_report")
         try:
             trade_report = self.rest_client.request(

@@ -202,7 +202,6 @@ def test_neo_utility_attributes_mutable():
     utility.edit_token = "edit_123"
     utility.edit_sid = "edit_sid_123"
     utility.edit_rid = "rid_123"
-    utility.serverId = "server_123"
     utility.data_center = "DC1"
     utility.base_url = "https://custom.url"
 
@@ -212,7 +211,6 @@ def test_neo_utility_attributes_mutable():
     assert utility.edit_token == "edit_123"
     assert utility.edit_sid == "edit_sid_123"
     assert utility.edit_rid == "rid_123"
-    assert utility.serverId == "server_123"
     assert utility.data_center == "DC1"
     assert utility.base_url == "https://custom.url"
 

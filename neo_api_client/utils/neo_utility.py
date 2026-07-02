@@ -36,7 +36,6 @@ class NeoUtility:
         self.edit_token = None
         self.edit_sid = None
         self.edit_rid = None
-        self.serverId = None
         self.login_params = None
         self.neo_fin_key = neo_fin_key
         self.data_center = None

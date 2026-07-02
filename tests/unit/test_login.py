@@ -45,7 +45,6 @@ def test_totp_validate(api_client):
                     "token": "edittoken",
                     "sid": "editsid",
                     "rid": "rid123",
-                    "hsServerId": "server1",
                     "dataCenter": "dc1",
                     "baseUrl": "https://trade-api.example.com",
                 }

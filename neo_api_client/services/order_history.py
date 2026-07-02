@@ -15,7 +15,7 @@ class OrderHistoryAPI:
             "Content-Type": "application/x-www-form-urlencoded",
         }
         body_params = {"nOrdNo": order_id}
-        query_params = {"sId": self.api_client.configuration.serverId}
+        query_params = {}
         URL = self.api_client.configuration.get_url_details("order_history")
 
         try:

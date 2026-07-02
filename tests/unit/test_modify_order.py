@@ -3,7 +3,6 @@ from neo_api_client.services.modify_order import ModifyOrder
 
 def test_quick_modification_success(api_client, requests_mock):
     """Test successful quick order modification"""
-    api_client.configuration.serverId = "test_server"
     modify_order_api = ModifyOrder(api_client)
     url = api_client.configuration.get_url_details("modify_order")
     mock_response = {"stat": "Ok", "nOrdNo": "12345"}
@@ -36,7 +35,6 @@ def test_quick_modification_api_exception(api_client, monkeypatch):
     """Test quick modification with API exception"""
     from neo_api_client.exceptions import ApiException
 
-    api_client.configuration.serverId = "test_server"
     modify_order_api = ModifyOrder(api_client)
 
     def fake_request(*args, **kwargs):
@@ -68,7 +66,6 @@ def test_quick_modification_api_exception(api_client, monkeypatch):
 
 def test_modification_with_orderid_success(api_client, requests_mock):
     """Test successful modification with order ID lookup"""
-    api_client.configuration.serverId = "test_server"
     modify_order_api = ModifyOrder(api_client)
     order_book_url = api_client.configuration.get_url_details("order_book")
     modify_url = api_client.configuration.get_url_details("modify_order")
@@ -117,7 +114,6 @@ def test_modification_with_orderid_success(api_client, requests_mock):
 
 def test_modification_with_orderid_no_data(api_client, requests_mock):
     """Test modification when order book has no data"""
-    api_client.configuration.serverId = "test_server"
     modify_order_api = ModifyOrder(api_client)
     url = api_client.configuration.get_url_details("order_book")
     order_book_response = {}
@@ -149,7 +145,6 @@ def test_modification_with_orderid_no_data(api_client, requests_mock):
 
 def test_modification_with_orderid_rejected(api_client, requests_mock):
     """Test modification when order is rejected"""
-    api_client.configuration.serverId = "test_server"
     modify_order_api = ModifyOrder(api_client)
     url = api_client.configuration.get_url_details("order_book")
 
@@ -197,7 +192,6 @@ def test_modification_with_orderid_rejected(api_client, requests_mock):
 
 def test_modification_with_orderid_cancelled(api_client, requests_mock):
     """Test modification when order is cancelled"""
-    api_client.configuration.serverId = "test_server"
     modify_order_api = ModifyOrder(api_client)
     url = api_client.configuration.get_url_details("order_book")
 
@@ -244,7 +238,6 @@ def test_modification_with_orderid_cancelled(api_client, requests_mock):
 
 def test_modification_with_orderid_complete(api_client, requests_mock):
     """Test modification when order is complete"""
-    api_client.configuration.serverId = "test_server"
     modify_order_api = ModifyOrder(api_client)
     url = api_client.configuration.get_url_details("order_book")
 
@@ -291,7 +284,6 @@ def test_modification_with_orderid_complete(api_client, requests_mock):
 
 def test_modification_with_orderid_traded(api_client, requests_mock):
     """Test modification when order is traded"""
-    api_client.configuration.serverId = "test_server"
     modify_order_api = ModifyOrder(api_client)
     url = api_client.configuration.get_url_details("order_book")
 
@@ -338,7 +330,6 @@ def test_modification_with_orderid_traded(api_client, requests_mock):
 
 def test_modification_with_orderid_not_matching(api_client, requests_mock):
     """Test modification when order ID doesn't match"""
-    api_client.configuration.serverId = "test_server"
     modify_order_api = ModifyOrder(api_client)
     url = api_client.configuration.get_url_details("order_book")
 
@@ -388,7 +379,6 @@ def test_modification_with_orderid_api_exception(api_client, requests_mock, monk
     """Test modification with API exception during order modification"""
     from neo_api_client.exceptions import ApiException
 
-    api_client.configuration.serverId = "test_server"
     modify_order_api = ModifyOrder(api_client)
     order_book_url = api_client.configuration.get_url_details("order_book")
 
@@ -446,7 +436,6 @@ def test_modification_with_orderid_api_exception(api_client, requests_mock, monk
 
 def test_modification_with_provided_values(api_client, requests_mock):
     """Test modification with all values provided (not using order book values)"""
-    api_client.configuration.serverId = "test_server"
     modify_order_api = ModifyOrder(api_client)
     order_book_url = api_client.configuration.get_url_details("order_book")
     modify_url = api_client.configuration.get_url_details("modify_order")

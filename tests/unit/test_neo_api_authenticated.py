@@ -15,7 +15,6 @@ def authenticated_client():
     client.configuration.edit_sid = "edit_sid_123"
     client.configuration.view_token = "view_token_123"
     client.configuration.sid = "sid_123"
-    client.configuration.serverId = "server_123"
     client.configuration.base_url = "https://gw-napi.kotaksecurities.com"
 
     return client
@@ -178,7 +177,6 @@ def test_totp_validate_success(requests_mock):
                 "token": "edit_token_123",
                 "sid": "edit_sid_123",
                 "rid": "edit_rid_123",
-                "hsServerId": "server_123",
                 "dataCenter": "DC1",
                 "baseUrl": "https://gw-napi.kotaksecurities.com",
             }

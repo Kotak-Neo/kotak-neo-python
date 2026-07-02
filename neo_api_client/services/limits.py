@@ -13,7 +13,7 @@ class LimitsAPI:
             "Content-Type": "application/x-www-form-urlencoded",
         }
 
-        query_params = {"sId": self.api_client.configuration.serverId}
+        query_params = {}
 
         body_params = {"seg": segment, "exch": exchange, "prod": product}
 

@@ -886,7 +886,6 @@ class NeoAPI:
                     "token": "eyJhbGc...",  # Trade token (full access)
                     "sid": "session-id",
                     "rid": "request-id",
-                    "hsServerId": "server-id",
                     "baseUrl": "api-url",
                     "dataCenter": "gdc",
                     "kType": "Trade",  # Indicates trading access enabled

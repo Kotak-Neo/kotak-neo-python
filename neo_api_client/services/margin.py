@@ -52,7 +52,7 @@ class MarginAPI:
             "tSLTks": trailing_sl_value,
         }
 
-        query_params = {"sId": self.api_client.configuration.serverId}
+        query_params = {}
 
         try:
             URL = self.api_client.configuration.get_url_details("margin")

@@ -57,7 +57,6 @@ def test_totp_validate_success(api_client, requests_mock):
                 "token": "edit_token_123",
                 "sid": "edit_sid_456",
                 "rid": "edit_rid_789",
-                "hsServerId": "server1",
                 "dataCenter": "DC1",
                 "baseUrl": "https://test.com",
             }
@@ -72,7 +71,6 @@ def test_totp_validate_success(api_client, requests_mock):
     assert result["data"]["sid"] == "edit_sid_456"
     assert api_client.configuration.edit_token == "edit_token_123"
     assert api_client.configuration.edit_sid == "edit_sid_456"
-    assert api_client.configuration.serverId == "server1"
     assert api_client.configuration.data_center == "DC1"
 
 
