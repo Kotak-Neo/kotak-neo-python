@@ -39,7 +39,8 @@ try:
         "DepthLevel",
     ]
 except ImportError:
-    # websockets package not installed
+    # Defensive: `websockets`/`pydantic` are core deps, but keep the SDK importable
+    # even if the WebSocket extras are somehow unavailable.
     __all_feed__ = []
 
 __all__ = [

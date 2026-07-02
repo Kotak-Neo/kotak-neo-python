@@ -4,8 +4,9 @@ import struct
 
 import pytest
 
-# Importing the feed subpackage pulls in the client, which requires the optional
-# `websockets` dependency (the `feed` extra). Skip cleanly when it's absent.
+# The feed subpackage imports the client, which needs `websockets` (a core
+# dependency). Guard defensively so the module skips rather than errors if it is
+# somehow missing from the environment.
 pytest.importorskip("websockets")
 
 from neo_api_client.websocket.feed.models import (  # noqa: E402

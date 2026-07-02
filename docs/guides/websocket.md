@@ -20,10 +20,11 @@ callback-based WebSocket.
 
 ## Installation
 
-The SFeed client needs the optional `feed` extra (`websockets` + `pydantic`):
+No extra install step is needed — the SFeed client's dependencies (`websockets`,
+`pydantic`) ship with the base package:
 
 ```bash
-pip install "kotakneoapi[feed]"
+pip install kotakneoapi
 ```
 
 ## Quick Start

@@ -173,10 +173,10 @@ async def main():
 asyncio.run(main())
 ```
 
-> **Note:** The SFeed client requires the optional `websockets` dependency:
-> `pip install "kotakneoapi[feed]"`. The legacy callback-based WebSocket
-> (`client.subscribe(...)`, `on_message`, etc.) was **removed in v2.2.0** — see the
-> [SFeed WebSocket guide](docs/guides/websocket.md) for the full API and a
+> **Note:** The SFeed client works out of the box — its dependencies
+> (`websockets`, `pydantic`) ship with the base install. The legacy callback-based
+> WebSocket (`client.subscribe(...)`, `on_message`, etc.) was **removed in v2.2.0** —
+> see the [SFeed WebSocket guide](docs/guides/websocket.md) for the full API and a
 > migration reference.
 
 ## Exception Handling
@@ -335,8 +335,7 @@ bandit -r neo_api_client
 ## Requirements
 
 - **Python**: 3.10 or higher
-- **Core Dependencies**: numpy, pandas, PyJWT, requests, websocket-client, structlog, tenacity
-- **Optional (`feed` extra)**: websockets, pydantic — required only for the SFeed WebSocket client (`pip install "kotakneoapi[feed]"`)
+- **Core Dependencies**: numpy, pandas, PyJWT, requests, websocket-client, structlog, tenacity, websockets, pydantic
 
 See [pyproject.toml](pyproject.toml) for complete dependency list.
 
