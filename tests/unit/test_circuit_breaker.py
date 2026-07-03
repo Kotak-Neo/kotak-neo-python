@@ -1,6 +1,6 @@
 """Unit tests for the circuit breaker."""
 
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
@@ -75,7 +75,7 @@ def test_half_open_after_timeout_then_closes():
     assert cb.state == CircuitState.OPEN
 
     # Simulate the timeout elapsing.
-    cb._last_failure_time = datetime.now(UTC) - timedelta(seconds=61)
+    cb._last_failure_time = datetime.now(timezone.utc) - timedelta(seconds=61)
 
     # Next call transitions to HALF_OPEN and executes; needs success_threshold
     # successes to close.
@@ -91,7 +91,7 @@ def test_half_open_failure_reopens():
 
     with pytest.raises(ValueError):
         cb.call(_boom)
-    cb._last_failure_time = datetime.now(UTC) - timedelta(seconds=61)
+    cb._last_failure_time = datetime.now(timezone.utc) - timedelta(seconds=61)
 
     # A failure during HALF_OPEN recovery reopens immediately.
     with pytest.raises(ValueError):
