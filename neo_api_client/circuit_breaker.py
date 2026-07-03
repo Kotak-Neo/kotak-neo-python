@@ -8,7 +8,7 @@ and allowing them time to recover.
 import threading
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 
 from neo_api_client.logger import get_logger
@@ -105,7 +105,7 @@ class CircuitBreaker:
         if self._last_failure_time is None:
             return False
 
-        elapsed = (datetime.utcnow() - self._last_failure_time).total_seconds()
+        elapsed = (datetime.now(UTC) - self._last_failure_time).total_seconds()
         return elapsed >= self.config.timeout
 
     def _record_success(self) -> None:
@@ -129,7 +129,7 @@ class CircuitBreaker:
         """Record failed call."""
         with self._lock:
             self._failure_count += 1
-            self._last_failure_time = datetime.utcnow()
+            self._last_failure_time = datetime.now(UTC)
 
             if self._state == CircuitState.HALF_OPEN:
                 # Failed during recovery - reopen immediately
@@ -180,7 +180,7 @@ class CircuitBreaker:
                     # Still open - reject request
                     retry_after = (
                         self.config.timeout
-                        - (datetime.utcnow() - self._last_failure_time).total_seconds()
+                        - (datetime.now(UTC) - self._last_failure_time).total_seconds()
                     )
                     logger.warning(
                         "circuit_breaker_rejected",
@@ -250,7 +250,7 @@ class CircuitBreaker:
                 status["success_threshold"] = self.config.success_threshold
 
             if self._last_failure_time:
-                elapsed = (datetime.utcnow() - self._last_failure_time).total_seconds()
+                elapsed = (datetime.now(UTC) - self._last_failure_time).total_seconds()
                 status["seconds_since_failure"] = round(elapsed, 2)
                 status["retry_after"] = max(0, round(self.config.timeout - elapsed, 2))
 

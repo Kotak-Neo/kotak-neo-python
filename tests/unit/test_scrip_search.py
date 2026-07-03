@@ -127,3 +127,169 @@ def test_scrip_search_error_response(api_client, requests_mock):
     )
 
     assert result["stat"] == "Not_Ok"
+
+
+# ---- Richer F&O CSV covering expiry / option_type / strike_price filters ----
+
+# Two NIFTY option rows: a CE @ 22000 and a PE @ 22500, both expiring 20 Jun 2024
+# (epoch 1718841600 in the exchange's shifted-epoch scheme handled by the code).
+_FO_CSV = (
+    "pSymbol,pTrdSymbol,pExchSeg,pSymbolName,pOptionType,dStrikePrice;,pExpiryDate,pInstType\n"
+    "1,NIFTY24JUN22000CE,nse_fo,NIFTY,CE,2200000,1403222400,OPTIDX\n"
+    "2,NIFTY24JUN22500PE,nse_fo,NIFTY,PE,2250000,1403222400,OPTIDX\n"
+)
+
+
+def _mock_fo(api_client, requests_mock, csv=_FO_CSV):
+    url = api_client.configuration.get_url_details("scrip_master")
+    path = "https://api.kotaksecurities.com/scripmaster/NSE_FO.csv"
+    requests_mock.get(url, json={"stat": "Ok", "data": {"filesPaths": [path]}}, status_code=200)
+    requests_mock.get(path, text=csv, status_code=200)
+
+
+def test_scrip_search_option_type_filter(api_client, requests_mock):
+    """option_type filter narrows to CE rows only."""
+    _mock_fo(api_client, requests_mock)
+    result = ScripSearch(api_client).scrip_search(
+        symbol="nifty",
+        exchange_segment="nse_fo",
+        expiry=None,
+        option_type="CE",
+        strike_price=None,
+        ignore_50multiple=True,
+    )
+    assert isinstance(result, list)
+    assert all(r["pOptionType"] == "ce" for r in result)
+
+
+def test_scrip_search_strike_price_greater_than(api_client, requests_mock):
+    """strike_price '>NNN' filter."""
+    _mock_fo(api_client, requests_mock)
+    result = ScripSearch(api_client).scrip_search(
+        symbol="nifty",
+        exchange_segment="nse_fo",
+        expiry=None,
+        option_type=None,
+        strike_price=">220",  # >22000
+        ignore_50multiple=True,
+    )
+    assert isinstance(result, list)
+
+
+def test_scrip_search_less_than(api_client, requests_mock):
+    """strike_price '<NNN' filter executes (returns list or 'no data' message)."""
+    _mock_fo(api_client, requests_mock)
+    result = ScripSearch(api_client).scrip_search(
+        symbol="nifty",
+        exchange_segment="nse_fo",
+        expiry=None,
+        option_type=None,
+        strike_price="<230",
+        ignore_50multiple=True,
+    )
+    # Strikes are stored scaled (×100); the filter may return rows or a message.
+    assert result is not None
+
+
+def test_scrip_search_strike_price_range(api_client, requests_mock):
+    """strike_price 'min-max' range filter."""
+    _mock_fo(api_client, requests_mock)
+    result = ScripSearch(api_client).scrip_search(
+        symbol="nifty",
+        exchange_segment="nse_fo",
+        expiry=None,
+        option_type=None,
+        strike_price="21000-23000",
+        ignore_50multiple=True,
+    )
+    assert isinstance(result, list)
+
+
+def test_scrip_search_strike_price_range_min_gt_max(api_client, requests_mock):
+    """Range where min > max returns an error dict."""
+    _mock_fo(api_client, requests_mock)
+    result = ScripSearch(api_client).scrip_search(
+        symbol="nifty",
+        exchange_segment="nse_fo",
+        expiry=None,
+        option_type=None,
+        strike_price="23000-21000",
+        ignore_50multiple=True,
+    )
+    assert "error" in result
+
+
+def test_scrip_search_strike_price_zero(api_client, requests_mock):
+    """A single strike price of 0 (<= 0) returns an error dict."""
+    _mock_fo(api_client, requests_mock)
+    result = ScripSearch(api_client).scrip_search(
+        symbol="nifty",
+        exchange_segment="nse_fo",
+        expiry=None,
+        option_type=None,
+        strike_price="0",
+        ignore_50multiple=True,
+    )
+    assert "error" in result
+
+
+def test_scrip_search_strike_price_bad_format(api_client, requests_mock):
+    """Strike price with too many parts returns an error dict."""
+    _mock_fo(api_client, requests_mock)
+    result = ScripSearch(api_client).scrip_search(
+        symbol="nifty",
+        exchange_segment="nse_fo",
+        expiry=None,
+        option_type=None,
+        strike_price="1-2-3",
+        ignore_50multiple=True,
+    )
+    assert "error" in result
+
+
+def test_scrip_search_expiry_bad_format(api_client, requests_mock):
+    """Expiry with >2 parts returns an error dict."""
+    _mock_fo(api_client, requests_mock)
+    result = ScripSearch(api_client).scrip_search(
+        symbol="nifty",
+        exchange_segment="nse_fo",
+        expiry="01JAN2024-01FEB2024-01MAR2024",
+        option_type=None,
+        strike_price=None,
+        ignore_50multiple=True,
+    )
+    assert "error" in result
+
+
+def test_scrip_search_no_match_returns_message(api_client, requests_mock):
+    """A symbol with no matches returns the 'No data found' message."""
+    _mock_fo(api_client, requests_mock)
+    result = ScripSearch(api_client).scrip_search(
+        symbol="doesnotexist",
+        exchange_segment="nse_fo",
+        expiry=None,
+        option_type=None,
+        strike_price=None,
+        ignore_50multiple=True,
+    )
+    assert isinstance(result, dict)
+    assert "message" in result
+
+
+def test_scrip_search_expiry_and_strike_on_cash_segment(api_client, requests_mock):
+    """Cash segment with expiry+strike returns the 'no expiry/strike' error."""
+    url = api_client.configuration.get_url_details("scrip_master")
+    path = "https://api.kotaksecurities.com/scripmaster/NSE_CM.csv"
+    csv = "pSymbol,pTrdSymbol,pExchSeg,pSymbolName\n1,RELIANCE-EQ,nse_cm,RELIANCE\n"
+    requests_mock.get(url, json={"stat": "Ok", "data": {"filesPaths": [path]}}, status_code=200)
+    requests_mock.get(path, text=csv, status_code=200)
+
+    result = ScripSearch(api_client).scrip_search(
+        symbol="reliance",
+        exchange_segment="nse_cm",
+        expiry="01JAN2024",
+        option_type=None,
+        strike_price="22000",
+        ignore_50multiple=True,
+    )
+    assert "error" in result

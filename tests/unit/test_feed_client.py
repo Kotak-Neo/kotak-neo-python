@@ -157,3 +157,159 @@ def test_authenticate_rejects_unknown_message_code():
 
     with pytest.raises(Exception, match="Unexpected auth response"):
         asyncio.run(run())
+
+
+def test_authenticate_rejects_native_fallback():
+    async def run():
+        ws = SFeedWebSocket()
+        resp = {"message_code": 1119, "format": "native_fallback", "exchanges": {}}
+        ws._ws = FakeWebSocket(incoming=[json.dumps(resp)])
+        ws._connected = True
+        await ws._authenticate()
+
+    with pytest.raises(Exception, match="native_fallback"):
+        asyncio.run(run())
+
+
+# ---- is_connected state logic ----------------------------------------------
+
+def test_is_connected_false_when_no_socket():
+    ws = SFeedWebSocket()
+    assert ws.is_connected is False
+
+
+def test_is_connected_uses_state_open():
+    ws, fake = _client_with_fake_socket()
+    assert ws.is_connected is True
+
+
+def test_is_connected_false_when_state_closed():
+    ws, fake = _client_with_fake_socket()
+    fake.state = type("S", (), {"name": "CLOSED"})()
+    assert ws.is_connected is False
+
+
+def test_is_connected_respects_closed_attr():
+    ws = SFeedWebSocket()
+    ws._connected = True
+    ws._ws = type("W", (), {"closed": True})()
+    assert ws.is_connected is False
+
+
+# ---- dividers property ------------------------------------------------------
+
+def test_dividers_property_returns_copy():
+    ws = SFeedWebSocket()
+    ws._dividers = {1: 100}
+    d = ws.dividers
+    assert d == {1: 100}
+    d[2] = 999  # mutating the copy must not affect internal state
+    assert 2 not in ws._dividers
+
+
+# ---- __anext__ --------------------------------------------------------------
+
+def test_anext_raises_when_not_connected():
+    ws = SFeedWebSocket()
+
+    async def run():
+        await ws.__anext__()
+
+    with pytest.raises(Exception, match="not connected"):
+        asyncio.run(run())
+
+
+def test_anext_returns_queued_message():
+    async def run():
+        ws, _ = _client_with_fake_socket()
+        await ws._message_queue.put("hello")
+        return await ws.__anext__()
+
+    assert asyncio.run(run()) == "hello"
+
+
+# ---- binary frame handling --------------------------------------------------
+
+def _market_status_frame():
+    """Build a 9-byte market-OPEN packet (header only)."""
+    import struct
+
+    from neo_api_client.websocket.feed.protocol import HEADER_SIZE, MSG_MARKET_OPEN
+
+    header = struct.Struct("<HHbBBBB")
+    return header.pack(HEADER_SIZE, MSG_MARKET_OPEN, 1, 0, 0, 0, 0)
+
+
+def test_handle_binary_frame_enqueues_and_calls_on_message():
+    ws, _ = _client_with_fake_socket()
+    received = []
+    ws.on_message = received.append
+
+    ws._handle_binary_frame(_market_status_frame())
+
+    assert ws._message_queue.qsize() == 1
+    assert len(received) == 1
+    assert received[0].type == "market_status"
+
+
+def test_handle_binary_frame_ignores_unknown_packet():
+    ws, _ = _client_with_fake_socket()
+    import struct
+
+    # Unknown message_code, level 0 -> decode returns None -> nothing enqueued.
+    header = struct.Struct("<HHbBBBB")
+    frame = header.pack(9, 9999, 1, 0, 0, 0, 0)
+
+    ws._handle_binary_frame(frame)
+    assert ws._message_queue.qsize() == 0
+
+
+# ---- close ------------------------------------------------------------------
+
+def test_close_resets_state_and_calls_on_disconnect():
+    async def run():
+        ws, _ = _client_with_fake_socket()
+        events = []
+        ws.on_disconnect = lambda: events.append("disconnected")
+        await ws.close()
+        return ws, events
+
+    ws, events = asyncio.run(run())
+    assert ws._connected is False
+    assert ws._authenticated is False
+    assert ws._ws is None
+    assert events == ["disconnected"]
+
+
+# ---- snapshot ---------------------------------------------------------------
+
+def test_snapshot_sends_frame():
+    async def run():
+        ws, fake = _client_with_fake_socket()
+        await ws.snapshot([WsToken("nse_cm", "11536")], intent="scrips")
+        return _last_json(fake)
+
+    frame = asyncio.run(run())
+    assert frame["event"] == "snapshotScrips"
+    assert frame["inputtoken"] == "nse_cm|11536"
+
+
+def test_snapshot_invalid_intent_raises():
+    async def run():
+        ws, _ = _client_with_fake_socket()
+        await ws.snapshot([WsToken("nse_cm", "11536")], intent="bogus")
+
+    with pytest.raises(Exception, match="Snapshot not supported"):
+        asyncio.run(run())
+
+
+# ---- not-connected guards ---------------------------------------------------
+
+def test_subscribe_when_not_connected_raises():
+    ws = SFeedWebSocket()  # never connected
+
+    async def run():
+        await ws.subscribe_scrips([WsToken("nse_cm", "11536")])
+
+    with pytest.raises(Exception, match="not connected"):
+        asyncio.run(run())

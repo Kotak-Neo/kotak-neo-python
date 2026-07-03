@@ -352,3 +352,130 @@ def test_api_client_created():
 
     assert client.api_client is not None
     assert hasattr(client.api_client, "configuration")
+
+
+# ---- Additional authenticated happy-path wrappers (coverage) ---------------
+
+
+def test_order_history_success(authenticated_client, requests_mock):
+    """order_history() success path (response wrapped in a 'data' key)."""
+    url = authenticated_client.configuration.get_url_details("order_history")
+    requests_mock.post(url, json={"stat": "Ok", "data": []}, status_code=200)
+
+    result = authenticated_client.order_history(order_id="12345")
+    assert "data" in result
+
+
+def test_limits_success(authenticated_client, requests_mock):
+    """limits() success path."""
+    url = authenticated_client.configuration.get_url_details("limits")
+    requests_mock.post(url, json={"stat": "Ok", "Net": "1000"}, status_code=200)
+
+    result = authenticated_client.limits(segment="ALL", exchange="ALL", product="ALL")
+    assert result["stat"] == "Ok"
+
+
+def test_limits_invalid_segment_returns_error(authenticated_client):
+    """limits() with an invalid segment is caught and returned as an error dict."""
+    result = authenticated_client.limits(segment="BOGUS", exchange="ALL", product="ALL")
+    assert "Error" in result
+
+
+def test_margin_required_success(authenticated_client, requests_mock):
+    """margin_required() success path."""
+    url = authenticated_client.configuration.get_url_details("margin")
+    requests_mock.post(url, json={"stat": "Ok", "marginUsed": "500"}, status_code=200)
+
+    result = authenticated_client.margin_required(
+        exchange_segment="nse_cm",
+        price="100",
+        order_type="L",
+        product="CNC",
+        quantity="1",
+        instrument_token="11536",
+        transaction_type="B",
+    )
+    assert "data" in result
+
+
+def test_margin_required_invalid_returns_error(authenticated_client):
+    """margin_required() with an invalid segment is caught and returned as error."""
+    result = authenticated_client.margin_required(
+        exchange_segment="BOGUS",
+        price="100",
+        order_type="L",
+        product="CNC",
+        quantity="1",
+        instrument_token="11536",
+        transaction_type="B",
+    )
+    assert "Error" in result
+
+
+def test_modify_order_quick_path_success(authenticated_client, requests_mock):
+    """modify_order() quick path (all identifying fields provided)."""
+    url = authenticated_client.configuration.get_url_details("modify_order")
+    requests_mock.post(url, json={"stat": "Ok", "nOrdNo": "12345"}, status_code=200)
+
+    result = authenticated_client.modify_order(
+        order_id="12345",
+        price="105",
+        order_type="L",
+        quantity="2",
+        validity="DAY",
+        instrument_token="11536",
+        exchange_segment="nse_cm",
+        product="CNC",
+        trading_symbol="RELIANCE-EQ",
+        transaction_type="B",
+    )
+    assert result["stat"] == "Ok"
+
+
+def test_modify_order_requires_order_id(authenticated_client):
+    """modify_order() raises ValueError when order_id is missing entirely."""
+    with pytest.raises(ValueError):
+        authenticated_client.modify_order(
+            order_id=None,
+            price="105",
+            order_type="L",
+            quantity="2",
+            validity="DAY",
+        )
+
+
+def test_search_scrip_missing_exchange_segment(authenticated_client):
+    """search_scrip() with empty exchange_segment returns a validation error."""
+    result = authenticated_client.search_scrip(exchange_segment="", symbol="RELIANCE")
+    assert "error" in result
+
+
+def test_scrip_master_success(authenticated_client, requests_mock):
+    """scrip_master() success path returns file paths."""
+    url = authenticated_client.configuration.get_url_details("scrip_master")
+    requests_mock.get(
+        url,
+        json={"stat": "Ok", "data": {"filesPaths": ["https://x/nse_cm.csv"]}},
+        status_code=200,
+    )
+
+    result = authenticated_client.scrip_master()
+    assert result is not None
+
+
+def test_totp_login_missing_args_returns_error(authenticated_client):
+    """totp_login() with missing args returns an error dict (no network call)."""
+    result = authenticated_client.totp_login(mobile_number=None, ucc=None, totp=None)
+    assert "error" in result
+
+
+def test_totp_validate_missing_mpin_returns_error(authenticated_client):
+    """totp_validate() with missing mpin returns an error dict."""
+    result = authenticated_client.totp_validate(mpin=None)
+    assert "error" in result
+
+
+def test_quotes_missing_tokens_returns_error(authenticated_client):
+    """quotes() with no instrument_tokens returns a validation error."""
+    result = authenticated_client.quotes(instrument_tokens=None, quote_type="all")
+    assert "error" in result
