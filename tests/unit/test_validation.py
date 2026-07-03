@@ -14,6 +14,7 @@ from neo_api_client.req_data_validation import (
 
 # ---- validate_configuration -------------------------------------------------
 
+
 def test_validate_configuration_ok():
     validate_configuration(consumer_key="key", consumer_secret="secret")
 
@@ -29,6 +30,7 @@ def test_validate_configuration_missing_secret():
 
 
 # ---- place_order_validation -------------------------------------------------
+
 
 def _valid_place_kwargs(**overrides):
     kwargs = {
@@ -106,6 +108,7 @@ def test_place_order_validation_optional_type_errors(field):
 
 # ---- cancel_order_validation ------------------------------------------------
 
+
 def test_cancel_order_validation_ok():
     cancel_order_validation(order_id="12345")
 
@@ -127,6 +130,7 @@ def test_cancel_order_validation_bad_amo():
 
 # ---- order_history_validation -----------------------------------------------
 
+
 def test_order_history_validation_ok():
     order_history_validation(order_id="12345")
 
@@ -137,6 +141,7 @@ def test_order_history_validation_non_string():
 
 
 # ---- margin_validation ------------------------------------------------------
+
 
 def _valid_margin_kwargs(**overrides):
     kwargs = {
@@ -193,6 +198,7 @@ def test_margin_validation_bad_trigger_price():
 
 
 # ---- limits_validation ------------------------------------------------------
+
 
 def test_limits_validation_ok():
     limits_validation(segment="ALL", exchange="ALL", product="ALL")

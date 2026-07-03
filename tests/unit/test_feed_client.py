@@ -173,6 +173,7 @@ def test_authenticate_rejects_native_fallback():
 
 # ---- is_connected state logic ----------------------------------------------
 
+
 def test_is_connected_false_when_no_socket():
     ws = SFeedWebSocket()
     assert ws.is_connected is False
@@ -198,6 +199,7 @@ def test_is_connected_respects_closed_attr():
 
 # ---- dividers property ------------------------------------------------------
 
+
 def test_dividers_property_returns_copy():
     ws = SFeedWebSocket()
     ws._dividers = {1: 100}
@@ -208,6 +210,7 @@ def test_dividers_property_returns_copy():
 
 
 # ---- __anext__ --------------------------------------------------------------
+
 
 def test_anext_raises_when_not_connected():
     ws = SFeedWebSocket()
@@ -229,6 +232,7 @@ def test_anext_returns_queued_message():
 
 
 # ---- binary frame handling --------------------------------------------------
+
 
 def _market_status_frame():
     """Build a 9-byte market-OPEN packet (header only)."""
@@ -266,6 +270,7 @@ def test_handle_binary_frame_ignores_unknown_packet():
 
 # ---- close ------------------------------------------------------------------
 
+
 def test_close_resets_state_and_calls_on_disconnect():
     async def run():
         ws, _ = _client_with_fake_socket()
@@ -282,6 +287,7 @@ def test_close_resets_state_and_calls_on_disconnect():
 
 
 # ---- snapshot ---------------------------------------------------------------
+
 
 def test_snapshot_sends_frame():
     async def run():
@@ -304,6 +310,7 @@ def test_snapshot_invalid_intent_raises():
 
 
 # ---- not-connected guards ---------------------------------------------------
+
 
 def test_subscribe_when_not_connected_raises():
     ws = SFeedWebSocket()  # never connected

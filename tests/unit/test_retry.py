@@ -13,6 +13,7 @@ from neo_api_client.retry import (
 
 # ---- should_retry_exception -------------------------------------------------
 
+
 def test_should_retry_on_retryable_status_code():
     exc = ApiException(status=503, reason="Service Unavailable")
     assert should_retry_exception(exc) is True
@@ -57,6 +58,7 @@ def test_should_not_retry_on_plain_exception():
 
 # ---- add_jitter -------------------------------------------------------------
 
+
 def test_add_jitter_within_range():
     base = 5.0
     lo, hi = RetryConfig.JITTER_RANGE
@@ -65,6 +67,7 @@ def test_add_jitter_within_range():
 
 
 # ---- with_retry -------------------------------------------------------------
+
 
 def test_with_retry_succeeds_first_try():
     calls = []
@@ -122,6 +125,7 @@ def test_with_retry_non_retryable_raises_immediately():
 
 
 # ---- create_retry_decorator -------------------------------------------------
+
 
 def test_create_retry_decorator_success():
     decorator = create_retry_decorator(max_attempts=3)
