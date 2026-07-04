@@ -10,6 +10,29 @@ from neo_api_client import NeoAPI
 from neo_api_client.websocket.feed import WsToken
 
 
+async def _collect_for(ws, seconds, on_message=None):
+    """Read messages from `ws` for a fixed window, then stop.
+
+    Uses ``asyncio.wait_for`` so it works on Python 3.10 (where
+    ``asyncio.timeout`` is unavailable). Returns the number of messages seen.
+    """
+    count = 0
+    loop = asyncio.get_event_loop()
+    deadline = loop.time() + seconds
+    while True:
+        remaining = deadline - loop.time()
+        if remaining <= 0:
+            break
+        try:
+            message = await asyncio.wait_for(ws.__anext__(), timeout=remaining)
+        except (asyncio.TimeoutError, StopAsyncIteration):
+            break
+        count += 1
+        if on_message:
+            on_message(message)
+    return count
+
+
 class APITestRunner:
     def __init__(self):
         self.results = []
@@ -484,12 +507,7 @@ def _ws_subscribe_test(tokens):
 
             await ws.subscribe_scrips(tokens)
             print(f"\nSubscribed to {len(tokens)} token(s) - receiving (5 seconds)...")
-            try:
-                async with asyncio.timeout(5):
-                    async for message in ws:
-                        runner.on_ws_message(message)
-            except TimeoutError:
-                pass  # Expected - we only listen for a fixed window
+            await _collect_for(ws, 5, on_message=runner.on_ws_message)
 
             await ws.close()
 
@@ -524,23 +542,12 @@ def _ws_unsubscribe_test(tokens):
             # Subscribe briefly so we know the feed is live.
             await ws.subscribe_scrips(tokens)
             print(f"\nSubscribed to {len(tokens)} token(s) - receiving briefly (3 seconds)...")
-            try:
-                async with asyncio.timeout(3):
-                    async for _message in ws:
-                        pass
-            except TimeoutError:
-                pass
+            await _collect_for(ws, 3)
 
             # Unsubscribe, then count any messages that still arrive.
             await ws.unsubscribe_scrips(tokens)
             print("\nUnsubscribed - confirming feed goes quiet (3 seconds)...")
-            messages_after = 0
-            try:
-                async with asyncio.timeout(3):
-                    async for _message in ws:
-                        messages_after += 1
-            except TimeoutError:
-                pass
+            messages_after = await _collect_for(ws, 3)
 
             await ws.close()
             return messages_after

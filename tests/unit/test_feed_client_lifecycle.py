@@ -147,7 +147,10 @@ def test_authenticate_timeout(monkeypatch):
     async def run():
         class NeverAuth(FakeAsyncWS):
             async def recv(self):
-                raise TimeoutError
+                # Use asyncio.TimeoutError explicitly: on Python 3.10 it is a
+                # distinct class from the builtin TimeoutError (they were merged
+                # in 3.11), and the client catches asyncio.TimeoutError.
+                raise asyncio.TimeoutError
 
         fake = NeverAuth(incoming=[])
         _patch_connect(monkeypatch, fake)
