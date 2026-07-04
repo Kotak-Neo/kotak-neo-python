@@ -134,6 +134,28 @@ await ws.subscribe_scrips(chain)     # one batched frame
 await ws.unsubscribe_scrips(chain)   # one batched frame
 ```
 
+### Subscription limit
+
+A client may hold at most **3000 input tokens** subscribed at once. This cap is a
+**running total across every subscribe request** — LTP, option chain, index, depth,
+etc. all draw from the same budget.
+
+- A request whose new tokens would push the total over the limit raises
+  `SubscriptionError` and **nothing is sent** (the existing subscriptions are left
+  untouched).
+- Tokens already subscribed do not count again, so re-subscribing is safe.
+- `unsubscribe_*` frees budget; `ws.subscription_count` reports the current usage.
+- The limit is configurable via `max_subscriptions` (see
+  [Configuration](#configuration)).
+
+```python
+await ws.subscribe_scrips(ltp_tokens)        # e.g. 500 tokens
+await ws.subscribe_scrips(option_chain)      # e.g. 2400 tokens -> total 2900, OK
+await ws.subscribe_scrips(more_tokens)       # would exceed 3000 -> SubscriptionError
+
+print(ws.subscription_count)                 # tokens currently subscribed
+```
+
 ## Message Types
 
 All prices are already scaled (divided by the per-exchange divider) before you receive them.
@@ -214,6 +236,7 @@ async for message in ws:
 | `reconnect_delay` | `5` | Seconds between reconnect attempts |
 | `max_reconnect_attempts` | `5` | Reconnect attempt cap |
 | `ping_interval` | `20` | WebSocket keep-alive ping interval (seconds) |
+| `max_subscriptions` | `3000` | Max total input tokens subscribed at once (across all requests) |
 
 ## Event Callbacks (optional)
 

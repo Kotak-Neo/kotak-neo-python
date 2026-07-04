@@ -320,3 +320,121 @@ def test_subscribe_when_not_connected_raises():
 
     with pytest.raises(Exception, match="not connected"):
         asyncio.run(run())
+
+
+# ---- subscription limit -----------------------------------------------------
+
+
+def _tokens(n, exch="nse_fo", start=1):
+    return [WsToken(exch, str(start + i)) for i in range(n)]
+
+
+def test_default_max_subscriptions_is_3000():
+    ws = SFeedWebSocket()
+    assert ws.max_subscriptions == 3000
+
+
+def test_subscription_count_tracks_tokens():
+    async def run():
+        ws, _ = _client_with_fake_socket()
+        await ws.subscribe_scrips(_tokens(5))
+        return ws.subscription_count
+
+    assert asyncio.run(run()) == 5
+
+
+def test_subscribe_within_limit_ok():
+    async def run():
+        ws, _ = _client_with_fake_socket()
+        ws.max_subscriptions = 10
+        await ws.subscribe_scrips(_tokens(10))
+        return ws.subscription_count
+
+    assert asyncio.run(run()) == 10
+
+
+def test_subscribe_exceeding_limit_raises_and_sends_nothing():
+    async def run():
+        ws, fake = _client_with_fake_socket()
+        ws.max_subscriptions = 5
+        try:
+            await ws.subscribe_scrips(_tokens(6))
+        except Exception as e:
+            return "raised", str(e), fake.sent, ws.subscription_count
+        return "no-raise", None, fake.sent, ws.subscription_count
+
+    outcome, msg, sent, count = asyncio.run(run())
+    assert outcome == "raised"
+    assert "limit exceeded" in msg.lower()
+    assert sent == []  # nothing was sent to the socket
+    assert count == 0  # no tokens recorded
+
+
+def test_limit_is_cumulative_across_requests():
+    """LTP + option-chain subscriptions share the same 3000 budget."""
+
+    async def run():
+        ws, _ = _client_with_fake_socket()
+        ws.max_subscriptions = 100
+        # First request: 60 option-chain tokens
+        await ws.subscribe_scrips(_tokens(60, start=1))
+        first = ws.subscription_count
+        # Second request of 50 would push the total to 110 (> 100) -> reject.
+        rejected = False
+        try:
+            await ws.subscribe_scrips(_tokens(50, start=1000))
+        except Exception:
+            rejected = True
+        return first, rejected, ws.subscription_count
+
+    first, rejected, final = asyncio.run(run())
+    assert first == 60
+    assert rejected is True
+    assert final == 60  # unchanged after the rejected request
+
+
+def test_duplicate_tokens_do_not_count_twice():
+    """Re-subscribing existing tokens does not consume additional budget."""
+
+    async def run():
+        ws, _ = _client_with_fake_socket()
+        ws.max_subscriptions = 5
+        await ws.subscribe_scrips(_tokens(5))
+        # Re-subscribing the same 5 tokens stays within the limit.
+        await ws.subscribe_scrips(_tokens(5))
+        return ws.subscription_count
+
+    assert asyncio.run(run()) == 5
+
+
+def test_unsubscribe_frees_budget():
+    async def run():
+        ws, _ = _client_with_fake_socket()
+        ws.max_subscriptions = 5
+        toks = _tokens(5)
+        await ws.subscribe_scrips(toks)
+        await ws.unsubscribe_scrips(toks[:2])  # free 2
+        # Now 3 used; adding 2 more is within the cap.
+        await ws.subscribe_scrips(_tokens(2, start=500))
+        return ws.subscription_count
+
+    assert asyncio.run(run()) == 5
+
+
+def test_limit_shared_across_intents():
+    """The cap counts tokens across different subscription intents."""
+
+    async def run():
+        ws, _ = _client_with_fake_socket()
+        ws.max_subscriptions = 4
+        await ws.subscribe_scrips(_tokens(3, exch="nse_cm", start=1))
+        rejected = False
+        try:
+            await ws.subscribe_index(_tokens(2, exch="nse_cm", start=100))
+        except Exception:
+            rejected = True
+        return rejected, ws.subscription_count
+
+    rejected, count = asyncio.run(run())
+    assert rejected is True
+    assert count == 3

@@ -74,6 +74,14 @@ await ws.subscribe_scrips(chain)
 For indices, use the index name as the token, e.g.
 `WsToken("nse_cm", "Nifty 50")`, `WsToken("nse_cm", "Nifty Bank")`, `WsToken("bse_cm", "SENSEX")`.
 
+## Subscription limit
+
+At most **3000 input tokens** may be subscribed at once, counted as a running total
+across all subscribe requests (LTP, option chain, index, depth, ...). A request that
+would exceed the limit raises `SubscriptionError` and sends nothing. Use
+`ws.subscription_count` to check current usage; configure the cap with
+`max_subscriptions` (see the [SFeed guide](../../guides/websocket.md#configuration)).
+
 ## Return type
 
 Messages are typed Pydantic models (`SFeedScrip`, `SFeedScripLite`, `SFeedIndex`,

@@ -91,6 +91,7 @@ class SFeedWebSocket:
         reconnect_delay: int = 5,
         max_reconnect_attempts: int = 5,
         ping_interval: int = 20,
+        max_subscriptions: int = 3000,
     ):
         """Initialize the client.
 
@@ -110,6 +111,10 @@ class SFeedWebSocket:
             reconnect_delay: Seconds between reconnect attempts.
             max_reconnect_attempts: Maximum reconnect attempts.
             ping_interval: WebSocket-level ping interval (keep-alive) in seconds.
+            max_subscriptions: Maximum total input tokens that may be subscribed
+                at once across all subscribe requests (LTP, option chain, etc.).
+                Default 3000. A request that would exceed this raises
+                :class:`SubscriptionError`.
         """
         self.access_token = access_token
         self.sid = sid
@@ -125,6 +130,7 @@ class SFeedWebSocket:
         self.reconnect_delay = reconnect_delay
         self.max_reconnect_attempts = max_reconnect_attempts
         self.ping_interval = ping_interval
+        self.max_subscriptions = max_subscriptions
 
         self._ws: Any = None
         self._connected = False
@@ -182,6 +188,11 @@ class SFeedWebSocket:
     def dividers(self) -> dict[int, int]:
         """Per-exchange price dividers (keyed by exchange_id) from auth."""
         return dict(self._dividers)
+
+    @property
+    def subscription_count(self) -> int:
+        """Total number of currently subscribed input tokens across all requests."""
+        return len(self._subscriptions)
 
     async def connect(self) -> None:
         """Open the socket and authenticate.
@@ -362,10 +373,24 @@ class SFeedWebSocket:
             raise NotConnectedError("WebSocket is not connected")
         if not tokens:
             return
+
+        # Enforce the total subscription cap across all requests (LTP, option
+        # chain, etc.). Count only tokens that are not already subscribed for
+        # this intent, and reject the whole request before sending anything.
+        new_pairs = {(token, intent) for token in tokens} - self._subscriptions
+        projected_total = len(self._subscriptions) + len(new_pairs)
+        if projected_total > self.max_subscriptions:
+            raise SubscriptionError(
+                f"Subscription limit exceeded: {projected_total} tokens requested "
+                f"(currently {len(self._subscriptions)}, adding {len(new_pairs)} new), "
+                f"but the maximum is {self.max_subscriptions}."
+            )
+
         try:
             await self._send_subscribe(_SUBSCRIBE_EVENTS[intent], tokens)
-            for token in tokens:
-                self._subscriptions.add((token, intent))
+            self._subscriptions.update(new_pairs)
+        except SubscriptionError:
+            raise
         except Exception as e:
             raise SubscriptionError(f"Failed to subscribe ({intent}): {e}") from e
 
