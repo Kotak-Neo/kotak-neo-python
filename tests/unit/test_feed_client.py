@@ -438,3 +438,110 @@ def test_limit_shared_across_intents():
     rejected, count = asyncio.run(run())
     assert rejected is True
     assert count == 3
+
+
+# ---- guard/edge branches for unsubscribe & snapshot -------------------------
+
+
+def test_unsubscribe_when_not_connected_raises():
+    ws = SFeedWebSocket()  # never connected
+
+    async def run():
+        await ws.unsubscribe_scrips([WsToken("nse_cm", "1")])
+
+    with pytest.raises(Exception, match="not connected"):
+        asyncio.run(run())
+
+
+def test_unsubscribe_empty_list_is_noop():
+    async def run():
+        ws, fake = _client_with_fake_socket()
+        await ws.unsubscribe_scrips([])
+        return fake.sent
+
+    assert asyncio.run(run()) == []
+
+
+def test_snapshot_when_not_connected_raises():
+    ws = SFeedWebSocket()
+
+    async def run():
+        await ws.snapshot([WsToken("nse_cm", "1")])
+
+    with pytest.raises(Exception, match="not connected"):
+        asyncio.run(run())
+
+
+def test_snapshot_empty_list_is_noop():
+    async def run():
+        ws, fake = _client_with_fake_socket()
+        await ws.snapshot([])
+        return fake.sent
+
+    assert asyncio.run(run()) == []
+
+
+def test_unsubscribe_send_failure_wrapped():
+    async def run():
+        ws, fake = _client_with_fake_socket()
+
+        async def boom(_data):
+            raise RuntimeError("socket write failed")
+
+        fake.send = boom
+        await ws.unsubscribe_scrips([WsToken("nse_cm", "1")])
+
+    with pytest.raises(Exception, match="Failed to unsubscribe"):
+        asyncio.run(run())
+
+
+def test_snapshot_send_failure_wrapped():
+    async def run():
+        ws, fake = _client_with_fake_socket()
+
+        async def boom(_data):
+            raise RuntimeError("socket write failed")
+
+        fake.send = boom
+        await ws.snapshot([WsToken("nse_cm", "1")])
+
+    with pytest.raises(Exception, match="Failed to snapshot"):
+        asyncio.run(run())
+
+
+def test_subscribe_send_failure_wrapped():
+    async def run():
+        ws, fake = _client_with_fake_socket()
+
+        async def boom(_data):
+            raise RuntimeError("socket write failed")
+
+        fake.send = boom
+        await ws.subscribe_scrips([WsToken("nse_cm", "1")])
+
+    with pytest.raises(Exception, match="Failed to subscribe"):
+        asyncio.run(run())
+
+
+def test_auth_ignores_non_dict_exchange_entries():
+    async def run():
+        ws = SFeedWebSocket()
+        resp = {
+            "message_code": 1119,
+            "exchanges": {"nse_cm": {"value": 1, "divider": 100}, "bogus": "not-a-dict"},
+        }
+        ws._ws = FakeWebSocket(incoming=[json.dumps(resp)])
+        ws._connected = True
+        await ws._authenticate()
+        return ws._dividers
+
+    dividers = asyncio.run(run())
+    assert dividers == {1: 100}  # non-dict entry skipped
+
+
+def test_close_when_no_socket_is_safe():
+    async def run():
+        ws = SFeedWebSocket()  # _ws is None, no receive task
+        await ws.close()
+
+    asyncio.run(run())  # must not raise

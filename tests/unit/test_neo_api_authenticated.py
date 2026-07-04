@@ -479,3 +479,136 @@ def test_quotes_missing_tokens_returns_error(authenticated_client):
     """quotes() with no instrument_tokens returns a validation error."""
     result = authenticated_client.quotes(instrument_tokens=None, quote_type="all")
     assert "error" in result
+
+
+# ---- Additional branch coverage for neo_api.py -----------------------------
+
+
+def test_order_report_success(authenticated_client, requests_mock):
+    """order_report() success path returns the order book."""
+    url = authenticated_client.configuration.get_url_details("order_book")
+    requests_mock.get(url, json={"stat": "Ok", "data": []}, status_code=200)
+
+    result = authenticated_client.order_report()
+    assert result["stat"] == "Ok"
+
+
+def test_modify_order_by_order_id_path(authenticated_client, requests_mock):
+    """modify_order() with only order_id uses the modification_with_orderid path.
+
+    That path first fetches the order book to resolve the order's details, then
+    posts the modification.
+    """
+    order_book_url = authenticated_client.configuration.get_url_details("order_book")
+    modify_url = authenticated_client.configuration.get_url_details("modify_order")
+
+    order_book = {
+        "data": [
+            {
+                "nOrdNo": "12345",
+                "ordSt": "open",
+                "rejRsn": "",
+                "trdSym": "RELIANCE-EQ",
+                "tok": "11536",
+                "prod": "CNC",
+                "trnsTp": "B",
+                "exSeg": "nse_cm",
+                "trgPrc": "0",
+            }
+        ]
+    }
+    requests_mock.get(order_book_url, json=order_book, status_code=200)
+    requests_mock.post(modify_url, json={"stat": "Ok", "nOrdNo": "12345"}, status_code=200)
+
+    result = authenticated_client.modify_order(
+        order_id="12345",
+        price="105",
+        order_type="L",
+        quantity="2",
+        validity="DAY",
+    )
+    assert result["stat"] == "Ok"
+
+
+def test_search_scrip_success(authenticated_client, requests_mock):
+    """search_scrip() happy path returns filtered scrip data."""
+    url = authenticated_client.configuration.get_url_details("scrip_master")
+    csv_path = "https://api.kotaksecurities.com/scripmaster/NSE_CM.csv"
+    requests_mock.get(
+        url,
+        json={"stat": "Ok", "data": {"filesPaths": [csv_path]}},
+        status_code=200,
+    )
+    csv = "pSymbol,pTrdSymbol,pExchSeg,pSymbolName\n1,RELIANCE-EQ,nse_cm,RELIANCE\n"
+    requests_mock.get(csv_path, text=csv, status_code=200)
+
+    result = authenticated_client.search_scrip(exchange_segment="nse_cm", symbol="RELIANCE")
+    assert result is not None
+
+
+def test_search_scrip_invalid_segment_returns_error(authenticated_client):
+    """search_scrip() with an unknown segment is caught and returned as error."""
+    result = authenticated_client.search_scrip(exchange_segment="BOGUS", symbol="X")
+    assert "Error" in result
+
+
+def test_logout_success(authenticated_client):
+    """logout() clears session tokens and returns an OK state."""
+    result = authenticated_client.logout()
+    assert result["State"] == "OK"
+    assert authenticated_client.configuration.edit_token is None
+    assert authenticated_client.configuration.edit_sid is None
+
+
+def test_create_websocket_url_override(authenticated_client):
+    """create_websocket(url=...) overrides the default feed URL."""
+    ws = authenticated_client.create_websocket(url="wss://example.test/feed")
+    assert ws.url == "wss://example.test/feed"
+
+
+def test_create_websocket_requires_auth():
+    """create_websocket() raises when the session is not authenticated."""
+    client = NeoAPI(environment="prod", consumer_key="k")
+    with pytest.raises(ValueError, match="Authentication required"):
+        client.create_websocket()
+
+
+def test_help_socket_keyword_maps_to_create_websocket(authenticated_client):
+    """help('socket') resolves to create_websocket without raising."""
+    # Should not raise; exercises the help() happy path.
+    authenticated_client.help("socket")
+
+
+def test_modify_order_quick_path_exception(authenticated_client, requests_mock):
+    """modify_order() quick path returns an Error dict when the API call fails."""
+    modify_url = authenticated_client.configuration.get_url_details("modify_order")
+    requests_mock.post(modify_url, status_code=500, text="boom")
+
+    result = authenticated_client.modify_order(
+        order_id="12345",
+        price="105",
+        order_type="L",
+        quantity="2",
+        validity="DAY",
+        instrument_token="11536",
+        exchange_segment="nse_cm",
+        product="CNC",
+        trading_symbol="RELIANCE-EQ",
+        transaction_type="B",
+    )
+    assert "Error" in result
+
+
+def test_modify_order_by_order_id_exception(authenticated_client, requests_mock):
+    """modify_order() by-order-id path returns an Error dict when the API fails."""
+    order_book_url = authenticated_client.configuration.get_url_details("order_book")
+    requests_mock.get(order_book_url, status_code=500, text="boom")
+
+    result = authenticated_client.modify_order(
+        order_id="12345",
+        price="105",
+        order_type="L",
+        quantity="2",
+        validity="DAY",
+    )
+    assert "Error" in result

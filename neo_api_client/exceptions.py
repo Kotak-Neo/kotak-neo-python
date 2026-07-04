@@ -310,11 +310,13 @@ class RateLimitError(NeoAPIException):
     def __init__(
         self, message: str = "Rate limit exceeded", retry_after: int | None = None, **kwargs
     ):
+        # Default to 429 but allow callers (e.g. map_http_status_to_exception)
+        # to pass status_code explicitly without conflicting.
+        kwargs.setdefault("status_code", 429)
         super().__init__(
             message=message,
             category=ErrorCategory.RATE_LIMIT,
             severity=ErrorSeverity.MEDIUM,
-            status_code=429,
             retryable=True,
             retry_after=retry_after,
             **kwargs,

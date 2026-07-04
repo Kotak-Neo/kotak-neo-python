@@ -5,14 +5,20 @@ from neo_api_client.exceptions import (
     ApiTypeError,
     ApiValueError,
     AuthenticationError,
+    AuthorizationError,
     ConfigurationError,
     ErrorCategory,
     ErrorSeverity,
     NeoAPIException,
     NetworkError,
     OpenApiException,
+    OrderError,
     RateLimitError,
+    ServerError,
+    TimeoutError,
     ValidationError,
+    WebSocketError,
+    map_http_status_to_exception,
     render_path,
 )
 
@@ -380,3 +386,128 @@ def test_configuration_error_default():
     exc = ConfigurationError()
 
     assert exc.message == "Configuration error"
+
+
+# ---- Additional exception subclasses ---------------------------------------
+
+
+def test_authorization_error():
+    exc = AuthorizationError("No access")
+    assert exc.message == "No access"
+    assert exc.category == ErrorCategory.AUTHORIZATION
+    assert exc.severity == ErrorSeverity.MEDIUM
+    assert exc.retryable is False
+
+
+def test_authorization_error_default():
+    exc = AuthorizationError()
+    assert exc.message == "Authorization failed"
+
+
+def test_timeout_error():
+    exc = TimeoutError("Timed out", timeout_seconds=30.0)
+    assert exc.category == ErrorCategory.TIMEOUT
+    assert exc.retryable is True
+    assert exc.timeout_seconds == 30.0
+
+
+def test_timeout_error_default():
+    exc = TimeoutError()
+    assert exc.message == "Request timeout"
+    assert exc.timeout_seconds is None
+
+
+def test_server_error():
+    exc = ServerError("Boom")
+    assert exc.category == ErrorCategory.SERVER_ERROR
+    assert exc.severity == ErrorSeverity.HIGH
+    assert exc.retryable is True
+
+
+def test_server_error_default():
+    exc = ServerError()
+    assert exc.message == "Server error occurred"
+
+
+def test_order_error():
+    exc = OrderError("Order rejected", order_id="12345")
+    assert exc.message == "Order rejected"
+    assert exc.order_id == "12345"
+    assert exc.severity == ErrorSeverity.HIGH
+
+
+def test_order_error_default():
+    exc = OrderError()
+    assert exc.message == "Order operation failed"
+    assert exc.order_id is None
+
+
+def test_websocket_error():
+    exc = WebSocketError("Socket down")
+    assert exc.message == "Socket down"
+    assert exc.category == ErrorCategory.NETWORK
+    assert exc.retryable is True
+
+
+def test_websocket_error_default():
+    exc = WebSocketError()
+    assert exc.message == "WebSocket error"
+
+
+# ---- __str__ minimal branch (no request_id / no status_code) ----------------
+
+
+def test_neo_api_exception_str_minimal():
+    exc = NeoAPIException(message="Bare error")
+    result = str(exc)
+    assert "NeoAPIException" in result
+    assert "Bare error" in result
+    assert "Request ID" not in result
+    assert "Status" not in result
+
+
+# ---- map_http_status_to_exception -------------------------------------------
+
+
+def test_map_401_to_authentication_error():
+    exc = map_http_status_to_exception(401)
+    assert isinstance(exc, AuthenticationError)
+    assert exc.status_code == 401
+
+
+def test_map_403_to_authorization_error():
+    assert isinstance(map_http_status_to_exception(403), AuthorizationError)
+
+
+def test_map_400_to_validation_error():
+    assert isinstance(map_http_status_to_exception(400), ValidationError)
+
+
+def test_map_422_to_validation_error():
+    assert isinstance(map_http_status_to_exception(422), ValidationError)
+
+
+def test_map_429_to_rate_limit_error():
+    assert isinstance(map_http_status_to_exception(429), RateLimitError)
+
+
+def test_map_408_to_timeout_error():
+    assert isinstance(map_http_status_to_exception(408), TimeoutError)
+
+
+def test_map_5xx_to_server_error():
+    for code in (500, 502, 503, 504):
+        exc = map_http_status_to_exception(code)
+        assert isinstance(exc, ServerError)
+        assert exc.status_code == code
+
+
+def test_map_unknown_status_to_base_exception():
+    exc = map_http_status_to_exception(418)
+    assert isinstance(exc, NeoAPIException)
+    assert exc.status_code == 418
+
+
+def test_map_custom_message_preserved():
+    exc = map_http_status_to_exception(401, message="Custom auth msg")
+    assert exc.message == "Custom auth msg"

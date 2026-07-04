@@ -293,3 +293,123 @@ def test_scrip_search_expiry_and_strike_on_cash_segment(api_client, requests_moc
         ignore_50multiple=True,
     )
     assert "error" in result
+
+
+# ---- expiry / single-strike / mcx / bse coverage ----------------------------
+
+# nse_fo rows in _FO_CSV resolve (after the +315511200s shift) to expiry 18Jun2024.
+
+
+def test_scrip_search_expiry_single_date(api_client, requests_mock):
+    """Single-date expiry filter (len==1 branch)."""
+    _mock_fo(api_client, requests_mock)
+    result = ScripSearch(api_client).scrip_search(
+        symbol="nifty",
+        exchange_segment="nse_fo",
+        expiry="18Jun2024",
+        option_type=None,
+        strike_price=None,
+        ignore_50multiple=True,
+    )
+    assert isinstance(result, list)
+    assert len(result) == 2
+
+
+def test_scrip_search_expiry_range(api_client, requests_mock):
+    """Range expiry filter (len==2 branch)."""
+    _mock_fo(api_client, requests_mock)
+    result = ScripSearch(api_client).scrip_search(
+        symbol="nifty",
+        exchange_segment="nse_fo",
+        expiry="01Jun2024-30Jun2024",
+        option_type=None,
+        strike_price=None,
+        ignore_50multiple=True,
+    )
+    assert isinstance(result, list)
+    assert len(result) == 2
+
+
+def test_scrip_search_single_strike_exact_match(api_client, requests_mock):
+    """Single positive strike price -> exact match branch (line 161)."""
+    _mock_fo(api_client, requests_mock)
+    result = ScripSearch(api_client).scrip_search(
+        symbol="nifty",
+        exchange_segment="nse_fo",
+        expiry=None,
+        option_type=None,
+        strike_price="22000",  # matches the CE row (2200000 scaled)
+        ignore_50multiple=True,
+    )
+    assert isinstance(result, list)
+    assert len(result) == 1
+    assert result[0]["dStrikePrice;"] == 2200000
+
+
+# MCX/BSE use a different (non-shifted) expiry conversion path.
+_MCX_CSV = (
+    "pSymbol,pTrdSymbol,pExchSeg,pSymbolName,pOptionType,dStrikePrice;,pExpiryDate,pInstType\n"
+    "1,GOLD24JUN,mcx_fo,GOLD,XX,0,1403222400,FUTCOM\n"
+)
+
+_BSE_CSV = (
+    "pSymbol,pTrdSymbol,pExchSeg,pSymbolName,pOptionType,dStrikePrice;,pExpiryDate,pInstType\n"
+    "1,SENSEX24JUN,bse_fo,SENSEX,XX,0,1403222400,FUTIDX\n"
+)
+
+
+def _mock_segment(api_client, requests_mock, csv, filename):
+    url = api_client.configuration.get_url_details("scrip_master")
+    path = f"https://api.kotaksecurities.com/scripmaster/{filename}"
+    requests_mock.get(url, json={"stat": "Ok", "data": {"filesPaths": [path]}}, status_code=200)
+    requests_mock.get(path, text=csv, status_code=200)
+
+
+def test_scrip_search_mcx_fo_expiry_conversion(api_client, requests_mock):
+    """mcx_fo takes the non-shifted expiry conversion branch (lines 75-76)."""
+    _mock_segment(api_client, requests_mock, _MCX_CSV, "MCX_FO.csv")
+    result = ScripSearch(api_client).scrip_search(
+        symbol="gold",
+        exchange_segment="mcx_fo",
+        expiry=None,
+        option_type=None,
+        strike_price=None,
+        ignore_50multiple=True,
+    )
+    assert result is not None
+
+
+def test_scrip_search_bse_fo_expiry_conversion(api_client, requests_mock):
+    """bse_fo takes the non-shifted expiry conversion branch (lines 75-76)."""
+    _mock_segment(api_client, requests_mock, _BSE_CSV, "BSE_FO.csv")
+    result = ScripSearch(api_client).scrip_search(
+        symbol="sensex",
+        exchange_segment="bse_fo",
+        expiry=None,
+        option_type=None,
+        strike_price=None,
+        ignore_50multiple=True,
+    )
+    assert result is not None
+
+
+def test_scrip_search_api_exception_handled(api_client, monkeypatch):
+    """An ApiException from the underlying request is caught and returned."""
+    from neo_api_client.exceptions import ApiException
+
+    scrip = ScripSearch(api_client)
+
+    def boom(*args, **kwargs):
+        raise ApiException(status=500, reason="boom")
+
+    monkeypatch.setattr(scrip.rest_client, "request", boom)
+
+    result = scrip.scrip_search(
+        symbol="x",
+        exchange_segment="nse_fo",
+        expiry=None,
+        option_type=None,
+        strike_price=None,
+        ignore_50multiple=True,
+    )
+    assert "error" in result
