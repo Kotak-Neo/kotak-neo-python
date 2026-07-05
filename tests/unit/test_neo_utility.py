@@ -112,7 +112,7 @@ def test_get_domain_invalid_host():
     with pytest.raises(ApiValueError) as exc_info:
         utility.get_domain()
 
-    assert "Either UAT or PROD in Environment accepted" in str(exc_info.value)
+    assert "Invalid environment specified" in str(exc_info.value)
 
 
 def test_get_domain_case_insensitive():

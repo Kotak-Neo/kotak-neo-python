@@ -12,7 +12,7 @@ async def main():
     # Initialize NeoAPI client
     client = NeoAPI(
         consumer_key="your-consumer-key-here",
-        environment="prod",  # or "uat" for testing
+        environment="prod",  # production (default)
     )
 
     # Step 1: Login with TOTP

@@ -61,7 +61,7 @@ from neo_api_client import NeoAPI
 # Initialize the client
 client = NeoAPI(
     consumer_key='your-consumer-key-token',  # Token from NEO app Trade API card
-    environment='prod',  # or 'uat' for testing
+    environment='prod',  # production (default)
     access_token=None,  # Optional
     neo_fin_key=None  # Optional
 )
@@ -315,6 +315,11 @@ pytest --cov=neo_api_client --cov-report=html
 # Run smoke tests (requires .env configuration)
 python tests/e2e/smoke_test.py
 ```
+
+> **SDK contributors:** the smoke/integration test runners can target an internal
+> environment via the `NEO_ENVIRONMENT` variable. Copy `.env.dev.example` to `.env`
+> for that setup. This is not needed by normal SDK users — the client always uses
+> production by default.
 
 ### Code Quality
 

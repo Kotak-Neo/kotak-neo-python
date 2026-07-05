@@ -143,7 +143,7 @@ python -c "from neo_api_client import __version__; print(f'Version: {__version__
 # Create client instance
 python -c "
 from neo_api_client import NeoAPI
-client = NeoAPI(environment='uat', consumer_key='test')
+client = NeoAPI(environment='prod', consumer_key='test')
 print('✅ NeoAPI client created successfully')
 "
 ```

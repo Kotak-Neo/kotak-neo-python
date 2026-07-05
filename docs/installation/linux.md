@@ -408,7 +408,7 @@ print(f"✓ kotakneoapi version: {__version__}")
 
 client = NeoAPI(
     consumer_key="test_key",
-    environment="uat"
+    environment="prod"
 )
 
 print("✓ NeoAPI client created successfully")

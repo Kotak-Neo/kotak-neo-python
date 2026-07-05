@@ -375,7 +375,7 @@ Add Neo API snippets:
             "client = NeoAPI(",
             "    consumer_key=config(\"NEO_CONSUMER_KEY\"),",
             "    consumer_secret=config(\"NEO_CONSUMER_SECRET\"),",
-            "    environment=\"${1|prod,uat|}\"",
+            "    environment=\"prod\"",
             ")",
             "$0"
         ],

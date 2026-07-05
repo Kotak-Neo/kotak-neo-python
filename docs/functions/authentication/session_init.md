@@ -21,7 +21,7 @@ client = NeoAPI(environment='prod', access_token=None, neo_fin_key=None)
 | Name                   | Description                                                   | Type           |
 |------------------------|---------------------------------------------------------------|----------------|
 | *access_token*         | Mandatory if not passing consumer key and secret              | Str [optional] |
-| *environment*          | UAT/PROD, Default Value = "UAT"                               | Str [optional] |
+| *environment*          | Default Value = "prod"                                        | Str [optional] |
 | *neo_fin_key*          | Default Value = "neotradeapi"                                 | Str [optional] |
 
 

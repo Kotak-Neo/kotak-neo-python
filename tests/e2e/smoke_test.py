@@ -43,7 +43,9 @@ class APITestRunner:
         # Get consumer_key from environment variable (optional - for tracking)
         consumer_key = config("NEO_CONSUMER_KEY", default=None)
 
-        # Use UAT environment for tests (configurable via NEO_ENVIRONMENT)
+        # SDK developers only: NEO_ENVIRONMENT selects the backend for test runs
+        # (defaults to the internal UAT environment). Not used by normal SDK
+        # consumers, who always run against production. See .env.dev.example.
         environment = config("NEO_ENVIRONMENT", default="uat")
 
         self.client = NeoAPI(

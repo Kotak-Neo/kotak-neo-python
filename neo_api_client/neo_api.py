@@ -26,7 +26,7 @@ class NeoAPI:
     place orders, manage portfolio, and access real-time market data.
 
     Attributes:
-        environment (str): The environment for the API client ('prod' or 'uat').
+        environment (str): The environment for the API client. Defaults to 'prod'.
         consumer_key (str): Consumer key token from NEO app Trade API card (optional for tracking).
         access_token (str): Pre-authenticated access token (optional).
         neo_fin_key (str): Financial key for tracking purpose (optional).
@@ -72,8 +72,7 @@ class NeoAPI:
                 How to get: Login to NEO app/web → Invest tab → Trade API → Generate application → Copy token.
                 This token is used in the Authorization header for all API requests.
                 Without this, authentication will fail.
-            environment (str): The environment to connect to. Options: 'prod' (production) or 'uat' (testing).
-                Default: 'prod'
+            environment (str): The environment to connect to. Default: 'prod' (production).
             access_token (str, optional): Pre-authenticated access token (if you already have one).
                 Default: None (use TOTP authentication flow instead)
             neo_fin_key (str, optional): Financial key for tracking purpose.

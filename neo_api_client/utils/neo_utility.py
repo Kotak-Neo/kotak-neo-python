@@ -65,6 +65,8 @@ class NeoUtility:
         return userid
 
     def get_domain(self, session_init=False):
+        # NOTE (SDK developers only): "uat" is an internal testing environment.
+        # Normal usage always runs against "prod"; UAT is undocumented for users.
         host_list = ["prod", "uat"]
         if self.host.lower().strip() in host_list:
             if session_init:
@@ -82,7 +84,7 @@ class NeoUtility:
                     base_url = self.base_url if self.base_url else PROD_BASE_URL
             return base_url
         else:
-            raise ApiValueError("Either UAT or PROD in Environment accepted")
+            raise ApiValueError("Invalid environment specified")
 
     def get_url_details(self, api_info):
         domain_info = self.get_domain()
