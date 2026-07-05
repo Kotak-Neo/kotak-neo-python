@@ -340,7 +340,7 @@ bandit -r neo_api_client
 ## Requirements
 
 - **Python**: 3.10 or higher
-- **Core Dependencies**: numpy, pandas, PyJWT, requests, websocket-client, structlog, tenacity, websockets, pydantic
+- **Core Dependencies**: numpy, pandas, PyJWT, requests, websocket-client, structlog, tenacity, python-decouple, pyotp, websockets, pydantic
 
 See [pyproject.toml](pyproject.toml) for complete dependency list.
 
