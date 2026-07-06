@@ -107,9 +107,6 @@ class NeoUtility:
         return f"{domain_info}/{endpoint}"
 
     def get_neo_fin_key(self):
-        if self.host.lower().strip() == "prod":
-            fin_key = self.neo_fin_key or "neotradeapi"
-        else:
-            fin_key = self.neo_fin_key or "bQJNkL5z8m4aGcRgjDvXhHfSx7VpZnE"
-
-        return fin_key
+        # Same default neo-fin-key for both prod and uat; a caller-supplied
+        # neo_fin_key always takes precedence.
+        return self.neo_fin_key or "neotradeapi"

@@ -73,7 +73,7 @@ def test_get_domain_prod_session_init():
 
     domain = utility.get_domain(session_init=True)
 
-    assert domain == "https://mis.kotaksecurities.com/"
+    assert domain == "https://mis.kotaksecurities.com"
 
 
 def test_get_domain_prod_normal():
@@ -92,7 +92,7 @@ def test_get_domain_uat_session_init():
 
     domain = utility.get_domain(session_init=True)
 
-    assert domain == "https://d-mis.kotaksecurities.com/"
+    assert domain == "https://d-mis.kotaksecurities.com"
 
 
 def test_get_domain_uat_normal():
@@ -102,7 +102,7 @@ def test_get_domain_uat_normal():
     domain = utility.get_domain(session_init=False)
 
     # For UAT without session_init, it uses UAT_BASE_URL
-    assert domain == "https://d-mis.kotaksecurities.com/"
+    assert domain == "https://d-mis.kotaksecurities.com"
 
 
 def test_get_domain_invalid_host():
@@ -121,7 +121,7 @@ def test_get_domain_case_insensitive():
 
     domain = utility.get_domain(session_init=True)
 
-    assert domain == "https://mis.kotaksecurities.com/"
+    assert domain == "https://mis.kotaksecurities.com"
 
 
 def test_get_url_details_prod():
@@ -175,12 +175,12 @@ def test_get_neo_fin_key_prod_custom():
 
 
 def test_get_neo_fin_key_uat_default():
-    """Test get_neo_fin_key returns default for UAT."""
+    """Test get_neo_fin_key returns the same default ('neotradeapi') for UAT."""
     utility = NeoUtility(host="uat")
 
     fin_key = utility.get_neo_fin_key()
 
-    assert fin_key == "bQJNkL5z8m4aGcRgjDvXhHfSx7VpZnE"
+    assert fin_key == "neotradeapi"
 
 
 def test_get_neo_fin_key_uat_custom():

@@ -137,7 +137,7 @@ def test_totp_login_success(requests_mock):
     """Test TOTP login."""
     client = NeoAPI(environment="prod", consumer_key="test_key")
 
-    login_url = "https://mis.kotaksecurities.com//login/1.0/tradeApiLogin"
+    login_url = "https://mis.kotaksecurities.com/login/1.0/tradeApiLogin"
 
     requests_mock.post(
         login_url,
@@ -168,7 +168,7 @@ def test_totp_validate_success(requests_mock):
     client.configuration.view_token = "view_token_123"
     client.configuration.sid = "sid_123"
 
-    validate_url = "https://mis.kotaksecurities.com//login/1.0/tradeApiValidate"
+    validate_url = "https://mis.kotaksecurities.com/login/1.0/tradeApiValidate"
 
     requests_mock.post(
         validate_url,

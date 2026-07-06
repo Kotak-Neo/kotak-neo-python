@@ -6,16 +6,16 @@ SFEED_WEBSOCKET_URL = "wss://sfeed.kotaksecurities.com/wsfeed"
 #############################################################################
 #                               UAT BASE URLs
 #############################################################################
-UAT_BASE_URL = "https://d-mis.kotaksecurities.com/"
-PROD_BASE_URL = "https://mis.kotaksecurities.com/"
-PROD_BASE_URL_ADC = "https://cis.kotaksecurities.com/"
+UAT_BASE_URL = "https://d-mis.kotaksecurities.com"
+PROD_BASE_URL = "https://mis.kotaksecurities.com"
+PROD_BASE_URL_ADC = "https://cis.kotaksecurities.com"
 
 #############################################################################
 #                  SESSION URLs (for TOTP login/validate only)
 #############################################################################
-SESSION_UAT_BASE_URL = "https://d-mis.kotaksecurities.com/"
-SESSION_PROD_BASE_URL = "https://mis.kotaksecurities.com/"
-SESSION_PROD_BASE_URL_ADC = "https://mis.kotaksecurities.com/"
+SESSION_UAT_BASE_URL = "https://d-mis.kotaksecurities.com"
+SESSION_PROD_BASE_URL = "https://mis.kotaksecurities.com"
+SESSION_PROD_BASE_URL_ADC = "https://mis.kotaksecurities.com"
 
 #############################################################################
 #                               ORDER_FEED  URL
