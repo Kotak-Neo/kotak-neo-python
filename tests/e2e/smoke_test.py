@@ -9,6 +9,33 @@ from decouple import config
 from neo_api_client import NeoAPI
 from neo_api_client.websocket.feed import WsToken
 
+# Header keys that carry secrets; masked when printed so credentials aren't
+# leaked to the console/CI logs.
+_SENSITIVE_HEADERS = {"authorization", "auth", "sid", "neo-fin-key", "x-access-token"}
+
+
+def _mask_header(name, value):
+    """Mask sensitive header values for safe printing."""
+    if value is None:
+        return None
+    if name.lower() in _SENSITIVE_HEADERS and isinstance(value, str) and len(value) > 8:
+        return value[:6] + "…" + value[-2:]
+    return value
+
+
+def _print_request_headers(response, *args, **kwargs):
+    """requests response hook: print the headers actually sent on each request.
+
+    Registered on the SDK's shared session so every REST call (login, orders,
+    market data, ...) shows its outgoing headers — useful for confirming that
+    headers like X-Forwarded-For are attached in the UAT environment.
+    """
+    req = response.request
+    print(f"\n[HTTP →] {req.method} {req.url}")
+    print("[HTTP → headers]")
+    for key, value in req.headers.items():
+        print(f"    {key}: {_mask_header(key, value)}")
+
 
 async def _collect_for(ws, seconds, on_message=None):
     """Read messages from `ws` for a fixed window, then stop.
@@ -54,6 +81,26 @@ class APITestRunner:
             access_token=None,
             neo_fin_key=None,
         )
+
+        # Show the actual outgoing headers for every REST request by hooking the
+        # SDK's shared requests.Session. This confirms which headers (e.g.
+        # X-Forwarded-For in UAT) are attached on the wire.
+        session = self.client.api_client.rest_client.session
+        session.hooks.setdefault("response", [])
+        session.hooks["response"].append(_print_request_headers)
+
+        # Report the environment + whether the UAT X-Forwarded-For is configured.
+        cfg = self.client.api_client.configuration
+        print("\n" + "=" * 80)
+        print("REQUEST HEADER CONFIGURATION")
+        print("=" * 80)
+        print("environment:", cfg.host)
+        xff = getattr(cfg, "uat_x_forwarded_for", None)
+        if cfg.host == "uat":
+            print("X-Forwarded-For (UAT):", xff if xff else "NOT SET (NEO_UAT_X_FORWARDED_FOR)")
+        else:
+            print("X-Forwarded-For: not applicable (only sent in UAT)")
+        print("=" * 80)
 
     def on_ws_message(self, message):
         print("\n[WebSocket Message Received]")

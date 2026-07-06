@@ -4,7 +4,7 @@ Official Python SDK for Kotak Neo Trading APIs - A production-ready, enterprise-
 
 [![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![PyPI Version](https://img.shields.io/badge/pypi-v2.2.0-green.svg)](https://pypi.org/project/kotakneoapi/)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/LICENSE)
 
 ## Features
 
@@ -20,9 +20,13 @@ Official Python SDK for Kotak Neo Trading APIs - A production-ready, enterprise-
 
 ## Installation
 
-### For Development (Local Installation)
+### From PyPI
 
-Since this package is not yet published to PyPI, install it locally:
+```bash
+pip install kotakneoapi
+```
+
+### For Development (Local Installation)
 
 ```bash
 # Clone the repository
@@ -35,14 +39,6 @@ pip install -e .
 # Or install with development dependencies
 pip install -e ".[dev]"
 ```
-
-### From PyPI (When Published)
-
-```bash
-pip install kotakneoapi
-```
-
-**Note:** The package is currently in development. For production use, install from the local repository as shown above.
 
 ## Quick Start
 
@@ -102,46 +98,46 @@ client.logout()
 
 ## Documentation
 
-### 📚 [Complete API Documentation](docs/functions/README.md)
+### 📚 [Complete API Documentation](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/README.md)
 
 Detailed documentation for all SDK functions with examples and real API responses.
 
 #### Quick Links
 
 **Authentication**
-- [TOTP Login](docs/functions/authentication/totp_login.md) | [TOTP Validate](docs/functions/authentication/totp_validate.md) | [Logout](docs/functions/authentication/logout.md)
+- [TOTP Login](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/authentication/totp_login.md) | [TOTP Validate](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/authentication/totp_validate.md) | [Logout](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/authentication/logout.md)
 
 **Order Management**
-- [Place Order](docs/functions/orders/place_order.md) | [Modify Order](docs/functions/orders/modify_order.md) | [Cancel Order](docs/functions/orders/cancel_order.md)
-- [Order Report](docs/functions/orders/order_report.md) | [Order History](docs/functions/orders/order_history.md) | [Trade Report](docs/functions/orders/trade_report.md)
+- [Place Order](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/orders/place_order.md) | [Modify Order](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/orders/modify_order.md) | [Cancel Order](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/orders/cancel_order.md)
+- [Order Report](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/orders/order_report.md) | [Order History](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/orders/order_history.md) | [Trade Report](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/orders/trade_report.md)
 
 **Portfolio & Positions**
-- [Holdings](docs/functions/portfolio/holdings.md) | [Positions](docs/functions/portfolio/positions.md)
-- [Limits](docs/functions/portfolio/limits.md) | [Margin Required](docs/functions/portfolio/margin_required.md)
+- [Holdings](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/portfolio/holdings.md) | [Positions](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/portfolio/positions.md)
+- [Limits](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/portfolio/limits.md) | [Margin Required](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/portfolio/margin_required.md)
 
 **Market Data**
-- [Quotes](docs/functions/market_data/quotes.md) | [Scrip Master](docs/functions/market_data/scrip_master.md) | [Search Scrip](docs/functions/market_data/search_scrip.md)
+- [Quotes](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/market_data/quotes.md) | [Scrip Master](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/market_data/scrip_master.md) | [Search Scrip](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/market_data/search_scrip.md)
 
 **WebSocket (SFeed)**
-- [Subscribe](docs/functions/websocket/subscribe.md) | [Unsubscribe](docs/functions/websocket/unsubscribe.md) | [Order Feed](docs/functions/websocket/order_feed.md)
-- Full guide: [SFeed WebSocket](docs/guides/websocket.md)
+- [Subscribe](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/websocket/subscribe.md) | [Unsubscribe](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/websocket/unsubscribe.md) | [Order Feed](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/websocket/order_feed.md)
+- Full guide: [SFeed WebSocket](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/guides/websocket.md)
 
 ### 📖 Guides & Documentation
 
 **Installation:**
-- **[Installation Overview](docs/installation/README.md)** - All installation options
-- **[Installation Reference](docs/guides/INSTALLATION_REFERENCE.md)** - Complete platform guide
-- **[Local Installation](docs/installation/local-install.md)** - Current method (before PyPI publish)
-- **[Platform-Specific Guides](docs/installation/)** - Windows, macOS, Linux, VS Code
+- **[Installation Overview](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/installation/README.md)** - All installation options
+- **[Installation Reference](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/guides/INSTALLATION_REFERENCE.md)** - Complete platform guide
+- **[Local Installation](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/installation/local-install.md)** - Current method (before PyPI publish)
+- **[Platform-Specific Guides](https://github.com/Kotak-Neo/kotak-neo-python/tree/main/docs/installation)** - Windows, macOS, Linux, VS Code
 
 **Publishing & Distribution:**
-- **[TestPyPI Upload Guide](docs/guides/TESTPYPI_UPLOAD_GUIDE.md)** - Upload to TestPyPI for testing
-- **[Publishing Guide](docs/guides/PUBLISHING.md)** - Publish to production PyPI
+- **[TestPyPI Upload Guide](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/guides/TESTPYPI_UPLOAD_GUIDE.md)** - Upload to TestPyPI for testing
+- **[Publishing Guide](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/guides/PUBLISHING.md)** - Publish to production PyPI
 
 **API Documentation:**
-- **[Complete API Reference](docs/functions/README.md)** - All SDK functions
-- **[SFeed WebSocket Guide](docs/guides/websocket.md)** - Async streaming client, protocol & migration
-- **[All Guides](docs/guides/README.md)** - Complete guide index
+- **[Complete API Reference](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/README.md)** - All SDK functions
+- **[SFeed WebSocket Guide](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/guides/websocket.md)** - Async streaming client, protocol & migration
+- **[All Guides](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/guides/README.md)** - Complete guide index
 
 ## WebSocket Streaming Example (SFeed)
 
@@ -176,7 +172,7 @@ asyncio.run(main())
 > **Note:** The SFeed client works out of the box — its dependencies
 > (`websockets`, `pydantic`) ship with the base install. The legacy callback-based
 > WebSocket (`client.subscribe(...)`, `on_message`, etc.) was **removed in v2.2.0** —
-> see the [SFeed WebSocket guide](docs/guides/websocket.md) for the full API and a
+> see the [SFeed WebSocket guide](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/guides/websocket.md) for the full API and a
 > migration reference.
 
 ## Exception Handling
@@ -342,7 +338,7 @@ bandit -r neo_api_client
 - **Python**: 3.10 or higher
 - **Core Dependencies**: numpy, pandas, PyJWT, requests, websocket-client, structlog, tenacity, python-decouple, pyotp, websockets, pydantic
 
-See [pyproject.toml](pyproject.toml) for complete dependency list.
+See [pyproject.toml](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/pyproject.toml) for complete dependency list.
 
 ## Repository Structure
 
@@ -383,7 +379,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/LICENSE) file for details.
 
 ## Disclaimer
 
@@ -393,7 +389,7 @@ This is the official SDK for Kotak Neo Trading APIs. Trading in financial market
 
 ## Changelog
 
-See [CHANGELOG.md](CHANGELOG.md) for version history and updates.
+See [CHANGELOG.md](https://github.com/Kotak-Neo/kotak-neo-python/releases) for version history and updates.
 
 ---
 
