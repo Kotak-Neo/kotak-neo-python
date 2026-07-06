@@ -193,3 +193,52 @@ def test_close_logs_when_enhanced(monkeypatch):
     client = RESTClientObject(DummyConfig())
     client.close()  # should log 'rest_client_closing' and close the session
     assert client.session is not None  # session object still present after close
+
+
+# ---- UAT X-Forwarded-For header ---------------------------------------------
+
+
+class _EnvConfig:
+    """Config stub exposing host + uat_x_forwarded_for like NeoUtility."""
+
+    consumer_key = None
+
+    def __init__(self, host, xff=None):
+        self.host = host
+        self.uat_x_forwarded_for = xff
+
+
+def test_uat_sets_x_forwarded_for_header():
+    client = RESTClientObject(_EnvConfig("uat", "10.1.2.3"))
+    with requests_mock.Mocker() as m:
+        m.get("https://test.com", json={})
+        client.request(method="GET", url="https://test.com")
+        assert m.last_request.headers.get("X-Forwarded-For") == "10.1.2.3"
+
+
+def test_prod_does_not_set_x_forwarded_for():
+    client = RESTClientObject(_EnvConfig("prod", "10.1.2.3"))
+    with requests_mock.Mocker() as m:
+        m.get("https://test.com", json={})
+        client.request(method="GET", url="https://test.com")
+        assert "X-Forwarded-For" not in m.last_request.headers
+
+
+def test_uat_without_value_does_not_set_header():
+    client = RESTClientObject(_EnvConfig("uat", None))
+    with requests_mock.Mocker() as m:
+        m.get("https://test.com", json={})
+        client.request(method="GET", url="https://test.com")
+        assert "X-Forwarded-For" not in m.last_request.headers
+
+
+def test_explicit_x_forwarded_for_header_not_overwritten():
+    client = RESTClientObject(_EnvConfig("uat", "10.1.2.3"))
+    with requests_mock.Mocker() as m:
+        m.get("https://test.com", json={})
+        client.request(
+            method="GET",
+            url="https://test.com",
+            headers={"X-Forwarded-For": "9.9.9.9"},
+        )
+        assert m.last_request.headers.get("X-Forwarded-For") == "9.9.9.9"

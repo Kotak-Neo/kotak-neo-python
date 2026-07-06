@@ -1,4 +1,5 @@
 import jwt
+from decouple import config
 
 from neo_api_client.exceptions import ApiValueError
 from neo_api_client.settings import PROD_URL, UAT_URL
@@ -42,6 +43,11 @@ class NeoUtility:
         self.base_url = None
         self.totp_session_id = None
         self.consumer_key = consumer_key
+        # SDK developers only: an X-Forwarded-For value used to bypass the
+        # static-IP restriction on the internal UAT environment. Read from the
+        # NEO_UAT_X_FORWARDED_FOR variable (see .env.dev.example). Only applied
+        # when host == "uat"; ignored (and irrelevant) in production.
+        self.uat_x_forwarded_for = config("NEO_UAT_X_FORWARDED_FOR", default=None)
 
     # def convert_base64(self):
     #     """The Base64 Token Generation.
