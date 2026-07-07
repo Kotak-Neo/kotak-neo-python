@@ -3,7 +3,7 @@
 Official Python SDK for Kotak Neo Trading APIs - A production-ready, enterprise-grade trading client for the Kotak Neo platform.
 
 [![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
-[![PyPI Version](https://img.shields.io/badge/pypi-v2.2.0-green.svg)](https://pypi.org/project/kotakneoapi/)
+[![PyPI Version](https://img.shields.io/badge/pypi-v2.2.1-green.svg)](https://pypi.org/project/kotakneoapi/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/LICENSE)
 
 ## Features
@@ -393,6 +393,6 @@ See [CHANGELOG.md](https://github.com/Kotak-Neo/kotak-neo-python/releases) for v
 
 ---
 
-**Version**: 2.2.0  
+**Version**: 2.2.1  
 **Status**: Production/Stable  
 **Built with ❤️ by Kotak Neo Team**
