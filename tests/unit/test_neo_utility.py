@@ -141,8 +141,8 @@ def test_get_url_details_uat():
 
     url = utility.get_url_details("limits")
 
-    # UAT_URL for limits is "orderapi/1.0/quick/user/limits"
-    assert url == "https://d-mis.kotaksecurities.com/orderapi/1.0/quick/user/limits"
+    # UAT_URL for limits is "quick/user/limits"
+    assert url == "https://d-mis.kotaksecurities.com/quick/user/limits"
 
 
 def test_get_url_details_invalid_api():

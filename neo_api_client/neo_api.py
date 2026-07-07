@@ -251,66 +251,6 @@ class NeoAPI:
         else:
             return {"Error Message": "Complete the 2fa process before accessing this application"}
 
-    def cancel_cover_order(self, order_id, amo="NO", isVerify=False):
-        """
-        Cancels a cover order with the given `order_id` using the NEO API.
-
-        Args: order_id (str): The ID of the order to cancel.
-        amo (str, optional): Default is "NO" for no amount specified.
-        isVerify (bool, optional): Whether to verify the cancellation. Default is False.
-        "If isVerify is True, we will first check the status of the given order. If the order status is not
-         'rejected', 'cancelled', 'traded', or 'completed', we will proceed to cancel the order using the
-         cancel_order function. Otherwise, we will display the order status to the user instead."
-
-        Raises:
-            ValueError: If the `order_id` is not a valid input.
-            Exception: If there was an error cancelling the order.
-
-        Returns:
-            The Status of given order id.
-        """
-        if self.configuration.edit_token and self.configuration.edit_sid:
-            try:
-                req_data_validation.cancel_order_validation(order_id)
-                cancel_order = OrderAPI(self.api_client).cover_order_cancelling(
-                    order_id=order_id, isVerify=isVerify, amo=amo
-                )
-                return cancel_order
-            except Exception as e:
-                return {"Error": e}
-        else:
-            return {"Error Message": "Complete the 2fa process before accessing this application"}
-
-    def cancel_bracket_order(self, order_id, amo="NO", isVerify=False):
-        """
-        Cancels a bracket order with the given `order_id` using the NEO API.
-
-        Args: order_id (str): The ID of the order to cancel.
-        amo (str, optional): Default is "NO" for no amount specified.
-        isVerify (bool, optional): Whether to verify the cancellation. Default is False.
-        "If isVerify is True, we will first check the status of the given order. If the order status is not
-         'rejected', 'cancelled', 'traded', or 'completed', we will proceed to cancel the order using the
-         cancel_order function. Otherwise, we will display the order status to the user instead."
-
-        Raises:
-            ValueError: If the `order_id` is not a valid input.
-            Exception: If there was an error cancelling the order.
-
-        Returns:
-            The Status of given order id.
-        """
-        if self.configuration.edit_token and self.configuration.edit_sid:
-            try:
-                req_data_validation.cancel_order_validation(order_id)
-                cancel_order = OrderAPI(self.api_client).bracket_order_cancelling(
-                    order_id=order_id, isVerify=isVerify, amo=amo
-                )
-                return cancel_order
-            except Exception as e:
-                return {"Error": e}
-        else:
-            return {"Error Message": "Complete the 2fa process before accessing this application"}
-
     def order_report(self):
         """
         Retrieves a list of orders in the order book using the NEO API.

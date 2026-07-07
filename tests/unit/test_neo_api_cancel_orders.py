@@ -57,56 +57,6 @@ def test_cancel_order_with_amo(authenticated_client, requests_mock):
     assert result["stat"] == "Ok"
 
 
-def test_cancel_cover_order_success(authenticated_client, requests_mock):
-    """Test successful cover order cancellation."""
-    url = authenticated_client.configuration.get_url_details("cancel_cover_order")
-
-    requests_mock.post(
-        url,
-        json={"stat": "Ok", "message": "Cover order cancelled"},
-        status_code=200,
-    )
-
-    result = authenticated_client.cancel_cover_order(order_id="240101000000002")
-
-    assert result["stat"] == "Ok"
-
-
-def test_cancel_cover_order_without_2fa():
-    """Test cancel_cover_order without 2FA."""
-    client = NeoAPI(environment="prod", consumer_key="test_key")
-
-    result = client.cancel_cover_order(order_id="240101000000002")
-
-    assert "Error Message" in result
-    assert "2fa" in result["Error Message"]
-
-
-def test_cancel_bracket_order_success(authenticated_client, requests_mock):
-    """Test successful bracket order cancellation."""
-    url = authenticated_client.configuration.get_url_details("cancel_bracket_order")
-
-    requests_mock.post(
-        url,
-        json={"stat": "Ok", "message": "Bracket order cancelled"},
-        status_code=200,
-    )
-
-    result = authenticated_client.cancel_bracket_order(order_id="240101000000003")
-
-    assert result["stat"] == "Ok"
-
-
-def test_cancel_bracket_order_without_2fa():
-    """Test cancel_bracket_order without 2FA."""
-    client = NeoAPI(environment="prod", consumer_key="test_key")
-
-    result = client.cancel_bracket_order(order_id="240101000000003")
-
-    assert "Error Message" in result
-    assert "2fa" in result["Error Message"]
-
-
 def test_order_report_without_2fa():
     """Test order_report without 2FA."""
     client = NeoAPI(environment="prod", consumer_key="test_key")

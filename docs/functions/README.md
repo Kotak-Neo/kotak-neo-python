@@ -37,8 +37,6 @@ client.totp_validate(mpin='123456')
 - [Place Order](./orders/place_order.md) - Place new orders (Regular/AMO/Bracket/Cover)
 - [Modify Order](./orders/modify_order.md) - Modify existing orders
 - [Cancel Order](./orders/cancel_order.md) - Cancel regular orders
-- [Cancel Cover Order](./orders/cancel_cover_order.md) - Cancel cover orders
-- [Cancel Bracket Order](./orders/cancel_bracket_order.md) - Cancel bracket orders
 - [Order Report](./orders/order_report.md) - Get order book
 - [Order History](./orders/order_history.md) - Get order history
 - [Trade Report](./orders/trade_report.md) - Get executed trades

@@ -28,28 +28,6 @@ def test_cancel_order_exception(authenticated_client, requests_mock):
     assert "Error" in result or result is not None
 
 
-def test_cancel_cover_order_exception(authenticated_client, requests_mock):
-    """Test cancel_cover_order with exception."""
-    url = authenticated_client.configuration.get_url_details("cancel_cover_order")
-
-    requests_mock.post(url, status_code=500, text="Internal Server Error")
-
-    result = authenticated_client.cancel_cover_order(order_id="240101000000002")
-
-    assert "Error" in result or result is not None
-
-
-def test_cancel_bracket_order_exception(authenticated_client, requests_mock):
-    """Test cancel_bracket_order with exception."""
-    url = authenticated_client.configuration.get_url_details("cancel_bracket_order")
-
-    requests_mock.post(url, status_code=500, text="Internal Server Error")
-
-    result = authenticated_client.cancel_bracket_order(order_id="240101000000003")
-
-    assert "Error" in result or result is not None
-
-
 def test_scrip_master_exception(authenticated_client, requests_mock):
     """Test scrip_master with exception."""
     url = authenticated_client.configuration.get_url_details("scrip_master")
