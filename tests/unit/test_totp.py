@@ -168,3 +168,49 @@ def test_totp_login_error_status(api_client, requests_mock):
     assert result["stat"] == "Not_Ok"
     # Configuration should not be updated on error
     assert api_client.configuration.view_token is None
+
+
+def test_totp_login_2xx_error_body_no_data(api_client, requests_mock):
+    """A 2xx response with an error body (no 'data') must not raise.
+
+    Regression: an empty/invalid UCC returns HTTP 200 with an error payload and
+    no 'data' key; the SDK must return that payload rather than raising
+    AttributeError.
+    """
+    login_url = api_client.configuration.get_domain(session_init=True) + "/login/1.0/tradeApiLogin"
+
+    requests_mock.post(
+        login_url,
+        json={"stCode": 429, "errMsg": "Invalid UCC", "status": "failure"},
+        status_code=200,
+    )
+
+    totp_api = TotpAPI(api_client)
+    result = totp_api.totp_login(mobile_number="+919999999999", ucc="", totp="123456")
+
+    assert result["errMsg"] == "Invalid UCC"
+    assert result["status"] == "failure"
+    # No token extracted from an error body.
+    assert api_client.configuration.view_token is None
+
+
+def test_totp_validate_2xx_error_body_no_data(api_client, requests_mock):
+    """totp_validate with a 2xx error body (no 'data') must not raise."""
+    validate_url = (
+        api_client.configuration.get_domain(session_init=True) + "/login/1.0/tradeApiValidate"
+    )
+
+    requests_mock.post(
+        validate_url,
+        json={"stCode": 401, "errMsg": "Invalid MPIN", "status": "failure"},
+        status_code=200,
+    )
+
+    # Clear any pre-set token so we can assert it is not populated on error.
+    api_client.configuration.edit_token = None
+
+    totp_api = TotpAPI(api_client)
+    result = totp_api.totp_validate(mpin="0000")
+
+    assert result["errMsg"] == "Invalid MPIN"
+    assert api_client.configuration.edit_token is None

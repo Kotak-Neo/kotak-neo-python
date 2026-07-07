@@ -273,6 +273,15 @@ print("data_center:", runner.client.api_client.configuration.data_center)
 print("=" * 80)
 
 # ---------------------------
+# WHAT'S MY IP
+# ---------------------------
+
+runner.run_test(
+    "WHATS MY IP",
+    lambda: runner.client.whatsmyip(),
+)
+
+# ---------------------------
 # MARKET DATA
 # ---------------------------
 

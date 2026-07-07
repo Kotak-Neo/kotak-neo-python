@@ -30,9 +30,13 @@ class TotpAPI:
             return {
                 "Error": "Unexpected response format. Expected JSON but received something else."
             }
-        if 200 <= totp_login.status_code <= 299:
-            self.api_client.configuration.view_token = totp_login_data.get("data").get("token")
-            self.api_client.configuration.sid = totp_login_data.get("data").get("sid")
+        # A 2xx response can still carry an error body (e.g. invalid/empty UCC),
+        # in which case "data" is absent. Only extract tokens when present, and
+        # otherwise return the server's error payload as-is.
+        data = totp_login_data.get("data") if isinstance(totp_login_data, dict) else None
+        if 200 <= totp_login.status_code <= 299 and isinstance(data, dict):
+            self.api_client.configuration.view_token = data.get("token")
+            self.api_client.configuration.sid = data.get("sid")
         return totp_login_data
 
     def totp_validate(self, mpin=None):
@@ -57,13 +61,13 @@ class TotpAPI:
             return {
                 "Error": "Unexpected response format. Expected JSON but received something else."
             }
-        # totp_validate_data = totp_validate.json()
-        if 200 <= totp_validate.status_code <= 299:
-            self.api_client.configuration.edit_token = totp_validate_data.get("data").get("token")
-            self.api_client.configuration.edit_sid = totp_validate_data.get("data").get("sid")
-            self.api_client.configuration.edit_rid = totp_validate_data.get("data").get("rid")
-            self.api_client.configuration.data_center = totp_validate_data.get("data").get(
-                "dataCenter"
-            )
-            self.api_client.configuration.base_url = totp_validate_data.get("data").get("baseUrl")
+        # A 2xx response can still carry an error body (no "data"). Only extract
+        # tokens when present; otherwise return the server's error payload as-is.
+        data = totp_validate_data.get("data") if isinstance(totp_validate_data, dict) else None
+        if 200 <= totp_validate.status_code <= 299 and isinstance(data, dict):
+            self.api_client.configuration.edit_token = data.get("token")
+            self.api_client.configuration.edit_sid = data.get("sid")
+            self.api_client.configuration.edit_rid = data.get("rid")
+            self.api_client.configuration.data_center = data.get("dataCenter")
+            self.api_client.configuration.base_url = data.get("baseUrl")
         return totp_validate_data
