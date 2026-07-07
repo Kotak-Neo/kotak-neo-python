@@ -28,6 +28,14 @@ try:
         SFeedWebSocket,
         WsToken,
     )
+    from neo_api_client.websocket.orderfeed import (  # noqa: F401
+        OrderData,
+        OrderFeedWebSocket,
+        OrderStatus,
+        OrderUpdate,
+        PositionData,
+        PositionUpdate,
+    )
 
     __all_feed__ = [
         "SFeedWebSocket",
@@ -37,6 +45,12 @@ try:
         "SFeedIndex",
         "SFeedMarketStatus",
         "DepthLevel",
+        "OrderFeedWebSocket",
+        "OrderUpdate",
+        "OrderData",
+        "OrderStatus",
+        "PositionUpdate",
+        "PositionData",
     ]
 except ImportError:
     # Defensive: `websockets`/`pydantic` are core deps, but keep the SDK importable

@@ -56,7 +56,7 @@ client.totp_validate(mpin='123456')
 ### 5. WebSocket (SFeed, async/await — v2.2.0+)
 - [Subscribe](./websocket/subscribe.md) - Subscribe to live market feed
 - [Unsubscribe](./websocket/unsubscribe.md) - Unsubscribe from feed
-- [Order Feed](./websocket/order_feed.md) - Legacy order feed (removed in v2.2.0)
+- [Order Feed](./websocket/order_feed.md) - Stream order-lifecycle & position updates
 - [SFeed WebSocket Guide](../guides/websocket.md) - Full async client reference & migration
 
 ## Quick Links

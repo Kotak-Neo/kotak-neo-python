@@ -952,6 +952,58 @@ class NeoAPI:
             **kwargs,
         )
 
+    def create_order_feed(self, **kwargs):
+        """
+        Create an async/await Order & Position streaming WebSocket client.
+
+        Streams real-time order-lifecycle events and live position updates over
+        ``wss://<baseurl>/realtime``, where ``<baseurl>`` is the host returned by
+        ``totp_validate`` (stored as ``configuration.base_url``).
+
+        Args:
+            **kwargs: Additional arguments passed to OrderFeedWebSocket
+                (e.g., source, reconnect_delay, max_reconnect_attempts, ping_interval).
+
+        Returns:
+            OrderFeedWebSocket: Configured client ready to connect.
+
+        Raises:
+            ValueError: If not authenticated (no edit_token/edit_sid) or the
+                base URL is unavailable (totp_validate not completed).
+
+        Example:
+            ```python
+            import asyncio
+            from neo_api_client import NeoAPI
+
+            async def main():
+                client = NeoAPI(consumer_key="...", environment="prod")
+                client.totp_login(mobile_number="+91...", ucc="...", totp="...")
+                client.totp_validate(mpin="...")
+
+                async with client.create_order_feed() as feed:
+                    async for message in feed:
+                        print(message)
+
+            asyncio.run(main())
+            ```
+        """
+        from neo_api_client.websocket.orderfeed import OrderFeedWebSocket
+
+        if not self.configuration.edit_token or not self.configuration.edit_sid:
+            raise ValueError(
+                "Authentication required. Please call totp_login() and totp_validate() first."
+            )
+        if not self.configuration.base_url:
+            raise ValueError("Order-feed base URL is unavailable. Complete totp_validate() first.")
+
+        return OrderFeedWebSocket(
+            base_url=self.configuration.base_url,
+            auth=self.configuration.edit_token,
+            sid=self.configuration.edit_sid,
+            **kwargs,
+        )
+
     def quotes(self, instrument_tokens=None, quote_type=None):
         """
         Retrieves quotes for the given instrument tokens.

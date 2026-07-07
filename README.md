@@ -118,8 +118,9 @@ Detailed documentation for all SDK functions with examples and real API response
 **Market Data**
 - [Quotes](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/market_data/quotes.md) | [Scrip Master](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/market_data/scrip_master.md) | [Search Scrip](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/market_data/search_scrip.md)
 
-**WebSocket (SFeed)**
-- [Subscribe](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/websocket/subscribe.md) | [Unsubscribe](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/websocket/unsubscribe.md) | [Order Feed](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/websocket/order_feed.md)
+**WebSocket**
+- Market data (SFeed): [Subscribe](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/websocket/subscribe.md) | [Unsubscribe](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/websocket/unsubscribe.md)
+- Order & positions: [Order Feed](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/websocket/order_feed.md)
 - Full guide: [SFeed WebSocket](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/guides/websocket.md)
 
 ### 📖 Guides & Documentation
@@ -174,6 +175,35 @@ asyncio.run(main())
 > WebSocket (`client.subscribe(...)`, `on_message`, etc.) was **removed in v2.2.0** —
 > see the [SFeed WebSocket guide](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/guides/websocket.md) for the full API and a
 > migration reference.
+
+## Order & Position Streaming Example
+
+Order-lifecycle events and live position updates stream over a separate
+async/await WebSocket, `create_order_feed()`. It returns type-safe `OrderUpdate` /
+`PositionUpdate` messages.
+
+```python
+import asyncio
+from neo_api_client import NeoAPI
+from neo_api_client.websocket.orderfeed import OrderUpdate, PositionUpdate, OrderStatus
+
+async def main():
+    client = NeoAPI(consumer_key='your-consumer-key-token', environment='prod')
+    client.totp_login(mobile_number='+919876543210', ucc='YOUR_UCC', totp='123456')
+    client.totp_validate(mpin='123456')
+
+    # create_order_feed() connects to wss://<baseurl>/realtime using the session
+    async with client.create_order_feed() as feed:
+        async for message in feed:
+            if isinstance(message, OrderUpdate):
+                print(f"order {message.data.order_no} -> {message.data.order_status}")
+            elif isinstance(message, PositionUpdate):
+                print(f"position {message.data.symbol}")
+
+asyncio.run(main())
+```
+
+> Full reference: [Order & Position Feed](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/websocket/order_feed.md).
 
 ## Exception Handling
 

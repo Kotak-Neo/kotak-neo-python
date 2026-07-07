@@ -652,6 +652,60 @@ runner.run_test(
 )
 
 # ---------------------------
+# ORDER & POSITION FEED (async client)
+# ---------------------------
+
+
+def _order_feed_test():
+    """Connect to the order/position feed and collect messages for a window.
+
+    The feed is fire-and-hose (no subscribe step): it streams whatever the
+    account produces. With no live order/position activity this may see zero
+    messages — a clean connect + graceful close is still a PASS.
+    """
+
+    def _test():
+        async def _run():
+            order_messages = []
+
+            feed = runner.client.create_order_feed()
+            feed.on_error = runner.on_ws_error
+
+            await feed.connect()
+            connected = feed.is_connected
+            print(f"\nOrder feed connected: {connected} ({feed.url})")
+
+            print("Listening for order/position updates (5 seconds)...")
+            await _collect_for(feed, 5, on_message=order_messages.append)
+
+            await feed.close()
+            return connected, order_messages
+
+        connected, order_messages = asyncio.run(_run())
+
+        if runner.ws_error:
+            raise RuntimeError(f"Order feed error: {runner.ws_error}")
+        if not connected:
+            raise RuntimeError("Order feed did not connect")
+
+        for message in order_messages:
+            print(json.dumps(message.model_dump(), indent=2, default=str))
+
+        return {
+            "connected": connected,
+            "messages_received": len(order_messages),
+        }
+
+    return _test
+
+
+runner.ws_error = None
+runner.run_test(
+    "ORDER & POSITION FEED",
+    _order_feed_test(),
+)
+
+# ---------------------------
 # LOGOUT
 # ---------------------------
 
