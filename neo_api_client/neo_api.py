@@ -2,6 +2,7 @@ import inspect
 
 from neo_api_client import req_data_validation, settings
 from neo_api_client.api_client import ApiClient
+from neo_api_client.services.client_ip import ClientIpAPI
 from neo_api_client.services.limits import LimitsAPI
 from neo_api_client.services.margin import MarginAPI
 from neo_api_client.services.modify_order import ModifyOrder
@@ -741,6 +742,29 @@ class NeoAPI:
                     "State": "NOT_OK",
                     "message": "Some Exception with the Logout Functionality",
                 }
+        else:
+            return {"Error Message": "Complete the 2fa process before accessing this application"}
+
+    def whatsmyip(self):
+        """
+        Retrieves the client's outbound IP address as seen by the NEO backend.
+
+        This is the IP the server observes for your requests, useful for
+        confirming which IP would need to be whitelisted for IP-restricted
+        environments.
+
+        Raises:
+            Exception: If there was an error fetching the client IP.
+
+        Returns:
+            dict: Response containing the client IP and server time, e.g.
+            {"data": [{"ip": "...", "time": "..."}], "stCode": 1000, "status": "success"}
+        """
+        if self.configuration.edit_token and self.configuration.edit_sid:
+            try:
+                return ClientIpAPI(self.api_client).whatsmyip()
+            except Exception as e:
+                return {"Error": e}
         else:
             return {"Error Message": "Complete the 2fa process before accessing this application"}
 

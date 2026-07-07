@@ -31,6 +31,7 @@ client.totp_validate(mpin='123456')
 ### 1. Authentication
 - [TOTP Login](./authentication/totp_login.md) - Initiate TOTP-based login
 - [TOTP Validate](./authentication/totp_validate.md) - Complete 2FA with MPIN
+- [What's My IP](./authentication/whatsmyip.md) - Get the client's outbound IP as seen by the server
 - [Logout](./authentication/logout.md) - End trading session
 
 ### 2. Order Management

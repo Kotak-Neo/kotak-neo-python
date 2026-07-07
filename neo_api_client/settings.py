@@ -17,6 +17,7 @@ UAT_URL = {
     "logout": "api/1.0/logout",
     "totp_login": "api/1.0/login/v6/totp/login",
     "totp_validate": "api/1.0/login/v6/totp/validate",
+    "get_client_ip": "login/1.0/get-client-ip",
     "quotes_neo_symbol": "script-details/1.0/quotes/neosymbol/{neo_symbols}/{quote_type}",
 }
 
@@ -35,6 +36,7 @@ PROD_URL = {
     "logout": "apim/login/2.0/logout",
     "totp_login": "login/1.0/tradeApiLogin",
     "totp_validate": "login/1.0/tradeApiValidate",
+    "get_client_ip": "login/1.0/get-client-ip",
     "quotes_neo_symbol": "/script-details/1.0/quotes/neosymbol/{neo_symbols}/{quote_type}",
 }
 

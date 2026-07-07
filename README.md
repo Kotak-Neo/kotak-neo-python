@@ -105,7 +105,7 @@ Detailed documentation for all SDK functions with examples and real API response
 #### Quick Links
 
 **Authentication**
-- [TOTP Login](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/authentication/totp_login.md) | [TOTP Validate](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/authentication/totp_validate.md) | [Logout](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/authentication/logout.md)
+- [TOTP Login](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/authentication/totp_login.md) | [TOTP Validate](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/authentication/totp_validate.md) | [What's My IP](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/authentication/whatsmyip.md) | [Logout](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/authentication/logout.md)
 
 **Order Management**
 - [Place Order](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/orders/place_order.md) | [Modify Order](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/orders/modify_order.md) | [Cancel Order](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/orders/cancel_order.md)
