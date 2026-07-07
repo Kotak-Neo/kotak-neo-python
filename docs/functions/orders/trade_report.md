@@ -166,6 +166,7 @@ except Exception as e:
 ### HTTP request headers
 
  - **Accept**: application/json
+ - **neo-fin-key**: neotradeapi
 
 ### HTTP response details
 | Status Code | Description                                  |

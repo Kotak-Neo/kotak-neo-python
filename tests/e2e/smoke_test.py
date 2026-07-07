@@ -334,10 +334,27 @@ if quotes_response and isinstance(quotes_response, dict):
 # REPORTS
 # ---------------------------
 
-runner.run_test(
+order_report_response = runner.run_test(
     "ORDER REPORT",
     lambda: runner.client.order_report(),
 )
+
+# Capture an order number from the order book so we can exercise the
+# order-book-by-order-id endpoint (/quick/user/orders/<order_no>).
+first_order_no = None
+if order_report_response and isinstance(order_report_response, dict):
+    orders = order_report_response.get("data")
+    if isinstance(orders, list) and orders:
+        first_order_no = orders[0].get("nOrdNo")
+
+if first_order_no:
+    runner.run_test(
+        "ORDER REPORT BY ID",
+        lambda: runner.client.order_report(order_id=first_order_no),
+        request_params={"order_id": first_order_no},
+    )
+else:
+    print("\n[SKIPPED] ORDER REPORT BY ID - No order number available from order book")
 
 runner.run_test(
     "TRADE REPORT",

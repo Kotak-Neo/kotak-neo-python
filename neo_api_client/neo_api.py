@@ -252,9 +252,14 @@ class NeoAPI:
         else:
             return {"Error Message": "Complete the 2fa process before accessing this application"}
 
-    def order_report(self):
+    def order_report(self, order_id=None):
         """
-        Retrieves a list of orders in the order book using the NEO API.
+        Retrieves orders from the order book using the NEO API.
+
+        Args:
+            order_id (str, optional): Nest order number. When provided, a single
+                order is fetched from ``/quick/user/orders/<order_no>``. When
+                omitted, the full order book is returned.
 
         Raises:
             Exception: If there was an error retrieving the order book.
@@ -264,6 +269,8 @@ class NeoAPI:
         """
         if self.configuration.edit_token and self.configuration.edit_sid:
             try:
+                if order_id:
+                    return OrderReportAPI(self.api_client).ordered_book_by_id(order_id=order_id)
                 order_list = OrderReportAPI(self.api_client).ordered_books()
                 return order_list
             except Exception as e:

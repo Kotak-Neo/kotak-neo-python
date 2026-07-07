@@ -18,7 +18,7 @@ client.totp_validate(mpin="")
 
 try:
     # Get particular details using order_id
-    client.order_history()
+    client.order_history(order_id="250122000624384")
 except Exception as e:
     print("Exception when order history API->order_history: %s\n" % e)
 ```
@@ -337,6 +337,8 @@ except Exception as e:
 ### HTTP request headers
 
  - **Accept**: application/json
+ - **Content-Type**: application/x-www-form-urlencoded
+ - **neo-fin-key**: neotradeapi
 
 ### HTTP response details
 | Status Code | Description                                  |

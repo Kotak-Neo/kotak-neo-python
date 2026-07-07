@@ -103,6 +103,24 @@ def test_trade_report_success(authenticated_client, requests_mock):
     assert result["stat"] == "Ok"
 
 
+def test_order_report_by_order_id(authenticated_client, requests_mock):
+    """Passing order_id routes to /quick/user/orders/<order_no>."""
+    order_id = "250720000007242"
+    url = f"{authenticated_client.configuration.get_url_details('order_book')}/{order_id}"
+
+    requests_mock.get(
+        url,
+        json={"stat": "Ok", "data": [{"nOrdNo": order_id, "ordSt": "rejected"}]},
+        status_code=200,
+    )
+
+    result = authenticated_client.order_report(order_id=order_id)
+
+    assert result["stat"] == "Ok"
+    assert result["data"][0]["nOrdNo"] == order_id
+    assert requests_mock.last_request.url.endswith(f"/orders/{order_id}")
+
+
 def test_positions_success(authenticated_client, requests_mock):
     """Test positions retrieval."""
     url = authenticated_client.configuration.get_url_details("positions")
