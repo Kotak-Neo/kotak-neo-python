@@ -445,90 +445,154 @@ runner.run_test(
 # ---------------------------
 # ORDER MANAGEMENT (Place → Modify → Cancel)
 # ---------------------------
-# NOTE: Temporarily disabled. Re-enable to test the order lifecycle.
+# These tests place a REAL order and then modify/cancel it. Two modes:
 #
-# # Store order_id for modify and cancel tests
-# placed_order_id = None
+#   * MANUAL   — you type every value by hand (no LTP-based pricing).
+#   * AUTOMATIC — the original logic: place at LTP-1 and modify at LTP-2 so the
+#                 order rests below market and is unlikely to execute.
 #
-# # Calculate order price based on LTP
-# if ltp and ltp > 1:
-#     order_price = f"{ltp - 1:.2f}"  # LTP - 1 to avoid execution
-#     modify_price = f"{ltp - 2:.2f}"  # LTP - 2 for modify order
-#     print(f"\n[ORDER PRICE] Using LTP-based pricing: Order=₹{order_price}, Modify=₹{modify_price}")
-# else:
-#     # Fallback to hardcoded price if LTP not available
-#     order_price = "28.00"
-#     modify_price = "27.00"
-#     print(f"\n[ORDER PRICE] Using fallback pricing: Order=₹{order_price}, Modify=₹{modify_price}")
-#
-# # Test Place Order
-# place_order_params = {
-#     "exchange_segment": "nse_cm",
-#     "product": "CNC",
-#     "price": order_price,  # LTP - 1 to avoid execution
-#     "order_type": "L",  # Limit order
-#     "quantity": "1",
-#     "validity": "DAY",
-#     "trading_symbol": trading_symbol,
-#     "transaction_type": "B",  # Buy
-# }
-#
-# place_order_response = runner.run_test(
-#     "PLACE ORDER",
-#     lambda: runner.client.place_order(**place_order_params),
-#     request_params=place_order_params,
-# )
-#
-# # Extract order_id from response for modify and cancel tests
-# if place_order_response and isinstance(place_order_response, dict):
-#     # Try different possible response structures
-#     if "data" in place_order_response and isinstance(place_order_response["data"], dict):
-#         placed_order_id = place_order_response["data"].get("nOrdNo") or place_order_response[
-#             "data"
-#         ].get("orderId")
-#     elif "nOrdNo" in place_order_response:
-#         placed_order_id = place_order_response.get("nOrdNo")
-#     elif "orderId" in place_order_response:
-#         placed_order_id = place_order_response.get("orderId")
-#
-#     if placed_order_id:
-#         print(f"\n[ORDER PLACED] Order ID: {placed_order_id}")
-#     else:
-#         print("\n[WARNING] Could not extract order_id from place order response")
-#         print(f"Response keys: {list(place_order_response.keys())}")
-#
-# # Test Modify Order (only if order was placed successfully)
-# if placed_order_id:
-#     modify_order_params = {
-#         "order_id": placed_order_id,
-#         "price": modify_price,  # LTP - 2 to avoid execution
-#         "order_type": "L",
-#         "quantity": "1",
-#         "validity": "DAY",
-#     }
-#
-#     runner.run_test(
-#         "MODIFY ORDER",
-#         lambda: runner.client.modify_order(**modify_order_params),
-#         request_params=modify_order_params,
-#     )
-# else:
-#     print("\n[SKIPPED] MODIFY ORDER - No order_id available from place order")
-#
-# # Test Cancel Order (only if order was placed successfully)
-# if placed_order_id:
-#     cancel_order_params = {
-#         "order_id": placed_order_id,
-#         "isVerify": True,  # Verify order status before canceling
-#     }
-#
-#     runner.run_test(
-#         "CANCEL ORDER",
-#         lambda: runner.client.cancel_order(**cancel_order_params),
-#         request_params=cancel_order_params,
-#     )
-# else:
-#     print("\n[SKIPPED] CANCEL ORDER - No order_id available from place order")
+# Choose the mode at the prompt below.
+
+
+def _ask(prompt, default=None):
+    """Prompt for a value, returning `default` when the user just hits Enter."""
+    suffix = f" [{default}]" if default is not None else ""
+    value = input(f"{prompt}{suffix}: ").strip()
+    return value or default
+
+
+def _ask_yes_no(prompt, default=False):
+    """Prompt for a yes/no answer."""
+    hint = "Y/n" if default else "y/N"
+    value = input(f"{prompt} ({hint}): ").strip().lower()
+    if not value:
+        return default
+    return value in ("y", "yes")
+
+
+def _extract_order_id(place_response):
+    """Pull the order number out of a place_order response (various shapes)."""
+    if not (place_response and isinstance(place_response, dict)):
+        return None
+    if "data" in place_response and isinstance(place_response["data"], dict):
+        return place_response["data"].get("nOrdNo") or place_response["data"].get("orderId")
+    return place_response.get("nOrdNo") or place_response.get("orderId")
+
+
+def _run_order_lifecycle(place_params, modify_params, cancel_params):
+    """Place an order, then (if placed) modify and cancel it.
+
+    `modify_params`/`cancel_params` may omit `order_id`; it is filled in from the
+    placed order. Pass None for either to skip that step.
+    """
+    place_response = runner.run_test(
+        "PLACE ORDER",
+        lambda: runner.client.place_order(**place_params),
+        request_params=place_params,
+    )
+
+    order_id = _extract_order_id(place_response)
+    if order_id:
+        print(f"\n[ORDER PLACED] Order ID: {order_id}")
+    else:
+        print("\n[WARNING] Could not extract order_id from place order response")
+        if isinstance(place_response, dict):
+            print(f"Response keys: {list(place_response.keys())}")
+
+    if modify_params is not None:
+        if order_id:
+            modify_params = {**modify_params, "order_id": order_id}
+            runner.run_test(
+                "MODIFY ORDER",
+                lambda: runner.client.modify_order(**modify_params),
+                request_params=modify_params,
+            )
+        else:
+            print("\n[SKIPPED] MODIFY ORDER - No order_id available from place order")
+
+    if cancel_params is not None:
+        if order_id:
+            cancel_params = {**cancel_params, "order_id": order_id}
+            runner.run_test(
+                "CANCEL ORDER",
+                lambda: runner.client.cancel_order(**cancel_params),
+                request_params=cancel_params,
+            )
+        else:
+            print("\n[SKIPPED] CANCEL ORDER - No order_id available from place order")
+
+
+print("\n" + "=" * 80)
+print("ORDER MANAGEMENT (Place → Modify → Cancel)")
+print("=" * 80)
+print(
+    "This will place a REAL order, then modify and cancel it.\n"
+    "  Yes -> enter every value manually.\n"
+    "  No  -> automatic: place at LTP-1, modify at LTP-2 (original logic)."
+)
+
+if _ask_yes_no("\nEnter order values manually?", default=False):
+    # ---- MANUAL: every value typed in ----
+    place_order_params = {
+        "exchange_segment": _ask("Exchange segment", default="nse_cm"),
+        "product": _ask("Product (CNC/MIS/NRML)", default="CNC"),
+        "price": _ask("Order price", default="1.00"),
+        "order_type": _ask("Order type (L/MKT/SL/SL-M)", default="L"),
+        "quantity": _ask("Quantity", default="1"),
+        "validity": _ask("Validity (DAY/IOC)", default="DAY"),
+        "trading_symbol": _ask("Trading symbol", default="ITBEES-EQ"),
+        "transaction_type": _ask("Transaction type (B/S)", default="B"),
+    }
+
+    modify_order_params = None
+    if _ask_yes_no("\nModify the order after placing?", default=False):
+        modify_order_params = {
+            "price": _ask("New order price", default="1.00"),
+            "order_type": _ask("Order type (L/MKT/SL/SL-M)", default="L"),
+            "quantity": _ask("Quantity", default="1"),
+            "validity": _ask("Validity (DAY/IOC)", default="DAY"),
+        }
+
+    cancel_order_params = None
+    if _ask_yes_no("\nCancel the order at the end?", default=False):
+        cancel_order_params = {
+            "isVerify": _ask_yes_no("Verify order status before cancelling?", default=True),
+        }
+
+    _run_order_lifecycle(place_order_params, modify_order_params, cancel_order_params)
+
+else:
+    # ---- AUTOMATIC: LTP-based pricing (original logic) ----
+    # Order rests below market (LTP-1) so it is unlikely to execute; modify to
+    # LTP-2 to keep it resting.
+    if ltp and ltp > 1:
+        order_price = f"{ltp - 1:.2f}"
+        modify_price = f"{ltp - 2:.2f}"
+        print(f"\n[ORDER PRICE] LTP-based pricing: Order=₹{order_price}, Modify=₹{modify_price}")
+    else:
+        order_price = "28.00"
+        modify_price = "27.00"
+        print(f"\n[ORDER PRICE] Fallback pricing: Order=₹{order_price}, Modify=₹{modify_price}")
+
+    place_order_params = {
+        "exchange_segment": "nse_cm",
+        "product": "CNC",
+        "price": order_price,  # LTP - 1 to avoid execution
+        "order_type": "L",  # Limit order
+        "quantity": "1",
+        "validity": "DAY",
+        "trading_symbol": trading_symbol,
+        "transaction_type": "B",  # Buy
+    }
+    modify_order_params = {
+        "price": modify_price,  # LTP - 2 to avoid execution
+        "order_type": "L",
+        "quantity": "1",
+        "validity": "DAY",
+    }
+    cancel_order_params = {"isVerify": True}
+
+    _run_order_lifecycle(place_order_params, modify_order_params, cancel_order_params)
 
 # ---------------------------
 # WEBSOCKET (SFeed async client)
