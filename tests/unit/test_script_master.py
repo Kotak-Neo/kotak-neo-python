@@ -67,3 +67,18 @@ def test_scrip_master_http_error(requests_mock, api_client):
     response = ScripMasterAPI(api_client).scrip_master_init()
 
     assert response == {"error": "internal error"}
+
+
+def test_scrip_master_api_exception_handled(api_client, monkeypatch):
+    """An ApiException from the request is caught and returned (line 37)."""
+    from neo_api_client.exceptions import ApiException
+
+    api = ScripMasterAPI(api_client)
+
+    def boom(*args, **kwargs):
+        raise ApiException(status=500, reason="boom")
+
+    monkeypatch.setattr(api.rest_client, "request", boom)
+
+    response = api.scrip_master_init()
+    assert "error" in response

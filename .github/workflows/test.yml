@@ -91,3 +91,36 @@ jobs:
         with:
           name: dist-py${{ matrix.python-version }}
           path: dist/
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v5
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install SDK (runtime deps only) and Security Tools
+        # Install only the SDK's runtime dependencies plus the two scanners, so
+        # the CVE audit reflects what ships to users — not dev-only tooling
+        # (e.g. safety pulls in nltk, whose CVEs are irrelevant to this SDK).
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install bandit[toml] pip-audit
+
+      - name: Bandit (static analysis of SDK source)
+        run: |
+          bandit -c pyproject.toml -r neo_api_client/
+
+      - name: pip-audit (dependency CVE scan)
+        # Audit the SDK's installed runtime dependencies for known
+        # vulnerabilities. Skip the local editable package itself (not on PyPI).
+        run: |
+          pip-audit --skip-editable

@@ -15,6 +15,7 @@ pytest.importorskip("websockets")
 from neo_api_client.websocket import feed as feed_module  # noqa: E402
 from neo_api_client.websocket.feed import SFeedWebSocket, WsToken  # noqa: E402
 from neo_api_client.websocket.feed import client as _client_mod  # noqa: E402
+from neo_api_client.websocket.feed.exceptions import NotConnectedError  # noqa: E402
 from neo_api_client.websocket.feed.protocol import (  # noqa: E402
     HEADER_SIZE,
     MSG_MARKET_OPEN,
@@ -255,3 +256,219 @@ def test_reconnect_gives_up_after_max_attempts(monkeypatch):
 def test_feed_module_reexports():
     """The feed package re-exports the client symbol."""
     assert feed_module.SFeedWebSocket is SFeedWebSocket
+
+
+# ---- TLS verification -------------------------------------------------------
+
+
+def test_connect_verifies_tls_by_default(monkeypatch):
+    """Default connect() uses a cert-verifying SSL context for wss://."""
+
+    async def run():
+        captured = {}
+        fake = FakeAsyncWS(incoming=[_AUTH_OK])
+
+        async def fake_connect(url, **kwargs):
+            captured["ssl"] = kwargs.get("ssl")
+            return fake
+
+        monkeypatch.setattr(_client_mod.websockets, "connect", fake_connect)
+        ws = SFeedWebSocket(url="wss://fake/feed")
+        await ws.connect()
+        await ws.close()
+        return captured["ssl"]
+
+    import ssl as _ssl
+
+    ctx = asyncio.run(run())
+    assert ctx is not None
+    assert ctx.verify_mode == _ssl.CERT_REQUIRED
+    assert ctx.check_hostname is True
+
+
+def test_connect_verify_ssl_false_disables_and_warns(monkeypatch):
+    """verify_ssl=False disables verification and emits a warning."""
+
+    async def run():
+        captured = {}
+        fake = FakeAsyncWS(incoming=[_AUTH_OK])
+
+        async def fake_connect(url, **kwargs):
+            captured["ssl"] = kwargs.get("ssl")
+            return fake
+
+        monkeypatch.setattr(_client_mod.websockets, "connect", fake_connect)
+        ws = SFeedWebSocket(url="wss://fake/feed", verify_ssl=False)
+        await ws.connect()
+        await ws.close()
+        return captured["ssl"]
+
+    import ssl as _ssl
+
+    with pytest.warns(UserWarning, match="man-in-the-middle"):
+        ctx = asyncio.run(run())
+
+    assert ctx.verify_mode == _ssl.CERT_NONE
+    assert ctx.check_hostname is False
+
+
+# ---- __anext__ / is_connected -----------------------------------------------
+
+
+def test_anext_raises_when_not_connected():
+    ws = SFeedWebSocket(url="wss://fake/feed")
+
+    async def run():
+        await ws.__anext__()
+
+    with pytest.raises(NotConnectedError):
+        asyncio.run(run())
+
+
+def test_anext_stops_iteration_when_disconnected_after_timeout():
+    async def run():
+        ws = SFeedWebSocket(url="wss://fake/feed")
+        ws._connected = True  # connected but queue stays empty, no socket
+
+        async def flip():
+            await asyncio.sleep(0.05)
+            ws._connected = False
+
+        asyncio.create_task(flip())
+        with pytest.raises(StopAsyncIteration):
+            await ws.__anext__()
+
+    asyncio.run(run())
+
+
+def test_anext_recurses_after_timeout_then_returns():
+    async def run():
+        ws = SFeedWebSocket(url="wss://fake/feed")
+        ws._connected = True
+
+        async def deliver():
+            await asyncio.sleep(1.2)  # force one wait_for timeout first
+            ws._message_queue.put_nowait("late")
+
+        asyncio.create_task(deliver())
+        return await ws.__anext__()
+
+    assert asyncio.run(run()) == "late"
+
+
+def test_is_connected_true_when_socket_has_no_state_or_closed():
+    ws = SFeedWebSocket(url="wss://fake/feed")
+    ws._connected = True
+    ws._ws = object()  # no closed / state attribute -> assumed open
+    assert ws.is_connected is True
+
+
+# ---- receive loop callbacks -------------------------------------------------
+
+
+def test_receive_loop_invokes_on_raw_and_ignores_text(monkeypatch):
+    """on_raw fires for every frame; a post-auth text frame is ignored (no crash)."""
+
+    async def run():
+        # After auth, deliver a control text frame then a binary market-status frame.
+        fake = FakeAsyncWS(incoming=[_AUTH_OK, '{"event":"ack"}', _market_status_frame()])
+        _patch_connect(monkeypatch, fake)
+
+        raw_frames = []
+        ws = SFeedWebSocket(url="wss://fake/feed")
+        ws.on_raw = raw_frames.append
+
+        await ws.connect()
+        # Let the receive loop process the ack (ignored) + binary (decoded).
+        msg = await asyncio.wait_for(ws._message_queue.get(), timeout=1.0)
+        await ws.close()
+        return raw_frames, msg
+
+    raw_frames, msg = asyncio.run(run())
+    assert any(isinstance(f, str) for f in raw_frames)  # text ack seen by on_raw
+    assert msg.type == "market_status"
+
+
+# ---- _authenticate generic failure ------------------------------------------
+
+
+def test_authenticate_generic_failure_wrapped(monkeypatch):
+    """A non-timeout error during auth is wrapped as AuthenticationError."""
+
+    async def run():
+        class BadJSON(FakeAsyncWS):
+            async def recv(self):
+                return "not-json{"  # json.loads raises -> generic except branch
+
+        fake = BadJSON(incoming=[])
+        _patch_connect(monkeypatch, fake)
+        ws = SFeedWebSocket(url="wss://fake/feed")
+        await ws.connect()
+
+    with pytest.raises(Exception, match="Authentication failed"):
+        asyncio.run(run())
+
+
+# ---- _handle_disconnect callback + no-op ------------------------------------
+
+
+def test_handle_disconnect_fires_on_disconnect_and_stops_at_cap(monkeypatch):
+    async def run():
+        async def always_fail(url, **kwargs):
+            raise OSError("down")
+
+        monkeypatch.setattr(_client_mod.websockets, "connect", always_fail)
+        ws = SFeedWebSocket(url="wss://fake/feed", reconnect_delay=0, max_reconnect_attempts=1)
+        events = []
+        ws.on_disconnect = lambda: events.append("disc")
+        ws._reconnect_count = 0
+        await ws._handle_disconnect()
+        return ws._reconnect_count, events
+
+    count, events = asyncio.run(run())
+    assert count == 1
+    assert events  # on_disconnect fired
+
+
+# ---- _subscribe error wrapping ----------------------------------------------
+
+
+def test_subscribe_send_failure_wrapped(monkeypatch):
+    """A send failure during subscribe is wrapped as SubscriptionError."""
+    from neo_api_client.websocket.feed.exceptions import SubscriptionError
+
+    async def run():
+        fake = FakeAsyncWS(incoming=[_AUTH_OK])
+        _patch_connect(monkeypatch, fake)
+        ws = SFeedWebSocket(url="wss://fake/feed")
+        await ws.connect()
+
+        async def boom(*a, **k):
+            raise RuntimeError("send broke")
+
+        ws._ws.send = boom
+        try:
+            await ws.subscribe_scrips([WsToken("nse_cm", "1")])
+        finally:
+            ws._connected = False
+
+    with pytest.raises(SubscriptionError, match="Failed to subscribe"):
+        asyncio.run(run())
+
+
+def test_subscribe_over_limit_raises(monkeypatch):
+    """Exceeding max_subscriptions raises SubscriptionError and sends nothing."""
+    from neo_api_client.websocket.feed.exceptions import SubscriptionError
+
+    async def run():
+        fake = FakeAsyncWS(incoming=[_AUTH_OK])
+        _patch_connect(monkeypatch, fake)
+        ws = SFeedWebSocket(url="wss://fake/feed", max_subscriptions=1)
+        await ws.connect()
+        try:
+            await ws.subscribe_scrips([WsToken("nse_cm", "1"), WsToken("nse_cm", "2")])
+        finally:
+            ws._connected = False
+
+    with pytest.raises(SubscriptionError, match="limit exceeded"):
+        asyncio.run(run())

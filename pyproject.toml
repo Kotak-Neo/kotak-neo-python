@@ -150,3 +150,10 @@ ignore = [
 quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = false
+
+[tool.bandit]
+# Security static analysis of the SDK source only (tests are excluded via the
+# pre-commit hook / CI invocation).
+exclude_dirs = ["tests", "examples", "docs", "build", "dist"]
+# B311: non-crypto use of `random` (retry jitter) is intentional and safe.
+skips = ["B311"]

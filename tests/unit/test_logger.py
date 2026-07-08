@@ -135,3 +135,45 @@ def test_logger_with_context():
 
     # Should not raise exceptions
     logger.info("test message", extra_field="extra_value")
+
+
+def test_add_correlation_id_sets_when_present(monkeypatch):
+    """When a correlation id is set in context, it is added to the event dict."""
+    import contextvars
+
+    class _FakeCtxVar:
+        def __init__(self, *a, **k):
+            pass
+
+        def get(self):
+            return "corr-123"
+
+    monkeypatch.setattr(contextvars, "ContextVar", _FakeCtxVar)
+
+    result = add_correlation_id(None, None, {"message": "hi"})
+    assert result["correlation_id"] == "corr-123"
+
+
+def test_censor_sensitive_data_list_of_dicts():
+    """A list containing dicts is censored element-by-element (covers list branch)."""
+    event_dict = {
+        "items": [
+            {"password": "secret123", "name": "a"},
+            "plain-string",
+            42,
+        ],
+    }
+
+    result = censor_sensitive_data(None, None, event_dict)
+
+    # dict element censored, non-dict elements untouched
+    assert result["items"][0]["password"] != "secret123"
+    assert result["items"][0]["name"] == "a"
+    assert result["items"][1] == "plain-string"
+    assert result["items"][2] == 42
+
+
+def test_setup_logging_show_caller():
+    """setup_logging(show_caller=True) appends the callsite processor (line 111)."""
+    logger = setup_logging(show_caller=True)
+    assert logger is not None

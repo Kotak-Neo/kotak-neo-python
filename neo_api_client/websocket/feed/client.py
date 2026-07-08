@@ -15,6 +15,7 @@ import contextlib
 import json
 import ssl
 import time
+import warnings
 from collections.abc import AsyncIterator, Callable
 from typing import Any
 
@@ -92,6 +93,7 @@ class SFeedWebSocket:
         max_reconnect_attempts: int = 5,
         ping_interval: int = 20,
         max_subscriptions: int = 3000,
+        verify_ssl: bool = True,
     ):
         """Initialize the client.
 
@@ -115,6 +117,10 @@ class SFeedWebSocket:
                 at once across all subscribe requests (LTP, option chain, etc.).
                 Default 3000. A request that would exceed this raises
                 :class:`SubscriptionError`.
+            verify_ssl: Verify the server's TLS certificate on ``wss://``
+                connections (default True). Only set to False for a trusted
+                development endpoint with a self-signed certificate; disabling
+                verification exposes the connection to man-in-the-middle attacks.
         """
         self.access_token = access_token
         self.sid = sid
@@ -131,6 +137,7 @@ class SFeedWebSocket:
         self.max_reconnect_attempts = max_reconnect_attempts
         self.ping_interval = ping_interval
         self.max_subscriptions = max_subscriptions
+        self.verify_ssl = verify_ssl
 
         self._ws: Any = None
         self._connected = False
@@ -209,8 +216,17 @@ class SFeedWebSocket:
             ssl_context = None
             if self.url.startswith("wss"):
                 ssl_context = ssl.create_default_context()
-                ssl_context.check_hostname = False
-                ssl_context.verify_mode = ssl.CERT_NONE
+                if not self.verify_ssl:
+                    # Insecure: only for a trusted dev endpoint with a
+                    # self-signed cert. Disables MITM protection.
+                    warnings.warn(
+                        "TLS certificate verification is disabled for the SFeed "
+                        "WebSocket (verify_ssl=False); the connection is exposed "
+                        "to man-in-the-middle attacks. Do not use in production.",
+                        stacklevel=2,
+                    )
+                    ssl_context.check_hostname = False
+                    ssl_context.verify_mode = ssl.CERT_NONE
 
             self._ws = await websockets.connect(
                 self.url,

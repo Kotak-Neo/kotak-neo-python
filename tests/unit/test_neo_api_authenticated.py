@@ -630,3 +630,157 @@ def test_modify_order_by_order_id_exception(authenticated_client, requests_mock)
         validity="DAY",
     )
     assert "Error" in result
+
+
+# ---- except-branch coverage: service raises -> {"Error": e} -----------------
+
+
+def _make_raise(message="boom"):
+    def _boom(*args, **kwargs):
+        raise RuntimeError(message)
+
+    return _boom
+
+
+def test_order_report_exception_handling(authenticated_client, monkeypatch):
+    """order_report() wraps a service exception into an Error dict."""
+    from neo_api_client import neo_api as _mod
+
+    monkeypatch.setattr(_mod.OrderReportAPI, "ordered_books", _make_raise())
+    result = authenticated_client.order_report()
+    assert "Error" in result
+
+
+def test_order_report_by_id_exception_handling(authenticated_client, monkeypatch):
+    """order_report(order_id=...) wraps a service exception into an Error dict."""
+    from neo_api_client import neo_api as _mod
+
+    monkeypatch.setattr(_mod.OrderReportAPI, "ordered_book_by_id", _make_raise())
+    result = authenticated_client.order_report(order_id="123")
+    assert "Error" in result
+
+
+def test_order_history_exception_handling(authenticated_client, monkeypatch):
+    """order_history() wraps a service exception into an Error dict."""
+    from neo_api_client import neo_api as _mod
+
+    monkeypatch.setattr(_mod.OrderHistoryAPI, "ordered_history", _make_raise())
+    result = authenticated_client.order_history(order_id="123")
+    assert "Error" in result
+
+
+def test_trade_report_exception_wrapped(authenticated_client, monkeypatch):
+    """trade_report() wraps a service exception into an Error dict (except branch)."""
+    from neo_api_client import neo_api as _mod
+
+    monkeypatch.setattr(_mod.TradeReportAPI, "trading_report", _make_raise())
+    result = authenticated_client.trade_report()
+    assert "Error" in result
+
+
+def test_positions_exception_wrapped(authenticated_client, monkeypatch):
+    """positions() wraps a service exception into an Error dict."""
+    from neo_api_client import neo_api as _mod
+
+    monkeypatch.setattr(_mod.PositionsAPI, "position_init", _make_raise())
+    result = authenticated_client.positions()
+    assert "Error" in result
+
+
+def test_whatsmyip_success(authenticated_client, monkeypatch):
+    """whatsmyip() returns the ClientIpAPI payload on the happy path."""
+    from neo_api_client import neo_api as _mod
+
+    monkeypatch.setattr(
+        _mod.ClientIpAPI, "whatsmyip", lambda self: {"data": [{"ip": "1.2.3.4"}], "stCode": 1000}
+    )
+    result = authenticated_client.whatsmyip()
+    assert result["data"][0]["ip"] == "1.2.3.4"
+
+
+def test_whatsmyip_exception_handling(authenticated_client, monkeypatch):
+    """whatsmyip() wraps a service exception into an Error dict."""
+    from neo_api_client import neo_api as _mod
+
+    monkeypatch.setattr(_mod.ClientIpAPI, "whatsmyip", _make_raise())
+    result = authenticated_client.whatsmyip()
+    assert "Error" in result
+
+
+def test_search_scrip_exception_handling(authenticated_client, monkeypatch):
+    """search_scrip() wraps a service exception into an Error/message dict."""
+    from neo_api_client import neo_api as _mod
+
+    monkeypatch.setattr(_mod.ScripSearch, "scrip_search", _make_raise())
+    result = authenticated_client.search_scrip(exchange_segment="nse_cm", symbol="RELIANCE")
+    assert "Error" in result
+
+
+def test_search_scrip_returns_service_result(authenticated_client, monkeypatch):
+    """search_scrip() returns the service payload on the happy path (line 658)."""
+    from neo_api_client import neo_api as _mod
+
+    payload = [{"pTrdSymbol": "RELIANCE-EQ"}]
+    monkeypatch.setattr(_mod.ScripSearch, "scrip_search", lambda self, **kw: payload)
+    result = authenticated_client.search_scrip(exchange_segment="nse_cm", symbol="RELIANCE")
+    assert result == payload
+
+
+def test_help_handles_internal_exception(authenticated_client, monkeypatch):
+    """help() catches an internal error and returns an Error dict (723-724)."""
+    import inspect
+
+    monkeypatch.setattr(
+        inspect, "signature", _make_raise("sig boom")
+    )
+    result = authenticated_client.help("order_report")
+    assert result["Error"].startswith("Some Exception")
+
+
+def test_logout_handles_internal_exception(authenticated_client):
+    """logout() catches an internal error and returns a NOT_OK state (747-748)."""
+
+    class _RaisingConfig:
+        """Reports authenticated, but raises when tokens are cleared."""
+
+        edit_token = "t"
+        edit_sid = "s"
+
+        def __setattr__(self, name, value):
+            raise RuntimeError("cannot clear")
+
+    authenticated_client.configuration = _RaisingConfig()
+    result = authenticated_client.logout()
+    assert result["State"] == "NOT_OK"
+
+
+def test_help_invalid_function_name(authenticated_client, capsys):
+    """help() with an unknown function name prints a not-valid message."""
+    authenticated_client.help("not_a_real_method")
+    assert "not a valid function name" in capsys.readouterr().out
+
+
+# ---- unauthenticated guards: "Complete the 2fa process" ---------------------
+
+
+@pytest.fixture
+def unauth_client():
+    return NeoAPI(environment="prod", consumer_key="test_key")
+
+
+@pytest.mark.parametrize(
+    "call",
+    [
+        lambda c: c.order_report(),
+        lambda c: c.order_history(order_id="1"),
+        lambda c: c.trade_report(),
+        lambda c: c.positions(),
+        lambda c: c.whatsmyip(),
+        lambda c: c.logout(),
+    ],
+)
+def test_methods_require_2fa(unauth_client, call):
+    """Each guarded method returns the 2fa error dict when unauthenticated."""
+    result = call(unauth_client)
+    assert "Error Message" in result
+    assert "2fa" in result["Error Message"]

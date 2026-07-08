@@ -39,3 +39,18 @@ def test_order_report_by_id(api_client, requests_mock):
     assert response["data"][0]["nOrdNo"] == order_id
     assert requests_mock.last_request.url.endswith(f"/orders/{order_id}")
     assert requests_mock.last_request.headers["neo-fin-key"] == "neotradeapi"
+
+
+def test_order_report_by_id_request_exception(api_client, monkeypatch, capsys):
+    """A RequestException in the by-id path is caught and logged (returns None)."""
+    import requests
+
+    def boom(*args, **kwargs):
+        raise requests.exceptions.RequestException("network down")
+
+    monkeypatch.setattr(api_client.rest_client, "request", boom)
+
+    result = OrderReportAPI(api_client).ordered_book_by_id(order_id="123")
+
+    assert result is None
+    assert "Error occurred" in capsys.readouterr().out

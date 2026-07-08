@@ -2,7 +2,14 @@
 
 import time
 
-from neo_api_client.rate_limiter import RateLimiter, TokenBucket
+import pytest
+
+from neo_api_client.rate_limiter import (
+    RateLimiter,
+    TokenBucket,
+    get_rate_limiter,
+    reset_rate_limiter,
+)
 
 
 def test_token_bucket_initialization():
@@ -133,3 +140,95 @@ def test_token_bucket_wait_for_token_with_timeout():
     except Exception:
         # Timeout is also acceptable
         pass
+
+
+def test_wait_for_token_times_out_raises(monkeypatch):
+    """wait_for_token raises TimeoutError when tokens never become available."""
+    monkeypatch.setattr("time.sleep", lambda _s: None)
+    # Very slow refill so tokens never arrive within the timeout window.
+    bucket = TokenBucket(capacity=1, fill_rate=0.001)
+    bucket.consume(tokens=1)  # drain
+
+    with pytest.raises(TimeoutError, match="Rate limit timeout"):
+        bucket.wait_for_token(tokens=1, timeout=0.05)
+
+
+def test_wait_for_token_sleeps_then_succeeds(monkeypatch):
+    """Covers the wait/sleep computation path: drain, then a real refill succeeds.
+
+    ``time.sleep`` is a no-op so the loop spins on real wall-clock; with a very
+    fast fill_rate a token is available within a few iterations.
+    """
+    monkeypatch.setattr("time.sleep", lambda _s: None)
+
+    bucket = TokenBucket(capacity=2, fill_rate=1000.0)
+    bucket.consume(tokens=2)  # drain, forcing the wait/compute/sleep branch
+
+    assert bucket.wait_for_token(tokens=1, timeout=None) is True
+
+
+# ---- RateLimiter.acquire timeout paths --------------------------------------
+
+
+class _SlowBucket:
+    """Bucket stub whose wait_for_token behaves per configuration."""
+
+    def __init__(self, behavior="ok"):
+        self.behavior = behavior
+
+    def wait_for_token(self, tokens=1, timeout=None):
+        if self.behavior == "timeout_return_false":
+            return False
+        if self.behavior == "raise":
+            raise TimeoutError("exceeded")
+        return True
+
+
+def _stub_all_buckets(limiter, behavior="ok"):
+    """Replace all three real buckets with stubs so acquire() never blocks
+    and never calls time.time() from inside a bucket."""
+    limiter.second_bucket = _SlowBucket(behavior)
+    limiter.minute_bucket = _SlowBucket(behavior)
+    limiter.hour_bucket = _SlowBucket(behavior)
+
+
+def test_acquire_returns_false_when_bucket_times_out():
+    limiter = RateLimiter(requests_per_second=5)
+    _stub_all_buckets(limiter, "timeout_return_false")
+
+    assert limiter.acquire(timeout=1.0) is False
+
+
+def test_acquire_raises_on_bucket_timeout_error():
+    limiter = RateLimiter(requests_per_second=5)
+    _stub_all_buckets(limiter, "raise")
+
+    with pytest.raises(TimeoutError):
+        limiter.acquire(timeout=1.0)
+
+
+def test_acquire_logs_when_wait_exceeds_threshold(monkeypatch):
+    """elapsed > 0.1 branch: emits the rate_limit_acquired info log."""
+    limiter = RateLimiter(requests_per_second=5)
+    _stub_all_buckets(limiter, "ok")  # buckets return instantly, no time.time() calls
+
+    # acquire() calls time.time() twice (start + end); make the gap exceed 0.1s.
+    times = iter([100.0, 100.3])
+    monkeypatch.setattr("time.time", lambda: next(times, 100.3))
+
+    assert limiter.acquire(timeout=None) is True
+
+
+# ---- module-level singleton helpers -----------------------------------------
+
+
+def test_get_rate_limiter_singleton_and_reset():
+    reset_rate_limiter()
+    first = get_rate_limiter()
+    second = get_rate_limiter()
+    assert first is second  # cached singleton
+
+    reset_rate_limiter()
+    third = get_rate_limiter()
+    assert third is not first  # reset -> new instance
+    reset_rate_limiter()

@@ -643,3 +643,57 @@ def test_receive_loop_exits_when_connection_flips_closed():
         return ws._message_queue.qsize()
 
     assert asyncio.run(run()) == 1
+
+
+# ---- TLS verification -------------------------------------------------------
+
+
+def test_connect_verifies_tls_by_default(monkeypatch):
+    """Default connect() uses a cert-verifying SSL context for wss://."""
+
+    async def run():
+        captured = {}
+
+        async def fake_connect(url, **kwargs):
+            captured["ssl"] = kwargs.get("ssl")
+            return FakeAsyncWS()
+
+        monkeypatch.setattr(_client_mod.websockets, "connect", fake_connect)
+        ws = OrderFeedWebSocket(base_url="https://e21.x.com", auth="T", sid="S")
+        await ws.connect()
+        await ws.close()
+        return captured["ssl"]
+
+    ctx = asyncio.run(run())
+    import ssl as _ssl
+
+    assert ctx is not None
+    assert ctx.verify_mode == _ssl.CERT_REQUIRED
+    assert ctx.check_hostname is True
+
+
+def test_connect_verify_ssl_false_disables_and_warns(monkeypatch):
+    """verify_ssl=False disables verification and emits a warning."""
+
+    async def run():
+        captured = {}
+
+        async def fake_connect(url, **kwargs):
+            captured["ssl"] = kwargs.get("ssl")
+            return FakeAsyncWS()
+
+        monkeypatch.setattr(_client_mod.websockets, "connect", fake_connect)
+        ws = OrderFeedWebSocket(
+            base_url="https://e21.x.com", auth="T", sid="S", verify_ssl=False
+        )
+        await ws.connect()
+        await ws.close()
+        return captured["ssl"]
+
+    import ssl as _ssl
+
+    with pytest.warns(UserWarning, match="man-in-the-middle"):
+        ctx = asyncio.run(run())
+
+    assert ctx.verify_mode == _ssl.CERT_NONE
+    assert ctx.check_hostname is False

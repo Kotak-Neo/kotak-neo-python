@@ -141,6 +141,34 @@ def test_rate_limiter_timeout_raises_429(monkeypatch):
     assert exc_info.value.status == 429
 
 
+def test_rate_limiter_timeout_without_sanitizer_still_raises_429(monkeypatch):
+    """Timeout path when _sanitize_url_for_logging is absent (168->170 branch)."""
+    monkeypatch.setattr(rest_module, "_ENHANCED_FEATURES", True)
+    client = RESTClientObject(DummyConfig())
+    client.rate_limiter = _FakeRateLimiter(raise_timeout=True)
+    # Remove the method from the class so hasattr(self, ...) is False -> skip the
+    # log branch but still raise the 429.
+    monkeypatch.delattr(type(client), "_sanitize_url_for_logging")
+
+    with pytest.raises(ApiException) as exc_info:
+        client.request(method="GET", url="https://test.com")
+    assert exc_info.value.status == 429
+
+
+def test_handle_error_response_without_enhanced_features(monkeypatch):
+    """_handle_error_response with enhanced features off skips logging (319->327)."""
+    monkeypatch.setattr(rest_module, "_ENHANCED_FEATURES", False)
+    client = RESTClientObject(DummyConfig())
+
+    with requests_mock.Mocker() as m:
+        m.get("https://test.com", json={"msg": "bad"}, status_code=400, reason="Bad Request")
+        resp = client.session.get("https://test.com")
+
+    with pytest.raises(ApiException) as exc_info:
+        client._handle_error_response(resp, request_id="rid-1")
+    assert exc_info.value.status == 400
+
+
 def test_get_rate_limit_status_with_limiter():
     client = RESTClientObject(DummyConfig())
     client.rate_limiter = _FakeRateLimiter()
@@ -206,6 +234,177 @@ class _EnvConfig:
     def __init__(self, host, xff=None):
         self.host = host
         self.uat_x_forwarded_for = xff
+
+
+# ---- Enhanced-features tracing / logging branches ---------------------------
+
+
+def _enable_enhanced(monkeypatch):
+    """Turn on _ENHANCED_FEATURES with a real logger so the tracing branches run."""
+    from neo_api_client.logger import get_logger
+
+    monkeypatch.setattr(rest_module, "_ENHANCED_FEATURES", True)
+    monkeypatch.setattr(rest_module, "logger", get_logger("test_rest"), raising=False)
+
+
+def test_enhanced_success_adds_tracing_headers_and_logs(monkeypatch):
+    """With enhanced features on, request_id + client-id headers are attached
+    and the success path logs (covers the request_id/start_time branches)."""
+    _enable_enhanced(monkeypatch)
+    client = RESTClientObject(DummyConfig())
+
+    with requests_mock.Mocker() as m:
+        m.get("https://test.com", json={"ok": True})
+        resp = client.request(method="GET", url="https://test.com")
+
+    assert resp.status_code == 200
+    assert m.last_request.headers.get("X-Request-ID")
+    # consumer_key is truthy on DummyConfig -> X-Client-ID is added (masked).
+    assert m.last_request.headers.get("X-Client-ID", "").endswith("***")
+
+
+def test_enhanced_timeout_logs_and_wraps(monkeypatch):
+    _enable_enhanced(monkeypatch)
+    client = RESTClientObject(DummyConfig())
+
+    def boom(*a, **k):
+        raise requests.exceptions.Timeout("slow")
+
+    monkeypatch.setattr(client.session, "request", boom)
+    with pytest.raises(ApiException) as exc_info:
+        client.request(method="GET", url="https://test.com")
+    assert "timeout" in str(exc_info.value.reason).lower()
+
+
+def test_enhanced_connection_error_logs_and_wraps(monkeypatch):
+    _enable_enhanced(monkeypatch)
+    client = RESTClientObject(DummyConfig())
+
+    def boom(*a, **k):
+        raise requests.exceptions.ConnectionError("no route")
+
+    monkeypatch.setattr(client.session, "request", boom)
+    with pytest.raises(ApiException) as exc_info:
+        client.request(method="GET", url="https://test.com")
+    assert "Unable to connect" in str(exc_info.value.reason)
+
+
+def test_enhanced_generic_request_exception_logs_and_wraps(monkeypatch):
+    _enable_enhanced(monkeypatch)
+    client = RESTClientObject(DummyConfig())
+
+    def boom(*a, **k):
+        raise requests.exceptions.RequestException("weird")
+
+    monkeypatch.setattr(client.session, "request", boom)
+    with pytest.raises(ApiException) as exc_info:
+        client.request(method="GET", url="https://test.com")
+    assert "weird" in str(exc_info.value.reason)
+
+
+def test_enhanced_error_response_raises_via_handler(monkeypatch):
+    """raise_on_error + enhanced features: _handle_error_response logs + raises."""
+    _enable_enhanced(monkeypatch)
+    client = RESTClientObject(DummyConfig(), raise_on_error=True)
+
+    with requests_mock.Mocker() as m:
+        m.get("https://test.com", json={"msg": "bad"}, status_code=400, reason="Bad Request")
+        with pytest.raises(ApiException) as exc_info:
+            client.request(method="GET", url="https://test.com")
+    assert exc_info.value.status == 400
+
+
+# ---- Enhanced-features DISABLED branches ------------------------------------
+# _ENHANCED_FEATURES is True by default in this environment; these tests force
+# it off to cover the "no tracing / no logging" arcs of the request paths.
+
+
+def test_disabled_success_skips_tracing(monkeypatch):
+    monkeypatch.setattr(rest_module, "_ENHANCED_FEATURES", False)
+    client = RESTClientObject(DummyConfig())
+
+    with requests_mock.Mocker() as m:
+        m.get("https://test.com", json={"ok": True})
+        resp = client.request(method="GET", url="https://test.com")
+
+    assert resp.status_code == 200
+    # No tracing header attached when enhanced features are off.
+    assert "X-Request-ID" not in m.last_request.headers
+
+
+def test_disabled_timeout_wraps_without_logging(monkeypatch):
+    monkeypatch.setattr(rest_module, "_ENHANCED_FEATURES", False)
+    client = RESTClientObject(DummyConfig())
+
+    def boom(*a, **k):
+        raise requests.exceptions.Timeout("slow")
+
+    monkeypatch.setattr(client.session, "request", boom)
+    with pytest.raises(ApiException):
+        client.request(method="GET", url="https://test.com")
+
+
+def test_disabled_connection_error_wraps_without_logging(monkeypatch):
+    monkeypatch.setattr(rest_module, "_ENHANCED_FEATURES", False)
+    client = RESTClientObject(DummyConfig())
+
+    def boom(*a, **k):
+        raise requests.exceptions.ConnectionError("no route")
+
+    monkeypatch.setattr(client.session, "request", boom)
+    with pytest.raises(ApiException):
+        client.request(method="GET", url="https://test.com")
+
+
+def test_disabled_generic_exception_wraps_without_logging(monkeypatch):
+    monkeypatch.setattr(rest_module, "_ENHANCED_FEATURES", False)
+    client = RESTClientObject(DummyConfig())
+
+    def boom(*a, **k):
+        raise requests.exceptions.RequestException("weird")
+
+    monkeypatch.setattr(client.session, "request", boom)
+    with pytest.raises(ApiException):
+        client.request(method="GET", url="https://test.com")
+
+
+def test_disabled_error_response_not_raised(monkeypatch):
+    """raise_on_error requires _ENHANCED_FEATURES; disabled -> 4xx returned as-is."""
+    monkeypatch.setattr(rest_module, "_ENHANCED_FEATURES", False)
+    client = RESTClientObject(DummyConfig(), raise_on_error=True)
+
+    with requests_mock.Mocker() as m:
+        m.get("https://test.com", json={"msg": "bad"}, status_code=400)
+        resp = client.request(method="GET", url="https://test.com")
+    assert resp.status_code == 400
+
+
+def test_disabled_close_skips_log(monkeypatch):
+    """close() with enhanced features off skips the logging branch."""
+    monkeypatch.setattr(rest_module, "_ENHANCED_FEATURES", False)
+    client = RESTClientObject(DummyConfig())
+    client.close()  # must not raise; session still present
+    assert client.session is not None
+
+
+def test_close_with_no_session_is_noop():
+    """close() short-circuits when there is no session (348 -> exit)."""
+    client = RESTClientObject(DummyConfig())
+    client.session = None
+    client.close()  # must not raise
+
+
+def test_close_log_failure_is_suppressed(monkeypatch):
+    """A failing close-log must not prevent session.close() (353-354)."""
+    _enable_enhanced(monkeypatch)
+    client = RESTClientObject(DummyConfig())
+
+    def boom(*a, **k):
+        raise RuntimeError("logging down")
+
+    monkeypatch.setattr(rest_module.logger, "info", boom)
+    client.close()  # exception suppressed; still closes cleanly
+    assert client.session is not None
 
 
 def test_uat_sets_x_forwarded_for_header():

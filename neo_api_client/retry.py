@@ -224,7 +224,7 @@ def with_retry(
                         raise
 
             # Should never reach here, but just in case
-            if last_exception:
+            if last_exception:  # pragma: no cover - loop always returns or raises
                 raise last_exception
 
         return wrapper

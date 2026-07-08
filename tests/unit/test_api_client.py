@@ -18,3 +18,12 @@ def test_set_default_header():
     client.set_default_header("test", "value")
 
     assert client.default_headers["test"] == "value"
+
+
+def test_init_with_header_name_seeds_default_headers():
+    """Passing header_name/header_value populates default_headers at init."""
+    config = NeoUtility(host="prod")
+
+    client = ApiClient(config, header_name="X-Custom", header_value="hello")
+
+    assert client.default_headers["X-Custom"] == "hello"

@@ -13,7 +13,7 @@ from neo_api_client.exceptions import ApiException
 
 try:
     from neo_api_client import __version__
-except ImportError:
+except ImportError:  # pragma: no cover - fallback when version metadata is unavailable
     __version__ = "unknown"
 
 try:
@@ -21,7 +21,7 @@ try:
     from neo_api_client.rate_limiter import get_rate_limiter
 
     _ENHANCED_FEATURES = True
-except ImportError:
+except ImportError:  # pragma: no cover - fallback when optional deps are unavailable
     _ENHANCED_FEATURES = False
 
 DEFAULT_TIMEOUT = 30
@@ -31,7 +31,7 @@ DEFAULT_POOL_MAXSIZE = 20
 # Context variable for request correlation
 correlation_id_context: ContextVar[str | None] = ContextVar("correlation_id", default=None)
 
-if _ENHANCED_FEATURES:
+if _ENHANCED_FEATURES:  # pragma: no cover - always true in a valid install
     logger = get_logger(__name__)
 
 
@@ -346,10 +346,11 @@ class RESTClientObject:
     def close(self) -> None:
         """Close underlying HTTP session and release resources."""
         if self.session:
+            # Best-effort close log; it must never mask the session.close() below.
             try:
                 if _ENHANCED_FEATURES:
                     logger.info("rest_client_closing")
-            except Exception:
+            except Exception:  # nosec B110
                 pass
             self.session.close()
 

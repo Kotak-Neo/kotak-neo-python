@@ -15,6 +15,7 @@ import asyncio
 import contextlib
 import json
 import ssl
+import warnings
 from collections.abc import AsyncIterator, Callable
 from typing import Any
 from urllib.parse import urlsplit, urlunsplit
@@ -65,6 +66,7 @@ class OrderFeedWebSocket:
         reconnect_delay: int = 5,
         max_reconnect_attempts: int = 5,
         ping_interval: int = 20,
+        verify_ssl: bool = True,
     ):
         """Initialize the client.
 
@@ -78,6 +80,10 @@ class OrderFeedWebSocket:
             reconnect_delay: Seconds between reconnect attempts.
             max_reconnect_attempts: Maximum reconnect attempts.
             ping_interval: WebSocket-level ping interval (keep-alive), seconds.
+            verify_ssl: Verify the server's TLS certificate on ``wss://``
+                connections (default True). Only set to False for a trusted
+                development endpoint with a self-signed certificate; disabling
+                verification exposes the connection to man-in-the-middle attacks.
         """
         self.base_url = base_url
         self.url = _to_realtime_url(base_url) if base_url else None
@@ -87,6 +93,7 @@ class OrderFeedWebSocket:
         self.reconnect_delay = reconnect_delay
         self.max_reconnect_attempts = max_reconnect_attempts
         self.ping_interval = ping_interval
+        self.verify_ssl = verify_ssl
 
         self._ws: Any = None
         self._connected = False
@@ -159,8 +166,18 @@ class OrderFeedWebSocket:
             ssl_context = None
             if self.url.startswith("wss"):
                 ssl_context = ssl.create_default_context()
-                ssl_context.check_hostname = False
-                ssl_context.verify_mode = ssl.CERT_NONE
+                if not self.verify_ssl:
+                    # Insecure: only for a trusted dev endpoint with a
+                    # self-signed cert. Disables MITM protection.
+                    warnings.warn(
+                        "TLS certificate verification is disabled for the order "
+                        "feed WebSocket (verify_ssl=False); the connection is "
+                        "exposed to man-in-the-middle attacks. Do not use in "
+                        "production.",
+                        stacklevel=2,
+                    )
+                    ssl_context.check_hostname = False
+                    ssl_context.verify_mode = ssl.CERT_NONE
 
             self._ws = await websockets.connect(
                 self.url,

@@ -107,9 +107,11 @@ def decode_packet(packet: bytes, dividers: dict[int, int]):
 
     # Route by message_code first (per spec), then fall back to level.
     if message_code in (MSG_MARKET_OPEN, MSG_MARKET_CLOSE):
+        # instrument_token is empty here (market-status frames carry no token);
+        # it is not a credential despite bandit's password heuristic.
         return SFeedMarketStatus(
             exchange_segment=exchange,
-            instrument_token="",
+            instrument_token="",  # nosec B106
             status="open" if message_code == MSG_MARKET_OPEN else "close",
         )
 

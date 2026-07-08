@@ -56,6 +56,41 @@ def test_should_not_retry_on_plain_exception():
     assert should_retry_exception(ValueError("nope")) is False
 
 
+def test_should_retry_api_exception_without_status_or_category():
+    """ApiException with falsy status and no category falls through to the
+    requests-exception check, and (not being one) is not retried."""
+    exc = ApiException(reason="mystery")
+    exc.status = None
+    # Ensure no category attribute is present on this instance.
+    if hasattr(exc, "category"):
+        delattr(exc, "category")
+    assert should_retry_exception(exc) is False
+
+
+def test_should_retry_on_requests_http_error():
+    import requests.exceptions as req_exc
+
+    assert should_retry_exception(req_exc.HTTPError()) is True
+
+
+def test_should_retry_when_requests_import_fails(monkeypatch):
+    """If requests.exceptions can't be imported, fall through to return False."""
+    import builtins
+
+    real_import = builtins.__import__
+
+    def fake_import(name, *args, **kwargs):
+        if name == "requests.exceptions":
+            raise ImportError("requests unavailable")
+        return real_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", fake_import)
+
+    # A plain exception with no ApiException status/category: reaches the
+    # requests-import block, which raises ImportError -> pass -> return False.
+    assert should_retry_exception(ValueError("nope")) is False
+
+
 # ---- add_jitter -------------------------------------------------------------
 
 
@@ -158,3 +193,49 @@ def test_create_retry_decorator_retries_custom_exception(monkeypatch):
 
     assert flaky() == "ok"
     assert attempts["n"] == 2
+
+
+def test_create_retry_decorator_falls_through_to_status_check(monkeypatch):
+    """retry_on is set but the raised exception isn't in it, so should_retry
+    falls through to should_retry_exception (retryable 503 here)."""
+    monkeypatch.setattr("time.sleep", lambda _s: None)
+    attempts = {"n": 0}
+
+    decorator = create_retry_decorator(
+        max_attempts=3,
+        initial_wait=0.01,
+        max_wait=0.02,
+        retry_on=(KeyError,),  # does NOT match the ApiException raised below
+    )
+
+    @decorator
+    def flaky():
+        attempts["n"] += 1
+        if attempts["n"] < 2:
+            raise ApiException(status=503, reason="unavailable")
+        return "ok"
+
+    assert flaky() == "ok"
+    assert attempts["n"] == 2
+
+
+def test_create_retry_decorator_no_retry_on_non_retryable(monkeypatch):
+    """retry_on set, exception not in it, and not otherwise retryable -> no retry."""
+    monkeypatch.setattr("time.sleep", lambda _s: None)
+    attempts = {"n": 0}
+
+    decorator = create_retry_decorator(
+        max_attempts=3,
+        initial_wait=0.01,
+        max_wait=0.02,
+        retry_on=(KeyError,),
+    )
+
+    @decorator
+    def bad():
+        attempts["n"] += 1
+        raise ApiException(status=400, reason="bad request")
+
+    with pytest.raises(ApiException):
+        bad()
+    assert attempts["n"] == 1  # not retryable -> single attempt

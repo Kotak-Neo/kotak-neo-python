@@ -413,3 +413,61 @@ def test_scrip_search_api_exception_handled(api_client, monkeypatch):
         ignore_50multiple=True,
     )
     assert "error" in result
+
+
+# ---- exchange_segment=None / empty symbol / exact-mcx branches --------------
+
+
+def test_scrip_search_no_exchange_segment_returns_none(api_client, requests_mock):
+    """exchange_segment is None -> the filter block is skipped, method returns None."""
+    url = api_client.configuration.get_url_details("scrip_master")
+    requests_mock.get(
+        url, json={"stat": "Ok", "data": {"filesPaths": ["x.csv"]}}, status_code=200
+    )
+
+    result = ScripSearch(api_client).scrip_search(
+        symbol="anything",
+        exchange_segment=None,
+        expiry=None,
+        option_type=None,
+        strike_price=None,
+        ignore_50multiple=True,
+    )
+    assert result is None
+
+
+def test_scrip_search_empty_symbol_skips_symbol_filter(api_client, requests_mock):
+    """symbol == '' -> the symbol-name filter is skipped (82->86 branch)."""
+    _mock_fo(api_client, requests_mock)
+    result = ScripSearch(api_client).scrip_search(
+        symbol="",  # no symbol filter applied
+        exchange_segment="nse_fo",
+        expiry=None,
+        option_type=None,
+        strike_price=None,
+        ignore_50multiple=True,
+    )
+    assert isinstance(result, list)
+    assert len(result) == 2  # both rows retained (no symbol filtering)
+
+
+# The exact segment "mcx" (not "mcx_fo") does NOT end with "fo", so it takes the
+# non-fo else branch and the mcx expiry conversion at lines 78-80.
+_MCX_PLAIN_CSV = (
+    "pSymbol,pTrdSymbol,pExchSeg,pSymbolName,pOptionType,dStrikePrice;,pExpiryDate,pInstType\n"
+    "1,GOLD24JUN,mcx,GOLD,XX,0,1403222400,FUTCOM\n"
+)
+
+
+def test_scrip_search_mcx_plain_expiry_conversion(api_client, requests_mock):
+    """exchange_segment == 'mcx' takes the non-fo mcx conversion (lines 79-80)."""
+    _mock_segment(api_client, requests_mock, _MCX_PLAIN_CSV, "MCX.csv")
+    result = ScripSearch(api_client).scrip_search(
+        symbol="gold",
+        exchange_segment="mcx",
+        expiry=None,
+        option_type=None,
+        strike_price=None,
+        ignore_50multiple=True,
+    )
+    assert result is not None
