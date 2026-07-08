@@ -683,9 +683,7 @@ def test_connect_verify_ssl_false_disables_and_warns(monkeypatch):
             return FakeAsyncWS()
 
         monkeypatch.setattr(_client_mod.websockets, "connect", fake_connect)
-        ws = OrderFeedWebSocket(
-            base_url="https://e21.x.com", auth="T", sid="S", verify_ssl=False
-        )
+        ws = OrderFeedWebSocket(base_url="https://e21.x.com", auth="T", sid="S", verify_ssl=False)
         await ws.connect()
         await ws.close()
         return captured["ssl"]

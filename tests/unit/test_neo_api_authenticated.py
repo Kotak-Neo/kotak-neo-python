@@ -730,9 +730,7 @@ def test_help_handles_internal_exception(authenticated_client, monkeypatch):
     """help() catches an internal error and returns an Error dict (723-724)."""
     import inspect
 
-    monkeypatch.setattr(
-        inspect, "signature", _make_raise("sig boom")
-    )
+    monkeypatch.setattr(inspect, "signature", _make_raise("sig boom"))
     result = authenticated_client.help("order_report")
     assert result["Error"].startswith("Some Exception")
 

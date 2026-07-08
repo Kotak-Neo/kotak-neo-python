@@ -421,9 +421,7 @@ def test_scrip_search_api_exception_handled(api_client, monkeypatch):
 def test_scrip_search_no_exchange_segment_returns_none(api_client, requests_mock):
     """exchange_segment is None -> the filter block is skipped, method returns None."""
     url = api_client.configuration.get_url_details("scrip_master")
-    requests_mock.get(
-        url, json={"stat": "Ok", "data": {"filesPaths": ["x.csv"]}}, status_code=200
-    )
+    requests_mock.get(url, json={"stat": "Ok", "data": {"filesPaths": ["x.csv"]}}, status_code=200)
 
     result = ScripSearch(api_client).scrip_search(
         symbol="anything",
