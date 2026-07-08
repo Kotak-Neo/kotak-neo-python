@@ -1,4 +1,4 @@
-import requests
+import httpx
 
 
 class TradeReportAPI:
@@ -33,5 +33,5 @@ class TradeReportAPI:
                     return {"Error": "There is no trades available with the given order id"}
             else:
                 return trade_report
-        except requests.exceptions.RequestException as e:
+        except httpx.HTTPError as e:
             return {"Error": e}

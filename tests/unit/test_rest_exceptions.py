@@ -1,14 +1,14 @@
 # tests/unit/test_rest_exceptions.py
 
+import httpx
 import pytest
-import requests
 
 from neo_api_client.exceptions import ApiException
 
 
 def test_timeout(api_client, monkeypatch):
     def fake_request(*args, **kwargs):
-        raise requests.exceptions.Timeout()
+        raise httpx.TimeoutException("timed out")
 
     monkeypatch.setattr(
         api_client.rest_client.session,
@@ -25,7 +25,7 @@ def test_timeout(api_client, monkeypatch):
 
 def test_connection_error(api_client, monkeypatch):
     def fake_request(*args, **kwargs):
-        raise requests.exceptions.ConnectionError()
+        raise httpx.ConnectError("no route")
 
     monkeypatch.setattr(
         api_client.rest_client.session,

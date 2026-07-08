@@ -1,4 +1,4 @@
-import requests
+import httpx
 
 
 class PortfolioAPI:
@@ -25,6 +25,6 @@ class PortfolioAPI:
 
             return portfolio_report.json()
 
-        except requests.exceptions.RequestException as e:
+        except httpx.HTTPError as e:
             print(f"Error occurred: {e}")
             raise

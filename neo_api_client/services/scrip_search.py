@@ -1,7 +1,8 @@
+import io
 import json
 
+import httpx
 import pandas as pd
-import requests
 
 from neo_api_client.exceptions import ApiException
 
@@ -32,15 +33,15 @@ class ScripSearch:
                     file for file in data["filesPaths"] if exchange_segment.lower() in file.lower()
                 ]
 
-                response = requests.get(
+                response = httpx.get(
                     exchange_segment_csv[0],
-                    stream=True,
                     timeout=30,
+                    follow_redirects=True,
                 )
                 response.raise_for_status()
 
                 df = pd.read_csv(
-                    response.raw,
+                    io.BytesIO(response.content),
                     low_memory=False,
                 )
 

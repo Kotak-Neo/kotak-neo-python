@@ -81,9 +81,11 @@ def should_retry_exception(exception: Exception) -> bool:
 
     # Retry on network-related exceptions
     try:
-        import requests.exceptions as req_exc
+        import httpx
 
-        return isinstance(exception, req_exc.Timeout | req_exc.ConnectionError | req_exc.HTTPError)
+        # TimeoutException + ConnectError both derive from httpx.HTTPError, so the
+        # base class covers transport/timeout/HTTP failures in one check.
+        return isinstance(exception, httpx.HTTPError)
     except ImportError:
         pass
 

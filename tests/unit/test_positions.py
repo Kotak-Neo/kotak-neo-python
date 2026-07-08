@@ -1,4 +1,4 @@
-import requests
+import httpx
 
 from neo_api_client.services.positions import PositionsAPI
 
@@ -19,7 +19,7 @@ def test_positions(api_client, requests_mock):
 
 def test_positions_request_exception(api_client, monkeypatch, capsys):
     def mock_request(*args, **kwargs):
-        raise requests.exceptions.RequestException("Connection error")
+        raise httpx.HTTPError("Connection error")
 
     monkeypatch.setattr(
         api_client.rest_client,

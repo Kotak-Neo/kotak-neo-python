@@ -1,7 +1,7 @@
 """Additional coverage tests for RESTClientObject branches."""
 
+import httpx
 import pytest
-import requests
 import requests_mock
 
 from neo_api_client import rest as rest_module
@@ -59,7 +59,7 @@ def test_generic_request_exception_wrapped(monkeypatch):
     client = RESTClientObject(DummyConfig())
 
     def boom(*args, **kwargs):
-        raise requests.exceptions.RequestException("kaboom")
+        raise httpx.HTTPError("kaboom")
 
     monkeypatch.setattr(client.session, "request", boom)
 
@@ -268,7 +268,7 @@ def test_enhanced_timeout_logs_and_wraps(monkeypatch):
     client = RESTClientObject(DummyConfig())
 
     def boom(*a, **k):
-        raise requests.exceptions.Timeout("slow")
+        raise httpx.TimeoutException("slow")
 
     monkeypatch.setattr(client.session, "request", boom)
     with pytest.raises(ApiException) as exc_info:
@@ -281,7 +281,7 @@ def test_enhanced_connection_error_logs_and_wraps(monkeypatch):
     client = RESTClientObject(DummyConfig())
 
     def boom(*a, **k):
-        raise requests.exceptions.ConnectionError("no route")
+        raise httpx.ConnectError("no route")
 
     monkeypatch.setattr(client.session, "request", boom)
     with pytest.raises(ApiException) as exc_info:
@@ -294,7 +294,7 @@ def test_enhanced_generic_request_exception_logs_and_wraps(monkeypatch):
     client = RESTClientObject(DummyConfig())
 
     def boom(*a, **k):
-        raise requests.exceptions.RequestException("weird")
+        raise httpx.HTTPError("weird")
 
     monkeypatch.setattr(client.session, "request", boom)
     with pytest.raises(ApiException) as exc_info:
@@ -337,7 +337,7 @@ def test_disabled_timeout_wraps_without_logging(monkeypatch):
     client = RESTClientObject(DummyConfig())
 
     def boom(*a, **k):
-        raise requests.exceptions.Timeout("slow")
+        raise httpx.TimeoutException("slow")
 
     monkeypatch.setattr(client.session, "request", boom)
     with pytest.raises(ApiException):
@@ -349,7 +349,7 @@ def test_disabled_connection_error_wraps_without_logging(monkeypatch):
     client = RESTClientObject(DummyConfig())
 
     def boom(*a, **k):
-        raise requests.exceptions.ConnectionError("no route")
+        raise httpx.ConnectError("no route")
 
     monkeypatch.setattr(client.session, "request", boom)
     with pytest.raises(ApiException):
@@ -361,7 +361,7 @@ def test_disabled_generic_exception_wraps_without_logging(monkeypatch):
     client = RESTClientObject(DummyConfig())
 
     def boom(*a, **k):
-        raise requests.exceptions.RequestException("weird")
+        raise httpx.HTTPError("weird")
 
     monkeypatch.setattr(client.session, "request", boom)
     with pytest.raises(ApiException):

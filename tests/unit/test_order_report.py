@@ -15,6 +15,21 @@ def test_order_report(api_client, requests_mock):
     assert response["data"] == []
 
 
+def test_order_report_request_exception(api_client, monkeypatch, capsys):
+    """An HTTP error in ordered_books() is caught and logged (returns None)."""
+    import httpx
+
+    def boom(*args, **kwargs):
+        raise httpx.HTTPError("network down")
+
+    monkeypatch.setattr(api_client.rest_client, "request", boom)
+
+    result = OrderReportAPI(api_client).ordered_books()
+
+    assert result is None
+    assert "Error occurred" in capsys.readouterr().out
+
+
 def test_order_report_sends_neo_fin_key(api_client, requests_mock):
     url = api_client.configuration.get_url_details("order_book")
     requests_mock.get(url, json={"data": []}, status_code=200)
@@ -42,11 +57,11 @@ def test_order_report_by_id(api_client, requests_mock):
 
 
 def test_order_report_by_id_request_exception(api_client, monkeypatch, capsys):
-    """A RequestException in the by-id path is caught and logged (returns None)."""
-    import requests
+    """An HTTP error in the by-id path is caught and logged (returns None)."""
+    import httpx
 
     def boom(*args, **kwargs):
-        raise requests.exceptions.RequestException("network down")
+        raise httpx.HTTPError("network down")
 
     monkeypatch.setattr(api_client.rest_client, "request", boom)
 

@@ -1,15 +1,15 @@
-from requests.exceptions import RequestException
+import httpx
+import pytest
 
 from neo_api_client.services.portfolio import PortfolioAPI
 
 
 def test_portfolio_exception(api_client, monkeypatch):
     def mock_request(*args, **kwargs):
-        raise RequestException("failure")
+        raise httpx.HTTPError("failure")
 
     api_client.rest_client.request = mock_request
 
-    try:
+    # portfolio_holdings() logs and re-raises the transport error.
+    with pytest.raises(httpx.HTTPError):
         PortfolioAPI(api_client).portfolio_holdings()
-    except RequestException:
-        assert True

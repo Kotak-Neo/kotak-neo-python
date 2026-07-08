@@ -23,17 +23,16 @@ def _mask_header(name, value):
     return value
 
 
-def _print_request_headers(response, *args, **kwargs):
-    """requests response hook: print the headers actually sent on each request.
+def _print_request_headers(request):
+    """httpx request event hook: print the headers actually sent on each request.
 
-    Registered on the SDK's shared session so every REST call (login, orders,
-    market data, ...) shows its outgoing headers — useful for confirming that
-    headers like X-Forwarded-For are attached in the UAT environment.
+    Registered on the SDK's shared httpx.Client so every REST call (login,
+    orders, market data, ...) shows its outgoing headers — useful for confirming
+    that headers like X-Forwarded-For are attached in the UAT environment.
     """
-    req = response.request
-    print(f"\n[HTTP →] {req.method} {req.url}")
+    print(f"\n[HTTP →] {request.method} {request.url}")
     print("[HTTP → headers]")
-    for key, value in req.headers.items():
+    for key, value in request.headers.items():
         print(f"    {key}: {_mask_header(key, value)}")
 
 
@@ -83,11 +82,10 @@ class APITestRunner:
         )
 
         # Show the actual outgoing headers for every REST request by hooking the
-        # SDK's shared requests.Session. This confirms which headers (e.g.
+        # SDK's shared httpx.Client. This confirms which headers (e.g.
         # X-Forwarded-For in UAT) are attached on the wire.
         session = self.client.api_client.rest_client.session
-        session.hooks.setdefault("response", [])
-        session.hooks["response"].append(_print_request_headers)
+        session.event_hooks["request"].append(_print_request_headers)
 
         # Report the environment + whether the UAT X-Forwarded-For is configured.
         cfg = self.client.api_client.configuration

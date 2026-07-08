@@ -6,8 +6,7 @@ import uuid
 from contextvars import ContextVar
 from typing import Any
 
-import requests
-from requests.adapters import HTTPAdapter
+import httpx
 
 from neo_api_client.exceptions import ApiException
 
@@ -54,7 +53,7 @@ class RESTClientObject:
             Raise exception on HTTP error status codes (400+) (default: False for backward compatibility)
         """
         self.configuration = configuration
-        self.session = self._create_session() if _ENHANCED_FEATURES else requests.Session()
+        self.session = self._create_session()
         self.rate_limiter = None
         self.raise_on_error = raise_on_error
 
@@ -66,38 +65,35 @@ class RESTClientObject:
                 timeout=DEFAULT_TIMEOUT,
             )
 
-    def _create_session(self) -> requests.Session:
+    def _create_session(self) -> httpx.Client:
         """
-        Create optimized session with connection pooling.
+        Create an HTTP/2-capable client with connection pooling.
+
+        The Kotak endpoints negotiate HTTP/2 via ALPN, so ``http2=True`` upgrades
+        eligible ``https`` connections automatically (falling back to HTTP/1.1
+        when a server doesn't offer h2).
 
         Returns
         -------
-        requests.Session
-            Configured requests session
+        httpx.Client
+            Configured HTTP/2 client.
         """
-        session = requests.Session()
-
-        # Configure connection pooling for better performance
-        adapter = HTTPAdapter(
-            pool_connections=DEFAULT_POOL_CONNECTIONS,
-            pool_maxsize=DEFAULT_POOL_MAXSIZE,
-            max_retries=0,
-            pool_block=False,
+        limits = httpx.Limits(
+            max_connections=DEFAULT_POOL_MAXSIZE,
+            max_keepalive_connections=DEFAULT_POOL_CONNECTIONS,
         )
 
-        session.mount("http://", adapter)
-        session.mount("https://", adapter)
-
-        # Set default headers
-        session.headers.update(
-            {
+        return httpx.Client(
+            http2=True,
+            limits=limits,
+            timeout=DEFAULT_TIMEOUT,
+            follow_redirects=True,
+            headers={
                 "User-Agent": f"NeoSDK-Python/{__version__}",
                 "Accept": "application/json",
                 "Accept-Encoding": "gzip, deflate",
-            }
+            },
         )
-
-        return session
 
     def _generate_request_id(self) -> str:
         """Generate unique request ID."""
@@ -139,7 +135,7 @@ class RESTClientObject:
 
         Returns
         -------
-        requests.Response
+        httpx.Response
             Response object
 
         Raises
@@ -180,7 +176,9 @@ class RESTClientObject:
             correlation_id_context.set(request_id)
             start_time = time.time()
 
-        headers = headers or {}
+        # Drop headers with None values. requests silently omitted them, but
+        # httpx raises on a None value, so filter them to preserve behavior.
+        headers = {k: v for k, v in (headers or {}).items() if v is not None}
         if "Content-Type" not in headers:
             headers["Content-Type"] = "application/json"
 
@@ -217,13 +215,16 @@ class RESTClientObject:
 
             if method in {"POST", "PUT", "PATCH", "DELETE"}:
                 if re.search("json", content_type, re.IGNORECASE):
-                    request_kwargs["data"] = json.dumps(body) if body is not None else None
+                    # Raw JSON body: send as content so httpx doesn't re-encode it.
+                    if body is not None:
+                        request_kwargs["content"] = json.dumps(body)
 
                 elif re.search(
                     "x-www-form-urlencoded",
                     content_type,
                     re.IGNORECASE,
                 ):
+                    # Form-encoded body under the jData key (Kotak convention).
                     request_kwargs["data"] = {"jData": json.dumps(body)} if body is not None else {}
 
                 else:
@@ -233,7 +234,7 @@ class RESTClientObject:
                     )
 
             response = self.session.request(
-                method=method,
+                method,
                 **request_kwargs,
             )
 
@@ -253,7 +254,7 @@ class RESTClientObject:
 
             return response
 
-        except requests.exceptions.Timeout as exc:
+        except httpx.TimeoutException as exc:
             if _ENHANCED_FEATURES and request_id and start_time:
                 duration_ms = (time.time() - start_time) * 1000
                 logger.error(
@@ -267,7 +268,7 @@ class RESTClientObject:
                 reason=f"Request timeout after {timeout or DEFAULT_TIMEOUT} seconds",
             ) from exc
 
-        except requests.exceptions.ConnectionError as exc:
+        except httpx.ConnectError as exc:
             if _ENHANCED_FEATURES and request_id and start_time:
                 duration_ms = (time.time() - start_time) * 1000
                 logger.error(
@@ -280,7 +281,7 @@ class RESTClientObject:
                 reason="Unable to connect to server",
             ) from exc
 
-        except requests.exceptions.RequestException as exc:
+        except httpx.HTTPError as exc:
             if _ENHANCED_FEATURES and request_id and start_time:
                 duration_ms = (time.time() - start_time) * 1000
                 logger.error(
@@ -295,13 +296,13 @@ class RESTClientObject:
                 reason=str(exc),
             ) from exc
 
-    def _handle_error_response(self, response: requests.Response, request_id: str | None) -> None:
+    def _handle_error_response(self, response: httpx.Response, request_id: str | None) -> None:
         """
         Handle error responses and raise appropriate exceptions.
 
         Parameters
         ----------
-        response : requests.Response
+        response : httpx.Response
             HTTP response object
         request_id : str, optional
             Request correlation ID
@@ -321,12 +322,12 @@ class RESTClientObject:
                 "api_error_response",
                 request_id=request_id,
                 status_code=response.status_code,
-                reason=response.reason,
+                reason=response.reason_phrase,
             )
 
         raise ApiException(
             status=response.status_code,
-            reason=response.reason,
+            reason=response.reason_phrase,
             body=error_body,
         )
 

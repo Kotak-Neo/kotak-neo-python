@@ -1,4 +1,4 @@
-import requests
+import httpx
 
 
 class PositionsAPI:
@@ -20,6 +20,6 @@ class PositionsAPI:
                 url=URL, method="GET", query_params=query_params, headers=header_params
             )
             return position_report.json()
-        except requests.exceptions.RequestException as e:
+        except httpx.HTTPError as e:
             # handle any exceptions that might be raised here
             print(f"Error occurred: {e}")

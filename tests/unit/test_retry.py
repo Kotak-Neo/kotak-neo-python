@@ -45,11 +45,11 @@ def test_should_not_retry_on_validation_category():
     assert should_retry_exception(exc) is False
 
 
-def test_should_retry_on_requests_timeout():
-    import requests.exceptions as req_exc
+def test_should_retry_on_httpx_transport_errors():
+    import httpx
 
-    assert should_retry_exception(req_exc.Timeout()) is True
-    assert should_retry_exception(req_exc.ConnectionError()) is True
+    assert should_retry_exception(httpx.TimeoutException("t")) is True
+    assert should_retry_exception(httpx.ConnectError("c")) is True
 
 
 def test_should_not_retry_on_plain_exception():
@@ -67,27 +67,27 @@ def test_should_retry_api_exception_without_status_or_category():
     assert should_retry_exception(exc) is False
 
 
-def test_should_retry_on_requests_http_error():
-    import requests.exceptions as req_exc
+def test_should_retry_on_httpx_http_error():
+    import httpx
 
-    assert should_retry_exception(req_exc.HTTPError()) is True
+    assert should_retry_exception(httpx.HTTPError("boom")) is True
 
 
-def test_should_retry_when_requests_import_fails(monkeypatch):
-    """If requests.exceptions can't be imported, fall through to return False."""
+def test_should_retry_when_httpx_import_fails(monkeypatch):
+    """If httpx can't be imported, fall through to return False."""
     import builtins
 
     real_import = builtins.__import__
 
     def fake_import(name, *args, **kwargs):
-        if name == "requests.exceptions":
-            raise ImportError("requests unavailable")
+        if name == "httpx":
+            raise ImportError("httpx unavailable")
         return real_import(name, *args, **kwargs)
 
     monkeypatch.setattr(builtins, "__import__", fake_import)
 
     # A plain exception with no ApiException status/category: reaches the
-    # requests-import block, which raises ImportError -> pass -> return False.
+    # httpx-import block, which raises ImportError -> pass -> return False.
     assert should_retry_exception(ValueError("nope")) is False
 
 

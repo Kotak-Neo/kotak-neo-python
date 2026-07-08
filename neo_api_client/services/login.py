@@ -28,7 +28,7 @@ class LoginAPI:
         session_init = self.rest_client.request(
             url=URL, method="POST", headers=header_params, body=body_params
         )
-        if session_init.ok:
+        if session_init.is_success:
             json_resp = json.loads(session_init.text)
             self.api_client.configuration.bearer_token = json_resp.get("access_token")
             return json_resp
