@@ -13,6 +13,7 @@ Official Python SDK for Kotak Neo Trading APIs - A production-ready, enterprise-
 ✅ **Portfolio & Positions** - Real-time holdings, positions, and limits  
 ✅ **Market Data** - Live quotes, scrip master, search functionality  
 ✅ **SFeed WebSocket Streaming** - Modern async/await live market feed with typed messages  
+✅ **HTTP/2 Transport** - REST calls use HTTP/2 (via httpx) with automatic HTTP/1.1 fallback  
 ✅ **Enterprise-Grade Reliability** - Circuit breaker, rate limiting, retry logic  
 ✅ **Comprehensive Error Handling** - Detailed exception hierarchy  
 ✅ **Type Safety** - Full mypy type checking support  
@@ -307,6 +308,7 @@ Average API response times (production environment):
 
 The SDK includes enterprise-grade reliability features:
 
+- **HTTP/2 Transport** - REST calls run over HTTP/2 (via `httpx`) with connection pooling and automatic HTTP/1.1 fallback
 - **Rate Limiter** - Prevents API throttling
 - **Circuit Breaker** - Handles service failures gracefully
 - **Retry Logic** - Automatic retry with exponential backoff
@@ -366,7 +368,7 @@ bandit -r neo_api_client
 ## Requirements
 
 - **Python**: 3.10 or higher
-- **Core Dependencies**: numpy, pandas, PyJWT, requests, websocket-client, structlog, tenacity, python-decouple, pyotp, websockets, pydantic
+- **Core Dependencies**: numpy, pandas, PyJWT, httpx[http2], websocket-client, structlog, tenacity, python-decouple, pyotp, websockets, pydantic
 
 See [pyproject.toml](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/pyproject.toml) for complete dependency list.
 
