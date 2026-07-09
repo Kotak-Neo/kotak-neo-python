@@ -161,6 +161,20 @@ order_type = {
     "Three leg": "3L",
 }
 
+# Allowed order-validity values per (canonical) exchange segment, used by place
+# and modify order validation. Keyed by the normalized segment name (the value
+# side of the `exchange_segment` map above). Segments not listed fall back to
+# the default set below.
+validity_allowed_by_segment = {
+    "nse_cm": ["DAY", "IOC"],
+    "bse_cm": ["DAY", "IOC"],
+    "nse_fo": ["DAY", "IOC"],
+    "bse_fo": ["DAY", "IOC"],
+    "mcx_fo": ["DAY"],
+}
+# Default validity set for any segment not explicitly listed above.
+validity_allowed_default = ["DAY", "IOC"]
+
 segment_limits = ["CASH", "CUR", "FO", "ALL"]
 exchange_limits = ["NSE", "BSE", "ALL"]
 product_limits = ["CNC", "MIS", "NRML", "ALL"]

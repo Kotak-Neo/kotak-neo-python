@@ -396,6 +396,7 @@ class NeoAPI:
                     disclosed_quantity=disclosed_quantity,
                     market_protection=market_protection,
                     amo=amo,
+                    exchange_segment=exchange_segment,
                 )
             except Exception as e:
                 return {"Error": e}

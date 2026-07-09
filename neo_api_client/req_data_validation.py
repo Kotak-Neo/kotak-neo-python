@@ -6,7 +6,10 @@ from neo_api_client.settings import (
     product_allowed_values,
     product_limits,
     segment_limits,
+    validity_allowed_by_segment,
+    validity_allowed_default,
 )
+from neo_api_client.settings import exchange_segment as _exchange_segment_map
 
 
 def _require_non_blank(value, name):
@@ -45,6 +48,25 @@ def _require_non_negative_int(value, name):
         raise ApiValueError(f"{name} must be a valid integer, got {value!r}.") from exc
     if parsed < 0:
         raise ApiValueError(f"{name} cannot be negative.")
+
+
+def _require_valid_validity(validity, exchange_segment):
+    """Validate order validity against the allowed set for the exchange segment.
+
+    Most segments allow DAY and IOC; MCX F&O (``mcx_fo``) allows only DAY. The
+    segment is normalized via the alias map, so ``NFO``/``nse_fo`` etc. all
+    resolve to the same rule. Segments not explicitly configured fall back to
+    the default set (DAY, IOC).
+    """
+    _require_non_blank(validity, "validity")
+    # Normalize the (possibly aliased) segment to its canonical form.
+    canonical = _exchange_segment_map.get(exchange_segment, exchange_segment)
+    allowed = validity_allowed_by_segment.get(canonical, validity_allowed_default)
+    if validity not in allowed:
+        raise ApiValueError(
+            f"Invalid validity '{validity}' for exchange segment "
+            f"'{exchange_segment}'. Allowed values are {', '.join(allowed)}."
+        )
 
 
 def validate_configuration(consumer_key, consumer_secret):
@@ -108,10 +130,8 @@ def place_order_validation(
     _require_non_blank(quantity, "quantity")
     _require_positive_int(quantity, "quantity")
 
-    # Validity validation (mandatory, non-blank)
-    _require_non_blank(validity, "validity")
-    if validity not in ["DAY", "IOC"]:
-        raise ApiValueError("Invalid validity. Allowed values are DAY, IOC.")
+    # Validity validation (mandatory, non-blank, per-exchange-segment allowed set)
+    _require_valid_validity(validity, exchange_segment)
 
     # Trading symbol validation (mandatory, non-blank)
     _require_non_blank(trading_symbol, "trading_symbol")
@@ -167,12 +187,18 @@ def modify_order_validation(
     disclosed_quantity=None,
     market_protection=None,
     amo=None,
+    exchange_segment=None,
 ):
     """Validate mandatory modify-order inputs before the request is built.
 
     Rejects blank/invalid values for the fields the API requires:
     order_id (no), price (pr), order_type (pt), quantity (qt), validity (vd),
     and the numeric optionals when supplied.
+
+    ``exchange_segment`` is optional: when provided (quick-modify path), the
+    validity is checked against that segment's allowed set; when omitted (the
+    order-id-only path resolves the segment from the order book later), the
+    default validity set (DAY, IOC) is used.
     """
     # order_id (mandatory, non-blank)
     _require_non_blank(order_id, "order_id")
@@ -193,10 +219,9 @@ def modify_order_validation(
     _require_non_blank(quantity, "quantity")
     _require_positive_int(quantity, "quantity")
 
-    # Validity (mandatory, non-blank)
-    _require_non_blank(validity, "validity")
-    if validity not in ["DAY", "IOC"]:
-        raise ApiValueError("Invalid validity. Allowed values are DAY, IOC.")
+    # Validity (mandatory, non-blank, per-exchange-segment allowed set). When
+    # the segment is unknown here, the default set (DAY, IOC) applies.
+    _require_valid_validity(validity, exchange_segment)
 
     # trigger_price (optional; must be a non-negative number when supplied)
     if trigger_price is not None:

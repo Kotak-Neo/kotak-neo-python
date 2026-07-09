@@ -366,3 +366,59 @@ def test_limits_validation_value_errors(segment, exchange, product):
 def test_limits_validation_type_errors(segment, exchange, product):
     with pytest.raises(ApiValueError):
         limits_validation(segment=segment, exchange=exchange, product=product)
+
+
+# ---- per-exchange-segment order validity ------------------------------------
+
+
+@pytest.mark.parametrize(
+    "segment,validity",
+    [
+        ("nse_cm", "DAY"),
+        ("nse_cm", "IOC"),
+        ("bse_cm", "DAY"),
+        ("bse_cm", "IOC"),
+        ("nse_fo", "DAY"),
+        ("nse_fo", "IOC"),
+        ("bse_fo", "DAY"),
+        ("bse_fo", "IOC"),
+        ("mcx_fo", "DAY"),
+    ],
+)
+def test_place_order_validity_allowed_per_segment(segment, validity):
+    # Should not raise for the documented allowed combinations.
+    place_order_validation(**_valid_place_kwargs(exchange_segment=segment, validity=validity))
+
+
+def test_place_order_mcx_fo_rejects_ioc():
+    """MCX F&O allows only DAY (not IOC)."""
+    with pytest.raises(ApiValueError, match="Invalid validity 'IOC'.*mcx_fo"):
+        place_order_validation(**_valid_place_kwargs(exchange_segment="mcx_fo", validity="IOC"))
+
+
+@pytest.mark.parametrize("segment", ["nse_cm", "bse_cm", "nse_fo", "bse_fo", "mcx_fo"])
+def test_place_order_rejects_unsupported_validity(segment):
+    """GTC is never allowed on any segment."""
+    with pytest.raises(ApiValueError, match="Invalid validity"):
+        place_order_validation(**_valid_place_kwargs(exchange_segment=segment, validity="GTC"))
+
+
+def test_place_order_validity_segment_alias_resolved():
+    """NFO alias resolves to nse_fo -> IOC is allowed."""
+    place_order_validation(**_valid_place_kwargs(exchange_segment="NFO", validity="IOC"))
+
+
+def test_modify_order_mcx_fo_rejects_ioc():
+    with pytest.raises(ApiValueError, match="Invalid validity 'IOC'.*mcx_fo"):
+        modify_order_validation(**_valid_modify_kwargs(validity="IOC"), exchange_segment="mcx_fo")
+
+
+def test_modify_order_mcx_fo_allows_day():
+    modify_order_validation(**_valid_modify_kwargs(validity="DAY"), exchange_segment="mcx_fo")
+
+
+def test_modify_order_validity_defaults_when_segment_unknown():
+    """Order-id-only path (no segment): IOC allowed via the default set, GTC not."""
+    modify_order_validation(**_valid_modify_kwargs(validity="IOC"))  # OK
+    with pytest.raises(ApiValueError, match="Invalid validity"):
+        modify_order_validation(**_valid_modify_kwargs(validity="GTC"))
