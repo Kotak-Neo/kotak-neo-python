@@ -1,6 +1,6 @@
 # Kotak Neo API - Python SDK
 
-Official Python SDK for Kotak Neo Trading APIs - A production-ready, enterprise-grade trading client for the Kotak Neo platform.
+Official Python SDK for Kotak Neo Trading APIs - a modern, well-tested trading client for the Kotak Neo platform.
 
 [![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![PyPI Version](https://img.shields.io/badge/pypi-v2.2.3-green.svg)](https://pypi.org/project/kotakneoapi/)
@@ -14,7 +14,7 @@ Official Python SDK for Kotak Neo Trading APIs - A production-ready, enterprise-
 ✅ **Market Data** - Live quotes, scrip master, search functionality  
 ✅ **SFeed WebSocket Streaming** - Modern async/await live market feed with typed messages, enriched with `trading_symbol`  
 ✅ **HTTP/2 Transport** - REST calls use HTTP/2 (via httpx) with automatic HTTP/1.1 fallback  
-✅ **Enterprise-Grade Reliability** - Circuit breaker, rate limiting, retry logic  
+✅ **Optional Reliability Utilities** - Opt-in rate limiting, plus retry and circuit-breaker helpers  
 ✅ **Comprehensive Error Handling** - Detailed exception hierarchy with input validation  
 ✅ **Type Safety** - Full mypy type checking support  
 ✅ **Extensive Testing** - 100% test coverage (unit, integration, and E2E tests)  
@@ -308,14 +308,18 @@ Average API response times (production environment):
 
 ## Architecture
 
-The SDK includes enterprise-grade reliability features:
+Always on for every request:
 
 - **HTTP/2 Transport** - REST calls run over HTTP/2 (via `httpx`) with connection pooling and automatic HTTP/1.1 fallback
-- **Rate Limiter** - Prevents API throttling
-- **Circuit Breaker** - Handles service failures gracefully
-- **Retry Logic** - Automatic retry with exponential backoff
 - **Structured Logging** - Request/response tracking with correlation IDs
 - **Type Safety** - Full mypy type checking support
+
+Optional reliability utilities (shipped, tested, and importable, but **not wired
+into the request path by default** — you opt in):
+
+- **Rate Limiter** - Token-bucket throttling (per second/minute/hour) to avoid tripping API quotas. Enable with `RESTClientObject(..., enable_rate_limiting=True)`.
+- **Retry Logic** - Exponential backoff with jitter for transient errors, via the `with_retry` / `create_retry_decorator` decorators in `neo_api_client.retry`.
+- **Circuit Breaker** - `CircuitBreaker` in `neo_api_client.circuit_breaker` to stop calling a failing service and let it recover.
 
 ## Development
 
