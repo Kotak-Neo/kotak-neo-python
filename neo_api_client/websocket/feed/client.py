@@ -36,6 +36,7 @@ from neo_api_client.websocket.feed.models import (
 )
 from neo_api_client.websocket.feed.protocol import (
     MSG_AUTH_RESPONSE_CODES,
+    MSG_SUBSCRIBE_ACK,
     decode_packet,
     split_batch,
 )
@@ -149,6 +150,11 @@ class SFeedWebSocket:
         self._reconnect_count = 0
         # Price dividers keyed by exchange_id (from the auth response).
         self._dividers: dict[int, int] = {}
+        # Trading-symbol map keyed by "<exchange_segment>|<instrument_token>"
+        # (e.g. "nse_cm|2885" -> "RELIANCE-EQ"), built from the subscribe
+        # acknowledgement (message_code 1118) and cleared on unsubscribe. Used
+        # to enrich each feed message with its trading_symbol.
+        self._trading_symbols: dict[str, str] = {}
 
         # Callbacks
         self.on_message: Callable[[SFeedMessage], None] | None = None
@@ -195,6 +201,12 @@ class SFeedWebSocket:
     def dividers(self) -> dict[int, int]:
         """Per-exchange price dividers (keyed by exchange_id) from auth."""
         return dict(self._dividers)
+
+    @property
+    def trading_symbols(self) -> dict[str, str]:
+        """Trading-symbol map (``"<exchange>|<token>"`` -> symbol) from the
+        subscribe acknowledgement. Grows on subscribe, shrinks on unsubscribe."""
+        return dict(self._trading_symbols)
 
     @property
     def subscription_count(self) -> int:
@@ -318,7 +330,10 @@ class SFeedWebSocket:
 
                 if isinstance(raw, (bytes, bytearray)):
                     self._handle_binary_frame(bytes(raw))
-                # JSON text frames after auth are control acks / status; ignore.
+                else:
+                    # JSON text frame — the subscribe acknowledgement carries the
+                    # trading_symbols map; other control frames are ignored.
+                    self._handle_text_frame(raw)
 
             except websockets.exceptions.ConnectionClosed:
                 self._connected = False
@@ -327,6 +342,32 @@ class SFeedWebSocket:
             except Exception as e:  # pragma: no cover - defensive
                 if self.on_error:
                     self.on_error(e)
+
+    def _handle_text_frame(self, raw: str | bytes) -> None:
+        """Handle a JSON control frame.
+
+        The subscribe acknowledgement (``message_code`` 1118) carries a
+        ``trading_symbols`` map keyed by ``"<exchange>|<token>"``; record it so
+        subsequent feed messages can be enriched with their trading_symbol.
+        Any other control frame is ignored.
+        """
+        try:
+            data = json.loads(raw)
+        except (ValueError, TypeError):
+            return
+        if not isinstance(data, dict):
+            return
+        if data.get("message_code") == MSG_SUBSCRIBE_ACK:
+            mapping = data.get("trading_symbols")
+            if isinstance(mapping, dict):
+                for key, symbol in mapping.items():
+                    if isinstance(key, str) and isinstance(symbol, str):
+                        self._trading_symbols[key] = symbol
+
+    def _trading_symbol_for(self, message: SFeedMessage) -> str | None:
+        """Look up the trading symbol for a decoded message, if known."""
+        key = f"{message.exchange_segment}|{message.instrument_token}"
+        return self._trading_symbols.get(key)
 
     def _handle_binary_frame(self, frame: bytes) -> None:
         """Split a binary batch into packets, decode each, and enqueue."""
@@ -339,6 +380,10 @@ class SFeedWebSocket:
                 continue
             if message is None:
                 continue
+            # Enrich with the trading symbol resolved from the subscribe ack.
+            symbol = self._trading_symbol_for(message)
+            if symbol is not None:
+                message.trading_symbol = symbol
             self._message_queue.put_nowait(message)
             if self.on_message:
                 with contextlib.suppress(Exception):
@@ -419,6 +464,11 @@ class SFeedWebSocket:
             await self._send_unsubscribe(_UNSUBSCRIBE_EVENTS[intent], tokens)
             for token in tokens:
                 self._subscriptions.discard((token, intent))
+                # Drop the trading-symbol mapping only when the token is no
+                # longer subscribed under any intent (it may still be live on
+                # another feed level, e.g. depth vs touch line).
+                if not any(t == token for t, _ in self._subscriptions):
+                    self._trading_symbols.pop(token.inputtoken, None)
         except Exception as e:
             raise SubscriptionError(f"Failed to unsubscribe ({intent}): {e}") from e
 

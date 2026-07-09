@@ -167,6 +167,32 @@ def test_wait_for_token_sleeps_then_succeeds(monkeypatch):
     assert bucket.wait_for_token(tokens=1, timeout=None) is True
 
 
+def test_wait_for_token_continues_after_in_lock_refill(monkeypatch):
+    """The in-lock refill can make tokens available, hitting the `continue`
+    that re-loops without sleeping (rate_limiter.py line 102)."""
+    monkeypatch.setattr("time.sleep", lambda _s: None)
+
+    # A controllable clock, active from construction so `last_update` is known.
+    clock = {"t": 100.0}
+    monkeypatch.setattr("time.time", lambda: clock["t"])
+
+    bucket = TokenBucket(capacity=5, fill_rate=1.0)  # last_update = 100.0
+    bucket.consume(tokens=5)  # drain at t=100 (no time elapsed -> stays empty)
+
+    # Advance the clock so that the NEXT refill (inside the lock) replenishes the
+    # bucket past the requested token count, triggering the `continue`.
+    real_consume = bucket.consume
+
+    def consume_then_advance(tokens=1):
+        result = real_consume(tokens)  # fails at t=100 (empty)
+        clock["t"] += 10.0  # 10s * fill_rate 1.0 = 10 tokens on next refill
+        return result
+
+    monkeypatch.setattr(bucket, "consume", consume_then_advance)
+
+    assert bucket.wait_for_token(tokens=1, timeout=None) is True
+
+
 # ---- RateLimiter.acquire timeout paths --------------------------------------
 
 

@@ -158,9 +158,10 @@ def test_place_order_validation_negative_trigger_price():
         place_order_validation(**_valid_place_kwargs(), trigger_price="-5")
 
 
-def test_place_order_validation_invalid_disclosed_quantity():
+@pytest.mark.parametrize("bad_dq", ["-1", "abc", "1.5"])
+def test_place_order_validation_invalid_disclosed_quantity(bad_dq):
     with pytest.raises(ApiValueError, match="integer|negative"):
-        place_order_validation(**_valid_place_kwargs(), disclosed_quantity="-1")
+        place_order_validation(**_valid_place_kwargs(), disclosed_quantity=bad_dq)
 
 
 # ---- cancel_order_validation ------------------------------------------------

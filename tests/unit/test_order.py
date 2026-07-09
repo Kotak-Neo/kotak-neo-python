@@ -188,6 +188,22 @@ def test_order_cancelling_with_amo(api_client, requests_mock):
     assert result["stat"] == "Ok"
 
 
+def test_order_cancelling_verify_order_book_without_data(api_client, requests_mock):
+    """Verify path where the order book has no 'data' key -> falls through to
+    the actual cancel (order.py 87->102 branch)."""
+    order_api_instance = OrderAPI(api_client)
+    order_book_url = api_client.configuration.get_url_details("order_book")
+    cancel_url = api_client.configuration.get_url_details("cancel_order")
+
+    # No "data" key at all -> the verification block is skipped.
+    requests_mock.get(order_book_url, json={"stat": "Not_Ok", "emsg": "no orders"})
+    requests_mock.post(cancel_url, json={"stat": "Ok", "result": "cancelled"})
+
+    result = order_api_instance.order_cancelling(order_id="12345", isVerify=True)
+
+    assert result["stat"] == "Ok"
+
+
 def test_order_cancelling_api_exception(api_client, monkeypatch):
     """Test order cancellation with API exception"""
     from neo_api_client.exceptions import ApiException

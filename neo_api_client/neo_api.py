@@ -118,7 +118,8 @@ class NeoAPI:
             #     print(json.dumps({"data": session_init}))
             # except ApiException as ex:
             #     error = ex
-        elif access_token:
+        else:
+            # access_token was provided.
             self.configuration = NeoUtility(access_token=access_token, host=environment)
             self.api_client = ApiClient(self.configuration)
 

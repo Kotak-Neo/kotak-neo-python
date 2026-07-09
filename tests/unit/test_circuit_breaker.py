@@ -140,6 +140,30 @@ def test_get_status_after_failure_has_retry_fields():
     assert "retry_after" in status
 
 
+def test_get_status_half_open_includes_success_fields():
+    """In HALF_OPEN, get_status reports success_count/threshold (lines 249-250)."""
+    cb = CircuitBreaker("t11b", failure_threshold=1, success_threshold=3, timeout=60.0)
+    with pytest.raises(ValueError):
+        cb.call(_boom)
+
+    # Elapse the timeout, then one success moves CLOSED->OPEN->HALF_OPEN.
+    cb._last_failure_time = datetime.now(timezone.utc) - timedelta(seconds=61)
+    assert cb.call(lambda: "ok") == "ok"
+    assert cb.state == CircuitState.HALF_OPEN
+
+    status = cb.get_status()
+    assert status["state"] == "half_open"
+    assert status["success_count"] == 1
+    assert status["success_threshold"] == 3
+
+
+def test_should_attempt_reset_false_without_prior_failure():
+    """_should_attempt_reset returns False when no failure has occurred (line 106)."""
+    cb = CircuitBreaker("t11c")
+    assert cb._last_failure_time is None
+    assert cb._should_attempt_reset() is False
+
+
 def test_expected_exception_filter_ignores_other_errors():
     cb = CircuitBreaker("t12", failure_threshold=2, expected_exception=ValueError)
 

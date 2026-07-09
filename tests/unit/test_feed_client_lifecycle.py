@@ -597,3 +597,162 @@ def test_connect_plain_ws_scheme_skips_ssl(monkeypatch):
         return captured["ssl"]
 
     assert asyncio.run(run()) is None  # no TLS context for ws://
+
+
+# ---- trading_symbol map (subscribe ack 1118) --------------------------------
+
+_SUBSCRIBE_ACK = json.dumps(
+    {
+        "message_code": 1118,
+        "message": "Subscribed",
+        "trading_symbols": {
+            "nse_cm|2885": "RELIANCE-EQ",
+            "nse_cm|22": "ACC-EQ",
+        },
+    }
+)
+
+
+def test_subscribe_ack_populates_trading_symbol_map(monkeypatch):
+    """A 1118 'Subscribed' ack builds the exchange|token -> symbol map."""
+
+    async def run():
+        fake = FakeAsyncWS(incoming=[_AUTH_OK, _SUBSCRIBE_ACK])
+        _patch_connect(monkeypatch, fake)
+        ws = SFeedWebSocket(url="wss://fake/feed")
+        await ws.connect()
+        await asyncio.sleep(0.05)  # let the receive loop consume the ack
+        symbols = ws.trading_symbols
+        await ws.close()
+        return symbols
+
+    symbols = asyncio.run(run())
+    assert symbols["nse_cm|2885"] == "RELIANCE-EQ"
+    assert symbols["nse_cm|22"] == "ACC-EQ"
+
+
+def test_handle_text_frame_ignores_non_ack_and_malformed():
+    """Non-1118 control frames and malformed JSON leave the map untouched."""
+    ws = SFeedWebSocket(url="wss://fake/feed")
+    ws._handle_text_frame('{"message_code": 9999, "foo": "bar"}')
+    ws._handle_text_frame("not-json{")
+    ws._handle_text_frame(json.dumps(["a", "list"]))
+    ws._handle_text_frame(json.dumps({"message_code": 1118}))  # no trading_symbols
+    ws._handle_text_frame(json.dumps({"message_code": 1118, "trading_symbols": "oops"}))
+    assert ws.trading_symbols == {}
+
+
+def test_subscribe_ack_skips_non_string_entries():
+    """Ack entries with non-string keys/values are skipped; valid ones kept."""
+    ws = SFeedWebSocket(url="wss://fake/feed")
+    ws._handle_text_frame(
+        json.dumps(
+            {
+                "message_code": 1118,
+                "trading_symbols": {
+                    "nse_cm|2885": "RELIANCE-EQ",  # valid
+                    "nse_cm|99": 12345,  # non-string value -> skipped
+                },
+            }
+        )
+    )
+    assert ws.trading_symbols == {"nse_cm|2885": "RELIANCE-EQ"}
+
+
+def test_feed_message_enriched_with_trading_symbol():
+    """A decoded message is stamped with its trading_symbol from the map."""
+    from neo_api_client.websocket.feed.models import SFeedScripLite
+
+    ws = SFeedWebSocket(url="wss://fake/feed")
+    ws._trading_symbols = {"nse_cm|2885": "RELIANCE-EQ"}
+
+    msg = SFeedScripLite(
+        exchange_segment="nse_cm",
+        instrument_token="2885",
+        last_traded_price=1.0,
+        last_trade_time=0,
+        last_trade_qty=0,
+        close_price=0.0,
+        net_change=0.0,
+        net_change_percent=0.0,
+        market_lot=1,
+        precision=2,
+        multiplier=1,
+    )
+    assert ws._trading_symbol_for(msg) == "RELIANCE-EQ"
+
+    # Unknown token -> no symbol.
+    other = msg.model_copy(update={"instrument_token": "999"})
+    assert ws._trading_symbol_for(other) is None
+
+
+def test_binary_frame_stamps_trading_symbol_on_enqueued_message(monkeypatch):
+    """A decoded binary message gets trading_symbol set from the map before
+    being enqueued (end-to-end enrich path)."""
+
+    async def run():
+        fake = FakeAsyncWS(incoming=[_AUTH_OK])
+        _patch_connect(monkeypatch, fake)
+        ws = SFeedWebSocket(url="wss://fake/feed")
+        await ws.connect()
+        # The market-status frame decodes to exchange nse_cm with an empty token,
+        # so its map key is "nse_cm|".
+        ws._trading_symbols = {"nse_cm|": "MARKET-STATUS"}
+        ws._handle_binary_frame(_market_status_frame())
+        msg = await asyncio.wait_for(ws._message_queue.get(), timeout=1.0)
+        await ws.close()
+        return msg
+
+    msg = asyncio.run(run())
+    assert msg.trading_symbol == "MARKET-STATUS"
+
+
+def test_unsubscribe_removes_trading_symbol_entry(monkeypatch):
+    """Unsubscribing a token drops its entry from the trading-symbol map."""
+
+    async def run():
+        fake = FakeAsyncWS(incoming=[_AUTH_OK, _SUBSCRIBE_ACK])
+        _patch_connect(monkeypatch, fake)
+        ws = SFeedWebSocket(url="wss://fake/feed")
+        await ws.connect()
+
+        tok = WsToken("nse_cm", "2885")
+        await ws.subscribe_scrips([tok, WsToken("nse_cm", "22")])
+        await asyncio.sleep(0.05)  # consume the ack
+
+        before = ws.trading_symbols
+        await ws.unsubscribe_scrips([tok])
+        after = ws.trading_symbols
+        await ws.close()
+        return before, after
+
+    before, after = asyncio.run(run())
+    assert "nse_cm|2885" in before
+    assert "nse_cm|2885" not in after  # removed on unsubscribe
+    assert "nse_cm|22" in after  # still subscribed
+
+
+def test_unsubscribe_keeps_symbol_when_token_still_on_another_level(monkeypatch):
+    """A token subscribed at two levels keeps its symbol until fully unsubscribed."""
+
+    async def run():
+        fake = FakeAsyncWS(incoming=[_AUTH_OK, _SUBSCRIBE_ACK])
+        _patch_connect(monkeypatch, fake)
+        ws = SFeedWebSocket(url="wss://fake/feed")
+        await ws.connect()
+
+        tok = WsToken("nse_cm", "2885")
+        await ws.subscribe_scrips([tok])
+        await ws.subscribe_depth([tok])
+        await asyncio.sleep(0.05)
+
+        await ws.unsubscribe_scrips([tok])  # still subscribed via depth
+        still_present = "nse_cm|2885" in ws.trading_symbols
+        await ws.unsubscribe_depth([tok])  # now fully gone
+        gone = "nse_cm|2885" not in ws.trading_symbols
+        await ws.close()
+        return still_present, gone
+
+    still_present, gone = asyncio.run(run())
+    assert still_present is True
+    assert gone is True
