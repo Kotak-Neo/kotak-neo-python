@@ -156,6 +156,18 @@ def test_get_url_details_invalid_api():
     assert "Endpoint mapping not found" in str(exc_info.value)
 
 
+def test_get_url_details_missing_base_url_raises(monkeypatch):
+    """When the domain can't be resolved, get_url_details raises a clear error."""
+    utility = NeoUtility(host="prod")
+    # Force get_domain to yield nothing (e.g. base URL not configured yet).
+    monkeypatch.setattr(utility, "get_domain", lambda: None)
+
+    with pytest.raises(ValueError) as exc_info:
+        utility.get_url_details("limits")
+
+    assert "Base URL is not configured" in str(exc_info.value)
+
+
 def test_get_neo_fin_key_prod_default():
     """Test get_neo_fin_key returns default for prod."""
     utility = NeoUtility(host="prod")

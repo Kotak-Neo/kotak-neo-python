@@ -199,6 +199,20 @@ def test_decode_full_depth_multiple_rows():
     assert len(msg.sell) == 2
 
 
+def test_depth_stops_when_packet_has_fewer_rows_than_counts():
+    """Depth loop breaks early when the packet carries fewer rows than the
+    declared buy/sell counts imply (protocol.py line 251)."""
+    # Claims 3 buy + 2 sell = 5 rows, but trim so only 2 rows are present.
+    pkt = _market_picture_packet(level=16, buy_n=3, sell_n=2)
+    trimmed = pkt[: 144 + 2 * 16]  # keep the fixed body + only 2 depth rows
+    trimmed = struct.pack("<H", len(trimmed)) + trimmed[2:]  # fix message_length
+    msg = decode_packet(trimmed, DIVIDERS)
+    # Only 2 rows could be read before the loop hit the break; both are bids
+    # (i < buy_n for i in 0,1), so no sell rows were parsed.
+    assert len(msg.buy) == 2
+    assert len(msg.sell) == 0
+
+
 def test_decode_market_open_close():
     open_pkt = _header(HEADER_SIZE, MSG_MARKET_OPEN)
     close_pkt = _header(HEADER_SIZE, MSG_MARKET_CLOSE)

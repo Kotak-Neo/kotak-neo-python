@@ -88,6 +88,31 @@ def test_place_order_validation_error(authenticated_client):
     assert "Error" in result
 
 
+@pytest.mark.parametrize(
+    "field",
+    ["exchange_segment", "price", "quantity", "trading_symbol", "transaction_type"],
+)
+def test_place_order_blank_mandatory_returns_error(authenticated_client, field):
+    """Blank mandatory params are rejected before any API call, as an Error dict."""
+    params = {
+        "exchange_segment": "nse_cm",
+        "product": "CNC",
+        "price": "1",
+        "order_type": "L",
+        "quantity": "1",
+        "validity": "DAY",
+        "trading_symbol": "TCS",
+        "transaction_type": "B",
+    }
+    params[field] = ""
+
+    result = authenticated_client.place_order(**params)
+
+    assert "Error" in result
+    # No network call needed — the validation error is surfaced as a dict.
+    assert "blank" in str(result["Error"]).lower() or "mandatory" in str(result["Error"]).lower()
+
+
 def test_trade_report_success(authenticated_client, requests_mock):
     """Test trade report retrieval."""
     url = authenticated_client.configuration.get_url_details("trade_report")

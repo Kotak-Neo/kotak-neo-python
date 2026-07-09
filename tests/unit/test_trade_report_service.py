@@ -1,3 +1,5 @@
+import httpx
+
 from neo_api_client.services.trade_report import TradeReportAPI
 
 
@@ -43,5 +45,18 @@ def test_trade_report_no_data(api_client, requests_mock):
     )
 
     response = TradeReportAPI(api_client).trading_report("123")
+
+    assert "Error" in response
+
+
+def test_trade_report_http_error_wrapped(api_client, monkeypatch):
+    """An httpx transport error is caught and returned as an Error dict (line 37)."""
+
+    def boom(*args, **kwargs):
+        raise httpx.HTTPError("network down")
+
+    monkeypatch.setattr(api_client.rest_client, "request", boom)
+
+    response = TradeReportAPI(api_client).trading_report(None)
 
     assert "Error" in response

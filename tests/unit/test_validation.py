@@ -106,6 +106,63 @@ def test_place_order_validation_optional_type_errors(field):
         place_order_validation(**_valid_place_kwargs(), **{field: 123})
 
 
+# ---- blank / empty mandatory parameters -------------------------------------
+
+
+@pytest.mark.parametrize(
+    "field",
+    [
+        "exchange_segment",
+        "product",
+        "price",
+        "order_type",
+        "quantity",
+        "validity",
+        "trading_symbol",
+        "transaction_type",
+    ],
+)
+@pytest.mark.parametrize("blank", ["", "   ", "\t"])
+def test_place_order_validation_blank_mandatory_fields(field, blank):
+    """Every mandatory field must reject blank / whitespace-only values."""
+    with pytest.raises(ApiValueError, match="cannot be blank|mandatory"):
+        place_order_validation(**_valid_place_kwargs(**{field: blank}))
+
+
+@pytest.mark.parametrize("field", ["amo", "disclosed_quantity", "market_protection", "pf"])
+def test_place_order_validation_blank_optional_mandatory_fields(field):
+    """am/dq/mp/pf carry defaults but must not be blank when explicitly passed."""
+    with pytest.raises(ApiValueError, match="cannot be blank|mandatory"):
+        place_order_validation(**_valid_place_kwargs(), **{field: ""})
+
+
+@pytest.mark.parametrize("bad_price", ["abc", "1,000", "$5"])
+def test_place_order_validation_non_numeric_price(bad_price):
+    with pytest.raises(ApiValueError, match="valid number"):
+        place_order_validation(**_valid_place_kwargs(price=bad_price))
+
+
+def test_place_order_validation_negative_price():
+    with pytest.raises(ApiValueError, match="negative"):
+        place_order_validation(**_valid_place_kwargs(price="-1"))
+
+
+@pytest.mark.parametrize("bad_qty", ["abc", "1.5", "0", "-3"])
+def test_place_order_validation_invalid_quantity(bad_qty):
+    with pytest.raises(ApiValueError, match="integer|greater than zero"):
+        place_order_validation(**_valid_place_kwargs(quantity=bad_qty))
+
+
+def test_place_order_validation_negative_trigger_price():
+    with pytest.raises(ApiValueError, match="negative|valid number"):
+        place_order_validation(**_valid_place_kwargs(), trigger_price="-5")
+
+
+def test_place_order_validation_invalid_disclosed_quantity():
+    with pytest.raises(ApiValueError, match="integer|negative"):
+        place_order_validation(**_valid_place_kwargs(), disclosed_quantity="-1")
+
+
 # ---- cancel_order_validation ------------------------------------------------
 
 

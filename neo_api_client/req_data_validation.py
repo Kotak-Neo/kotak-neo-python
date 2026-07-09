@@ -9,6 +9,44 @@ from neo_api_client.settings import (
 )
 
 
+def _require_non_blank(value, name):
+    """Ensure a mandatory parameter is a non-empty, non-whitespace string."""
+    if not isinstance(value, str):
+        raise ApiValueError(f"{name} must be a string.")
+    if not value.strip():
+        raise ApiValueError(f"{name} is mandatory and cannot be blank.")
+
+
+def _require_numeric(value, name):
+    """Ensure a string parameter represents a valid (non-negative) number."""
+    try:
+        parsed = float(value)
+    except (TypeError, ValueError) as exc:
+        raise ApiValueError(f"{name} must be a valid number, got {value!r}.") from exc
+    if parsed < 0:
+        raise ApiValueError(f"{name} cannot be negative.")
+
+
+def _require_positive_int(value, name):
+    """Ensure a string parameter represents an integer greater than zero."""
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError) as exc:
+        raise ApiValueError(f"{name} must be a valid integer, got {value!r}.") from exc
+    if parsed <= 0:
+        raise ApiValueError(f"{name} must be greater than zero.")
+
+
+def _require_non_negative_int(value, name):
+    """Ensure a string parameter represents an integer of zero or more."""
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError) as exc:
+        raise ApiValueError(f"{name} must be a valid integer, got {value!r}.") from exc
+    if parsed < 0:
+        raise ApiValueError(f"{name} cannot be negative.")
+
+
 def validate_configuration(consumer_key, consumer_secret):
     if not consumer_key:
         raise ApiValueError(
@@ -38,78 +76,74 @@ def place_order_validation(
     trigger_price=None,
     tag=None,
 ):
-    # Exchange Segment validation
-    if not isinstance(exchange_segment, str):
-        raise ApiValueError("Exchange segment must be a string.")
+    # Exchange Segment validation (mandatory, non-blank)
+    _require_non_blank(exchange_segment, "exchange_segment")
     if exchange_segment not in exchange_segment_allowed_values:
         raise ApiValueError(
             "Invalid exchange segment. Allowed values are NSE or nse_cm, BSE or bse_cm, NFO or nse_fo, "
             "BFO or bse_fo, CDS or cde_fo, BCD or bcs_fo."
         )
 
-    # Product validation
-    if not isinstance(product, str):
-        raise ApiValueError("Product must be a string.")
+    # Product validation (mandatory, non-blank)
+    _require_non_blank(product, "product")
     if product not in product_allowed_values:
         raise ApiValueError(
             "Invalid product. Allowed values are  NRML or Normal, CNC or Cash and Carry, MIS, "
             "INTRADAY, CO or Cover order, BO or Bracket Order."
         )
 
-    # Price validation
-    if not isinstance(price, str):
-        raise ApiValueError("Price must be a string.")
+    # Price validation (mandatory, non-blank numeric string)
+    _require_non_blank(price, "price")
+    _require_numeric(price, "price")
 
-    # Order type validation
-    if not isinstance(order_type, str):
-        raise ApiValueError("Order type must be a string.")
+    # Order type validation (mandatory, non-blank)
+    _require_non_blank(order_type, "order_type")
     if order_type not in order_type_allowed_values:
         raise ApiValueError(
             "Invalid order type. Allowed values are L or Limit, MKT or Market, SL or Stop loss limit,"
             "SL-M or Stop loss market, SP or Spread, 2L or Tow leg, 3L or Three Leg."
         )
 
-    # Quantity validation
-    if not isinstance(quantity, str):
-        raise ApiValueError("Quantity must be an string.")
+    # Quantity validation (mandatory, non-blank positive integer string)
+    _require_non_blank(quantity, "quantity")
+    _require_positive_int(quantity, "quantity")
 
-    # Validity validation
-    if not isinstance(validity, str):
-        raise ApiValueError("Validity must be a string.")
+    # Validity validation (mandatory, non-blank)
+    _require_non_blank(validity, "validity")
     if validity not in ["DAY", "IOC"]:
         raise ApiValueError("Invalid validity. Allowed values are DAY, IOC.")
 
-    # Trading symbol validation
-    if not isinstance(trading_symbol, str):
-        raise ApiValueError("Trading symbol must be a string.")
+    # Trading symbol validation (mandatory, non-blank)
+    _require_non_blank(trading_symbol, "trading_symbol")
 
-    # Transaction type validation
-    if not isinstance(transaction_type, str):
-        raise ApiValueError("Transaction type must be a string.")
+    # Transaction type validation (mandatory, non-blank)
+    _require_non_blank(transaction_type, "transaction_type")
     if transaction_type not in ["B", "S", "Buy", "Sell"]:
         raise ApiValueError("Invalid transaction type. Allowed values are B or Buy, S or Sell.")
 
-    # AMO validation
-    if amo is not None and not isinstance(amo, str):
-        raise ApiValueError("AMO must be a string.")
+    # AMO validation (mandatory field with a default; must be non-blank if given)
+    if amo is not None:
+        _require_non_blank(amo, "amo")
 
-    # Disclosed Quantity validation
-    if disclosed_quantity is not None and not isinstance(disclosed_quantity, str):
-        raise ApiValueError("disclosed_quantity must be a string.")
+    # Disclosed Quantity validation (must be non-blank if given)
+    if disclosed_quantity is not None:
+        _require_non_blank(disclosed_quantity, "disclosed_quantity")
+        _require_non_negative_int(disclosed_quantity, "disclosed_quantity")
 
-    # Market_protection validation
-    if market_protection is not None and not isinstance(market_protection, str):
-        raise ApiValueError("market_protection must be a string.")
+    # Market_protection validation (must be non-blank if given)
+    if market_protection is not None:
+        _require_non_blank(market_protection, "market_protection")
 
-    # pf validation
-    if pf is not None and not isinstance(pf, str):
-        raise ApiValueError("pf must be a string.")
+    # pf validation (must be non-blank if given)
+    if pf is not None:
+        _require_non_blank(pf, "pf")
 
-    # trigger_price validation
-    if trigger_price is not None and not isinstance(trigger_price, str):
-        raise ApiValueError("trigger_price must be a string.")
+    # trigger_price validation (optional; must be numeric if given)
+    if trigger_price is not None:
+        _require_non_blank(trigger_price, "trigger_price")
+        _require_numeric(trigger_price, "trigger_price")
 
-    # Tag validation
+    # Tag validation (optional; only a type constraint)
     if tag is not None and not isinstance(tag, str):
         raise ApiValueError("tag must be a string.")
 

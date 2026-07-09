@@ -472,3 +472,128 @@ def test_subscribe_over_limit_raises(monkeypatch):
 
     with pytest.raises(SubscriptionError, match="limit exceeded"):
         asyncio.run(run())
+
+
+# ---- authenticate: skip pre-auth binary frames + divider fallbacks ----------
+
+
+def test_authenticate_skips_binary_and_uses_divider_fallbacks(monkeypatch):
+    """Auth loop skips a leading binary frame before the JSON auth response,
+    and the dividers loop tolerates a non-dict entry and a name-only entry
+    resolved via EXCHANGE_NAME_TO_ID (client.py 278-283, 294-298)."""
+
+    async def run():
+        auth = json.dumps(
+            {
+                "message_code": 1119,
+                "format": "native_batch",
+                "exchanges": {
+                    "nse_cm": {"value": 1, "divider": 100},
+                    "nse_fo": {"divider": 50},  # no "value" -> fallback to name map (id 2)
+                    "bogus": "not-a-dict",       # non-dict -> skipped
+                },
+            }
+        )
+        # A binary frame arrives BEFORE the JSON auth response and must be skipped.
+        fake = FakeAsyncWS(incoming=[b"\x00\x01binary-preamble", auth])
+        _patch_connect(monkeypatch, fake)
+
+        ws = SFeedWebSocket(url="wss://fake/feed")
+        await ws.connect()
+        dividers = ws.dividers
+        await ws.close()
+        return dividers
+
+    dividers = asyncio.run(run())
+    assert dividers[1] == 100  # nse_cm by explicit value
+    assert dividers[2] == 50  # nse_fo resolved via EXCHANGE_NAME_TO_ID fallback
+
+
+# ---- _subscribe re-raises an inner SubscriptionError ------------------------
+
+
+def test_subscribe_reraises_subscription_error(monkeypatch):
+    """If sending a subscribe frame raises SubscriptionError, it propagates
+    unchanged rather than being re-wrapped (client.py line 409)."""
+    from neo_api_client.websocket.feed.exceptions import SubscriptionError
+
+    async def run():
+        fake = FakeAsyncWS(incoming=[_AUTH_OK])
+        _patch_connect(monkeypatch, fake)
+        ws = SFeedWebSocket(url="wss://fake/feed")
+        await ws.connect()
+
+        async def raise_sub_error(*a, **k):
+            raise SubscriptionError("inner limit hit")
+
+        monkeypatch.setattr(ws, "_send_subscribe", raise_sub_error)
+        try:
+            await ws.subscribe_scrips([WsToken("nse_cm", "1")])
+        finally:
+            ws._connected = False
+
+    with pytest.raises(SubscriptionError, match="inner limit hit"):
+        asyncio.run(run())
+
+
+# ---- remaining auth / connect branch edges ----------------------------------
+
+
+def test_authenticate_exhausts_without_json_response(monkeypatch):
+    """If 10 frames arrive and none is a str, the auth loop gives up (278->283)."""
+
+    async def run():
+        # Only binary frames -> `data` stays None -> "Unexpected auth response".
+        fake = FakeAsyncWS(incoming=[b"\x00" * 4] * 12)
+        _patch_connect(monkeypatch, fake)
+        ws = SFeedWebSocket(url="wss://fake/feed")
+        await ws.connect()
+
+    with pytest.raises(Exception, match="Unexpected auth response"):
+        asyncio.run(run())
+
+
+def test_authenticate_skips_unresolvable_exchange(monkeypatch):
+    """A dict exchange entry with no 'value' and an unknown name yields no id,
+    so it is skipped (298->294)."""
+
+    async def run():
+        auth = json.dumps(
+            {
+                "message_code": 1119,
+                "format": "native_batch",
+                "exchanges": {
+                    "nse_cm": {"value": 1, "divider": 100},
+                    "totally_unknown_exchange": {"divider": 25},  # no value, unknown name
+                },
+            }
+        )
+        fake = FakeAsyncWS(incoming=[auth])
+        _patch_connect(monkeypatch, fake)
+        ws = SFeedWebSocket(url="wss://fake/feed")
+        await ws.connect()
+        dividers = ws.dividers
+        await ws.close()
+        return dividers
+
+    dividers = asyncio.run(run())
+    assert dividers == {1: 100}  # unknown exchange skipped, no bogus entry added
+
+
+def test_connect_plain_ws_scheme_skips_ssl(monkeypatch):
+    """A ws:// (non-TLS) URL connects with ssl=None (217->231 false branch)."""
+
+    async def run():
+        captured = {}
+
+        async def fake_connect(url, **kwargs):
+            captured["ssl"] = kwargs.get("ssl")
+            return FakeAsyncWS(incoming=[_AUTH_OK])
+
+        monkeypatch.setattr(_client_mod.websockets, "connect", fake_connect)
+        ws = SFeedWebSocket(url="ws://localhost:9000/feed")
+        await ws.connect()
+        await ws.close()
+        return captured["ssl"]
+
+    assert asyncio.run(run()) is None  # no TLS context for ws://
