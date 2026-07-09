@@ -108,7 +108,26 @@ def setup_logging(
     ]
 
     if show_caller:
-        shared_processors.append(structlog.processors.CallsiteParameterAdder())
+        # Pin an explicit parameter set. structlog >= 25 adds QUAL_NAME /
+        # QUAL_MODULE to the default set, which read frame.f_code.co_qualname —
+        # an attribute that only exists on Python 3.11+. Since the SDK supports
+        # 3.10, we select 3.10-safe parameters explicitly.
+        CP = structlog.processors.CallsiteParameter
+        shared_processors.append(
+            structlog.processors.CallsiteParameterAdder(
+                parameters={
+                    CP.MODULE,
+                    CP.FUNC_NAME,
+                    CP.LINENO,
+                    CP.FILENAME,
+                    CP.PATHNAME,
+                    CP.THREAD,
+                    CP.THREAD_NAME,
+                    CP.PROCESS,
+                    CP.PROCESS_NAME,
+                }
+            )
+        )
 
     # Always censor sensitive data
     shared_processors.append(censor_sensitive_data)

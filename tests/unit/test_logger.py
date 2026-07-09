@@ -1,5 +1,8 @@
 """Unit tests for logger module."""
 
+import pytest
+import structlog
+
 from neo_api_client.logger import (
     add_app_context,
     add_correlation_id,
@@ -7,6 +10,18 @@ from neo_api_client.logger import (
     get_logger,
     setup_logging,
 )
+
+
+@pytest.fixture(autouse=True)
+def _restore_structlog_config():
+    """Any test here calls setup_logging(), which reconfigures structlog
+    globally. Snapshot and restore the config so a test can't leak its logging
+    setup (e.g. show_caller=True) into unrelated tests in the same session."""
+    saved = structlog.get_config()
+    try:
+        yield
+    finally:
+        structlog.configure(**saved)
 
 
 def test_get_logger_basic():
