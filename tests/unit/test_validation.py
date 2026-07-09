@@ -7,6 +7,7 @@ from neo_api_client.req_data_validation import (
     cancel_order_validation,
     limits_validation,
     margin_validation,
+    modify_order_validation,
     order_history_validation,
     place_order_validation,
     validate_configuration,
@@ -184,6 +185,85 @@ def test_cancel_order_validation_non_string():
 def test_cancel_order_validation_bad_amo():
     with pytest.raises(ApiValueError):
         cancel_order_validation(order_id="12345", amo=1)
+
+
+def test_cancel_order_validation_blank_amo():
+    with pytest.raises(ApiValueError, match="blank|mandatory"):
+        cancel_order_validation(order_id="12345", amo="")
+
+
+# ---- modify_order_validation ------------------------------------------------
+
+
+def _valid_modify_kwargs(**overrides):
+    kwargs = {
+        "order_id": "260709000000058",
+        "price": "1400",
+        "order_type": "L",
+        "quantity": "3",
+        "validity": "DAY",
+    }
+    kwargs.update(overrides)
+    return kwargs
+
+
+def test_modify_order_validation_ok():
+    # Should not raise
+    modify_order_validation(**_valid_modify_kwargs())
+
+
+def test_modify_order_validation_optional_fields_ok():
+    modify_order_validation(
+        **_valid_modify_kwargs(),
+        trigger_price="0",
+        disclosed_quantity="0",
+        market_protection="0",
+        amo="NO",
+    )
+
+
+@pytest.mark.parametrize("field", ["order_id", "price", "order_type", "quantity", "validity"])
+@pytest.mark.parametrize("blank", ["", "   ", None])
+def test_modify_order_validation_blank_mandatory(field, blank):
+    with pytest.raises(ApiValueError):
+        modify_order_validation(**_valid_modify_kwargs(**{field: blank}))
+
+
+@pytest.mark.parametrize("bad_price", ["abc", "-5"])
+def test_modify_order_validation_bad_price(bad_price):
+    with pytest.raises(ApiValueError, match="number|negative"):
+        modify_order_validation(**_valid_modify_kwargs(price=bad_price))
+
+
+@pytest.mark.parametrize("bad_qty", ["abc", "0", "-3", "1.5"])
+def test_modify_order_validation_bad_quantity(bad_qty):
+    with pytest.raises(ApiValueError, match="integer|greater than zero"):
+        modify_order_validation(**_valid_modify_kwargs(quantity=bad_qty))
+
+
+def test_modify_order_validation_bad_order_type():
+    with pytest.raises(ApiValueError, match="order type"):
+        modify_order_validation(**_valid_modify_kwargs(order_type="INVALID"))
+
+
+def test_modify_order_validation_bad_validity():
+    with pytest.raises(ApiValueError, match="validity"):
+        modify_order_validation(**_valid_modify_kwargs(validity="GTC"))
+
+
+def test_modify_order_validation_negative_trigger_price():
+    with pytest.raises(ApiValueError, match="negative|number"):
+        modify_order_validation(**_valid_modify_kwargs(), trigger_price="-1")
+
+
+def test_modify_order_validation_bad_disclosed_quantity():
+    with pytest.raises(ApiValueError, match="integer|negative"):
+        modify_order_validation(**_valid_modify_kwargs(), disclosed_quantity="-1")
+
+
+def test_modify_order_validation_blank_amo():
+    with pytest.raises(ApiValueError, match="blank|mandatory"):
+        modify_order_validation(**_valid_modify_kwargs(), amo="")
 
 
 # ---- order_history_validation -----------------------------------------------

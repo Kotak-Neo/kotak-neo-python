@@ -2,6 +2,10 @@ import neo_api_client
 from neo_api_client.exceptions import ApiException
 from neo_api_client.settings import ORDER_SOURCE
 
+# Order types that do not use a trigger price (a trigger is only meaningful for
+# stop-loss variants). Compared against the canonical code from settings.
+_NO_TRIGGER_ORDER_TYPES = {"L", "MKT"}
+
 
 class ModifyOrder:
     def __init__(self, api_client):
@@ -34,6 +38,9 @@ class ModifyOrder:
             "Auth": self.api_client.configuration.edit_token,
             "Content-Type": "application/x-www-form-urlencoded",
         }
+
+        # "am" is mandatory; default to "NO" (regular order). Pass "YES" for AMO.
+        amo = amo or "NO"
 
         body_params = {
             "tk": instrument_token,
@@ -97,6 +104,9 @@ class ModifyOrder:
             "Content-Type": "application/x-www-form-urlencoded",
         }
 
+        # "am" is mandatory; default to "NO" (regular order). Pass "YES" for AMO.
+        amo = amo or "NO"
+
         order_book_resp = neo_api_client.OrderReportAPI(self.api_client).ordered_books()
         if "data" not in order_book_resp:
             return {"Message": "There is no Data in the Order Book"}
@@ -118,7 +128,12 @@ class ModifyOrder:
                         product = product or item["prod"]
                         transaction_type = transaction_type or item["trnsTp"]
                         exchange_segment = exchange_segment or item["exSeg"]
-                        trigger_price = item["trgPrc"] if trigger_price == "0" else trigger_price
+                        # Only inherit the existing order's trigger price when the
+                        # caller didn't supply one AND the target order type still
+                        # uses a trigger. Converting to a Limit/Market order must
+                        # not carry over a stop-loss order's stale trigger price.
+                        if trigger_price == "0" and order_type not in _NO_TRIGGER_ORDER_TYPES:
+                            trigger_price = item["trgPrc"]
 
                         body_params = {
                             "tk": instrument_token,

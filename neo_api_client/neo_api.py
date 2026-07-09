@@ -243,7 +243,7 @@ class NeoAPI:
         """
         if self.configuration.edit_token and self.configuration.edit_sid:
             try:
-                req_data_validation.cancel_order_validation(order_id)
+                req_data_validation.cancel_order_validation(order_id, amo=amo)
                 cancel_order = OrderAPI(self.api_client).order_cancelling(
                     order_id=order_id, isVerify=isVerify, amo=amo
                 )
@@ -375,6 +375,23 @@ class NeoAPI:
             The Status of the Given Order ID modification
         """
         if self.configuration.edit_token and self.configuration.edit_sid:
+            # Validate mandatory inputs up-front (before any value mapping) so
+            # blank/invalid values are rejected with a clear message.
+            try:
+                req_data_validation.modify_order_validation(
+                    order_id=order_id,
+                    price=price,
+                    order_type=order_type,
+                    quantity=quantity,
+                    validity=validity,
+                    trigger_price=trigger_price,
+                    disclosed_quantity=disclosed_quantity,
+                    market_protection=market_protection,
+                    amo=amo,
+                )
+            except Exception as e:
+                return {"Error": e}
+
             if order_id and instrument_token and exchange_segment and product and trading_symbol:
                 exchange_segment = settings.exchange_segment[exchange_segment]
                 product = settings.product[product]

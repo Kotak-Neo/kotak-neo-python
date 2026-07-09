@@ -476,14 +476,65 @@ def test_modify_order_quick_path_success(authenticated_client, requests_mock):
 
 
 def test_modify_order_requires_order_id(authenticated_client):
-    """modify_order() raises ValueError when order_id is missing entirely."""
-    with pytest.raises(ValueError):
+    """modify_order() returns a validation Error dict when order_id is missing.
+
+    (Now surfaced consistently as an {"Error": ...} dict, like the other order
+    methods, rather than raising — input validation runs before the API call.)
+    """
+    result = authenticated_client.modify_order(
+        order_id=None,
+        price="105",
+        order_type="L",
+        quantity="2",
+        validity="DAY",
+    )
+    assert "Error" in result
+
+
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("price", ""),
+        ("price", "abc"),
+        ("quantity", "0"),
+        ("order_type", "INVALID"),
+        ("validity", "GTC"),
+    ],
+)
+def test_modify_order_invalid_input_returns_error(authenticated_client, field, value):
+    """modify_order() rejects blank/invalid mandatory params before any API call."""
+    params = {
+        "order_id": "260709000000058",
+        "price": "1400",
+        "order_type": "L",
+        "quantity": "3",
+        "validity": "DAY",
+    }
+    params[field] = value
+
+    result = authenticated_client.modify_order(**params)
+
+    assert "Error" in result
+
+
+def test_cancel_order_blank_order_id_returns_error(authenticated_client):
+    """cancel_order() rejects a blank order_id as a validation Error dict."""
+    result = authenticated_client.cancel_order(order_id="   ")
+    assert "Error" in result
+
+
+def test_modify_order_partial_params_raises(authenticated_client):
+    """A valid order_id with only some of the quick-path params (e.g.
+    instrument_token but no exchange_segment/trading_symbol) matches neither
+    modify branch and raises the 'Order ID is Mandate' guard."""
+    with pytest.raises(ValueError, match="Order ID is Mandate"):
         authenticated_client.modify_order(
-            order_id=None,
-            price="105",
+            order_id="260709000000058",
+            price="1400",
             order_type="L",
-            quantity="2",
+            quantity="3",
             validity="DAY",
+            instrument_token="11536",  # partial: no exchange_segment/trading_symbol
         )
 
 

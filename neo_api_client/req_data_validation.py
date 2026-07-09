@@ -149,12 +149,72 @@ def place_order_validation(
 
 
 def cancel_order_validation(order_id, amo=None):
-    if not isinstance(order_id, str) or not bool(order_id.strip()):
-        raise ValueError("order_id parameter must be a non-empty string")
+    # order_id is mandatory (sent as "on"); must be a non-blank string.
+    _require_non_blank(order_id, "order_id")
 
-    # AMO validation
-    if amo is not None and not isinstance(amo, str):
-        raise ApiValueError("AMO must be a string.")
+    # AMO is optional here but, when supplied, must be a non-blank string.
+    if amo is not None:
+        _require_non_blank(amo, "amo")
+
+
+def modify_order_validation(
+    order_id,
+    price,
+    order_type,
+    quantity,
+    validity,
+    trigger_price=None,
+    disclosed_quantity=None,
+    market_protection=None,
+    amo=None,
+):
+    """Validate mandatory modify-order inputs before the request is built.
+
+    Rejects blank/invalid values for the fields the API requires:
+    order_id (no), price (pr), order_type (pt), quantity (qt), validity (vd),
+    and the numeric optionals when supplied.
+    """
+    # order_id (mandatory, non-blank)
+    _require_non_blank(order_id, "order_id")
+
+    # Price (mandatory, non-blank numeric string)
+    _require_non_blank(price, "price")
+    _require_numeric(price, "price")
+
+    # Order type (mandatory, non-blank, from the allowed set)
+    _require_non_blank(order_type, "order_type")
+    if order_type not in order_type_allowed_values:
+        raise ApiValueError(
+            "Invalid order type. Allowed values are L or Limit, MKT or Market, SL or Stop loss limit,"
+            "SL-M or Stop loss market, SP or Spread, 2L or Tow leg, 3L or Three Leg."
+        )
+
+    # Quantity (mandatory, non-blank positive integer string)
+    _require_non_blank(quantity, "quantity")
+    _require_positive_int(quantity, "quantity")
+
+    # Validity (mandatory, non-blank)
+    _require_non_blank(validity, "validity")
+    if validity not in ["DAY", "IOC"]:
+        raise ApiValueError("Invalid validity. Allowed values are DAY, IOC.")
+
+    # trigger_price (optional; must be a non-negative number when supplied)
+    if trigger_price is not None:
+        _require_non_blank(trigger_price, "trigger_price")
+        _require_numeric(trigger_price, "trigger_price")
+
+    # disclosed_quantity (optional; must be a non-negative integer when supplied)
+    if disclosed_quantity is not None:
+        _require_non_blank(disclosed_quantity, "disclosed_quantity")
+        _require_non_negative_int(disclosed_quantity, "disclosed_quantity")
+
+    # market_protection (optional; must be non-blank when supplied)
+    if market_protection is not None:
+        _require_non_blank(market_protection, "market_protection")
+
+    # amo (optional; must be non-blank when supplied)
+    if amo is not None:
+        _require_non_blank(amo, "amo")
 
 
 def order_history_validation(order_id):

@@ -42,6 +42,10 @@ class OrderAPI:
                 "Content-Type": "application/x-www-form-urlencoded",
             }
 
+            # "am" is mandatory on every order request; default to "NO" (regular
+            # order) so a valid value is always sent. Pass "YES" for AMO orders.
+            amo = amo or "NO"
+
             body_params = {
                 "am": amo,
                 "dq": disclosed_quantity,
@@ -105,6 +109,8 @@ class OrderAPI:
             "Auth": self.api_client.configuration.edit_token,
             "Content-Type": "application/x-www-form-urlencoded",
         }
+        # "am" is mandatory; default to "NO" (regular order). Pass "YES" for AMO.
+        amo = amo or "NO"
         body_params = {"on": order_id, "am": amo}
 
         query_params = {}
