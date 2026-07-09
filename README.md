@@ -3,7 +3,7 @@
 Official Python SDK for Kotak Neo Trading APIs - A production-ready, enterprise-grade trading client for the Kotak Neo platform.
 
 [![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
-[![PyPI Version](https://img.shields.io/badge/pypi-v2.2.2-green.svg)](https://pypi.org/project/kotakneoapi/)
+[![PyPI Version](https://img.shields.io/badge/pypi-v2.2.3-green.svg)](https://pypi.org/project/kotakneoapi/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/LICENSE)
 
 ## Features
@@ -12,12 +12,12 @@ Official Python SDK for Kotak Neo Trading APIs - A production-ready, enterprise-
 ✅ **Order Management** - Place, modify, cancel orders (Regular/AMO/Bracket/Cover)  
 ✅ **Portfolio & Positions** - Real-time holdings, positions, and limits  
 ✅ **Market Data** - Live quotes, scrip master, search functionality  
-✅ **SFeed WebSocket Streaming** - Modern async/await live market feed with typed messages  
+✅ **SFeed WebSocket Streaming** - Modern async/await live market feed with typed messages, enriched with `trading_symbol`  
 ✅ **HTTP/2 Transport** - REST calls use HTTP/2 (via httpx) with automatic HTTP/1.1 fallback  
 ✅ **Enterprise-Grade Reliability** - Circuit breaker, rate limiting, retry logic  
-✅ **Comprehensive Error Handling** - Detailed exception hierarchy  
+✅ **Comprehensive Error Handling** - Detailed exception hierarchy with input validation  
 ✅ **Type Safety** - Full mypy type checking support  
-✅ **Extensive Testing** - Unit, integration, and E2E tests  
+✅ **Extensive Testing** - 100% test coverage (unit, integration, and E2E tests)  
 
 ## Installation
 
@@ -144,7 +144,8 @@ Detailed documentation for all SDK functions with examples and real API response
 ## WebSocket Streaming Example (SFeed)
 
 Live market data is delivered through the modern async/await **SFeed** WebSocket
-client. It uses `async for` iteration and returns type-safe Pydantic messages.
+client. It uses `async for` iteration and returns type-safe Pydantic messages,
+each enriched with its `trading_symbol` (resolved from the subscribe ack).
 
 ```python
 import asyncio
@@ -166,7 +167,8 @@ async def main():
 
         async for message in ws:
             if isinstance(message, SFeedScrip):
-                print(f"{message.instrument_token} LTP: {message.last_traded_price}")
+                print(f"{message.trading_symbol} ({message.instrument_token}) "
+                      f"LTP: {message.last_traded_price}")
 
 asyncio.run(main())
 ```
@@ -425,6 +427,6 @@ See [CHANGELOG.md](https://github.com/Kotak-Neo/kotak-neo-python/releases) for v
 
 ---
 
-**Version**: 2.2.2  
+**Version**: 2.2.3  
 **Status**: Production/Stable  
 **Built with ❤️ by Kotak Neo Team**

@@ -29,7 +29,8 @@ async def main():
 
         async for message in ws:
             if isinstance(message, SFeedScrip):
-                print(f"{message.instrument_token} LTP: {message.last_traded_price}")
+                print(f"{message.trading_symbol} ({message.instrument_token}) "
+                      f"LTP: {message.last_traded_price}")
 
 asyncio.run(main())
 ```
@@ -87,5 +88,11 @@ would exceed the limit raises `SubscriptionError` and sends nothing. Use
 Messages are typed Pydantic models (`SFeedScrip`, `SFeedScripLite`, `SFeedIndex`,
 `SFeedMarketStatus`). All prices are pre-scaled by the per-exchange divider. Call
 `message.model_dump()` for a dict.
+
+Every message includes `exchange_segment`, `instrument_token`, and
+`trading_symbol`. The `trading_symbol` (e.g. `"RELIANCE-EQ"`) is resolved from the
+subscribe acknowledgement and is `None` until that ack arrives or if the server
+returned no symbol for the token. See the
+[Trading symbol](../../guides/websocket.md#trading-symbol) section of the guide.
 
 [[Back to top]](#) [[Back to SFeed guide]](../../guides/websocket.md) [[Back to README]](../README.md)

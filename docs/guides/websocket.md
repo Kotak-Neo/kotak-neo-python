@@ -48,7 +48,8 @@ async def main():
 
         async for message in ws:
             if isinstance(message, SFeedScrip):
-                print(f"{message.instrument_token} LTP: {message.last_traded_price}")
+                print(f"{message.trading_symbol} ({message.instrument_token}) "
+                      f"LTP: {message.last_traded_price}")
 
 asyncio.run(main())
 ```
@@ -160,6 +161,9 @@ print(ws.subscription_count)                 # tokens currently subscribed
 
 All prices are already scaled (divided by the per-exchange divider) before you receive them.
 
+Every message also carries `exchange_segment`, `instrument_token`, and
+`trading_symbol` (see [Trading symbol](#trading-symbol) below).
+
 ### `SFeedScrip` — touch line / depth / full depth
 
 ```python
@@ -221,6 +225,35 @@ async for message in ws:
         case SFeedIndex():
             print(f"Index {message.name}: {message.last_traded_price}")
 ```
+
+## Trading symbol
+
+The binary feed does not include the human-readable trading symbol — the server
+sends it once, in the **subscribe acknowledgement**. The client captures that
+mapping automatically and stamps every subsequent message with its
+`trading_symbol`:
+
+```python
+await ws.subscribe_scrips([WsToken("nse_cm", "2885")])
+
+async for message in ws:
+    # trading_symbol is resolved from the subscribe ack, e.g. "RELIANCE-EQ"
+    print(f"{message.trading_symbol} ({message.instrument_token}): "
+          f"{message.last_traded_price}")
+```
+
+Details:
+
+- `trading_symbol` is `None` until the acknowledgement for that token has been
+  received (e.g. the very first frames right after subscribing), and for any
+  token the server didn't return a symbol for.
+- The mapping is keyed by `"<exchange_segment>|<instrument_token>"`. You can
+  inspect the current map via the read-only `ws.trading_symbols` property.
+- On **unsubscribe**, a token's entry is removed once it is no longer subscribed
+  under any feed level (so unsubscribing touch line while depth is still active
+  keeps the symbol).
+- On reconnect, the client re-subscribes and the server re-sends the
+  acknowledgements, so the map is rebuilt automatically.
 
 ## Configuration
 
