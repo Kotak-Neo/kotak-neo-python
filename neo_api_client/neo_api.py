@@ -343,6 +343,7 @@ class NeoAPI:
         disclosed_quantity="0",
         filled_quantity="0",
         amo="NO",
+        isVerify=False,
     ):
         """
         There are 2 ways to modify the order one is bypassing all the parameters and another one is
@@ -367,9 +368,16 @@ class NeoAPI:
             market_protection (str, optional): The new market protection for the order. Defaults to "0".
             disclosed_quantity (str, optional): The new disclosed quantity for the order. Defaults to "0".
             filled_quantity (str, optional): The new filled quantity for the order. Defaults to "0".
-
-        Raises:
-            ValueError: If order ID is not provided.
+            isVerify (bool, optional): Defaults to False. A modify request is
+                acknowledged asynchronously — the OMS returns ``stat: "Ok"`` when
+                it accepts the request, but the exchange may reject it moments
+                later (e.g. price outside the allowed band), which only shows up
+                afterwards on the order book. When True, the SDK re-reads the
+                order book after the modify and returns a failure dict
+                (``stat: "Not_Ok"`` with the rejection reason) if the order ended
+                up rejected/cancelled. Leaving it False returns the raw OMS
+                acknowledgement; confirm the final state via the order feed or
+                order history.
 
         Returns:
             The Status of the Given Order ID modification
@@ -414,6 +422,7 @@ class NeoAPI:
                         disclosed_quantity=disclosed_quantity,
                         filled_quantity=filled_quantity,
                         amo=amo,
+                        is_verify=isVerify,
                     )
                     return quick_modify
                 except Exception:
@@ -437,6 +446,7 @@ class NeoAPI:
                         disclosed_quantity=disclosed_quantity,
                         filled_quantity=filled_quantity,
                         amo=amo,
+                        is_verify=isVerify,
                     )
                     return modify_order
 
