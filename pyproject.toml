@@ -52,7 +52,7 @@ dependencies = [
     "httpx[http2]>=0.27,<1",
     "websocket-client>=1.9.0,<2",
     "structlog>=24.1.0,<25",
-    "tenacity>=8.2.3,<9",
+    "tenacity>=8.2.3,<10",
     "python-decouple>=3.8,<4",
     # TOTP generation for authentication
     "pyotp>=2.9.0",
