@@ -490,7 +490,7 @@ def test_authenticate_skips_binary_and_uses_divider_fallbacks(monkeypatch):
                 "exchanges": {
                     "nse_cm": {"value": 1, "divider": 100},
                     "nse_fo": {"divider": 50},  # no "value" -> fallback to name map (id 2)
-                    "bogus": "not-a-dict",       # non-dict -> skipped
+                    "bogus": "not-a-dict",  # non-dict -> skipped
                 },
             }
         )
