@@ -53,6 +53,22 @@ def test_place_order_validation_ok():
     place_order_validation(**_valid_place_kwargs())
 
 
+@pytest.mark.parametrize(
+    "product",
+    ["CNC", "NRML", "MIS", "Normal", "Cash and Carry", "cnc", "mis"],
+)
+def test_place_order_allowed_products(product):
+    """Only CNC/NRML/MIS (and their aliases) are accepted for place order."""
+    place_order_validation(**_valid_place_kwargs(product=product))
+
+
+@pytest.mark.parametrize("product", ["CO", "BO", "MTF", "INTRADAY", "XYZ"])
+def test_place_order_rejects_disallowed_products(product):
+    """CO/BO/MTF/INTRADAY (and unknown) are not valid place-order products."""
+    with pytest.raises(ApiValueError, match="Allowed values are CNC, NRML, MIS"):
+        place_order_validation(**_valid_place_kwargs(product=product))
+
+
 def test_place_order_validation_optional_fields_ok():
     place_order_validation(
         **_valid_place_kwargs(),

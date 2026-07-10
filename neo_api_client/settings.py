@@ -76,6 +76,11 @@ product_allowed_values = [
     "MTF",
 ]
 
+# Product types accepted by the place-order API (canonical codes only). Aliases
+# (e.g. "Normal", "Cash and Carry") are resolved to these via the `product` map
+# before the check.
+place_order_product_allowed_values = ["CNC", "NRML", "MIS"]
+
 order_type_allowed_values = [
     "Limit",
     "Market",

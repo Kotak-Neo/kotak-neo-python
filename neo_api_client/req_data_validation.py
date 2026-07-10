@@ -3,6 +3,7 @@ from neo_api_client.settings import (
     exchange_limits,
     exchange_segment_allowed_values,
     order_type_allowed_values,
+    place_order_product_allowed_values,
     product_allowed_values,
     product_limits,
     segment_limits,
@@ -10,6 +11,7 @@ from neo_api_client.settings import (
     validity_allowed_default,
 )
 from neo_api_client.settings import exchange_segment as _exchange_segment_map
+from neo_api_client.settings import product as _product_map
 
 
 def _require_non_blank(value, name):
@@ -106,13 +108,13 @@ def place_order_validation(
             "BFO or bse_fo, CDS or cde_fo, BCD or bcs_fo."
         )
 
-    # Product validation (mandatory, non-blank)
+    # Product validation (mandatory, non-blank). Place order accepts only
+    # CNC, NRML and MIS. Resolve any known alias (e.g. "Normal", "Cash and
+    # Carry", "cnc") to its canonical code before checking.
     _require_non_blank(product, "product")
-    if product not in product_allowed_values:
-        raise ApiValueError(
-            "Invalid product. Allowed values are  NRML or Normal, CNC or Cash and Carry, MIS, "
-            "INTRADAY, CO or Cover order, BO or Bracket Order."
-        )
+    canonical_product = _product_map.get(product, product)
+    if canonical_product not in place_order_product_allowed_values:
+        raise ApiValueError("Invalid product. Allowed values are CNC, NRML, MIS.")
 
     # Price validation (mandatory, non-blank numeric string)
     _require_non_blank(price, "price")
