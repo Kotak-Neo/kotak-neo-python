@@ -26,8 +26,9 @@ DEFAULT_DIVIDER = 100
 # Auth responses observed: 1117 (documented) and 1119 (SFeed production).
 MSG_AUTH_RESPONSE = 1117
 MSG_AUTH_RESPONSE_CODES = (1117, 1119)
-# Subscribe acknowledgement (JSON control frame) carrying the trading_symbols map.
-MSG_SUBSCRIBE_ACK = 1118
+# Subscribe acknowledgement (JSON control frame) carrying the trading_symbols
+# map. Sent when the subscribe request includes "ack_symbol": true.
+MSG_SUBSCRIBE_ACK = 1109
 MSG_MARKET_OPEN = 6511
 MSG_MARKET_CLOSE = 6521
 MSG_INDEX = 7207

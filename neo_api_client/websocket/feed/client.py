@@ -152,7 +152,7 @@ class SFeedWebSocket:
         self._dividers: dict[int, int] = {}
         # Trading-symbol map keyed by "<exchange_segment>|<instrument_token>"
         # (e.g. "nse_cm|2885" -> "RELIANCE-EQ"), built from the subscribe
-        # acknowledgement (message_code 1118) and cleared on unsubscribe. Used
+        # acknowledgement (message_code 1109) and cleared on unsubscribe. Used
         # to enrich each feed message with its trading_symbol.
         self._trading_symbols: dict[str, str] = {}
 
@@ -346,7 +346,7 @@ class SFeedWebSocket:
     def _handle_text_frame(self, raw: str | bytes) -> None:
         """Handle a JSON control frame.
 
-        The subscribe acknowledgement (``message_code`` 1118) carries a
+        The subscribe acknowledgement (``message_code`` 1109) carries a
         ``trading_symbols`` map keyed by ``"<exchange>|<token>"``; record it so
         subsequent feed messages can be enriched with their trading_symbol.
         Any other control frame is ignored.
@@ -420,9 +420,20 @@ class SFeedWebSocket:
         return ",".join(t.inputtoken for t in tokens)
 
     async def _send_subscribe(self, event: str, tokens: list[WsToken]) -> None:
-        """Send a batched subscribe frame (all tokens in one ``inputtoken``)."""
+        """Send a batched subscribe frame (all tokens in one ``inputtoken``).
+
+        ``ack_symbol: true`` asks the server to return the trading-symbol
+        acknowledgement (message_code 1109) mapping each ``exchange|token`` to
+        its trading symbol, which enriches subsequent feed messages.
+        """
         await self._ws.send(
-            json.dumps({"event": event, "inputtoken": self._inputtoken(tokens), "json": "false"})
+            json.dumps(
+                {
+                    "event": event,
+                    "inputtoken": self._inputtoken(tokens),
+                    "ack_symbol": True,
+                }
+            )
         )
 
     async def _send_unsubscribe(self, event: str, tokens: list[WsToken]) -> None:

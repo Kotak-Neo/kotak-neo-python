@@ -50,7 +50,10 @@ def test_subscribe_batches_tokens_into_single_frame():
     frame = asyncio.run(run())
     assert frame["event"] == "subscribeScrips"
     assert frame["inputtoken"] == "nse_fo|44498,nse_fo|44500"
-    assert frame["json"] == "false"
+    # ack_symbol requests the trading-symbol acknowledgement (message_code 1109).
+    assert frame["ack_symbol"] is True
+    # The subscribe frame carries only event/inputtoken/ack_symbol.
+    assert "json" not in frame
 
 
 def test_subscribe_supports_name_token():
@@ -63,7 +66,7 @@ def test_subscribe_supports_name_token():
     assert frame["inputtoken"] == "nse_cm|Nifty 50"
 
 
-def test_unsubscribe_omits_json_field():
+def test_unsubscribe_omits_json_and_ack_symbol_fields():
     async def run():
         ws, fake = _client_with_fake_socket()
         await ws.unsubscribe_scrips([WsToken("nse_cm", "Nifty 50")])
@@ -73,6 +76,8 @@ def test_unsubscribe_omits_json_field():
     assert frame["event"] == "unsubscribeScrips"
     assert frame["inputtoken"] == "nse_cm|Nifty 50"
     assert "json" not in frame
+    # ack_symbol is a subscribe-only field; it must NOT be sent on unsubscribe.
+    assert "ack_symbol" not in frame
 
 
 def test_auth_frame_fields():

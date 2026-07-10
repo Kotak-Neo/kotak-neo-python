@@ -666,6 +666,21 @@ OPTION_CHAIN_TOKENS = [
 ]
 
 
+def _trace_ws_frames(ws):
+    """Wrap the live socket's send() so every outgoing WS frame is printed.
+
+    The ``REQUEST`` block that run_test() prints is a display-only summary; this
+    shows the ACTUAL frame put on the wire (including ``ack_symbol``).
+    """
+    original_send = ws._ws.send
+
+    async def send_and_print(data):
+        print(f"[WS →] {data}")
+        return await original_send(data)
+
+    ws._ws.send = send_and_print
+
+
 def _ws_subscribe_test(tokens):
     """Connect, subscribe to `tokens`, collect messages for a few seconds.
 
@@ -683,6 +698,7 @@ def _ws_subscribe_test(tokens):
 
             await ws.connect()
             runner.ws_connected = ws.is_connected
+            _trace_ws_frames(ws)
 
             await ws.subscribe_scrips(tokens)
             print(f"\nSubscribed to {len(tokens)} token(s) - receiving (5 seconds)...")
@@ -717,6 +733,7 @@ def _ws_unsubscribe_test(tokens):
             ws.on_error = runner.on_ws_error
 
             await ws.connect()
+            _trace_ws_frames(ws)
 
             # Subscribe briefly so we know the feed is live.
             await ws.subscribe_scrips(tokens)
@@ -750,7 +767,10 @@ def _ws_unsubscribe_test(tokens):
 runner.run_test(
     "WEBSOCKET LTP SUBSCRIBE",
     _ws_subscribe_test(LTP_TOKENS),
-    request_params={"inputtoken": [t.inputtoken for t in LTP_TOKENS]},
+    request_params={
+        "inputtoken": [t.inputtoken for t in LTP_TOKENS],
+        "ack_symbol": True,
+    },
 )
 
 runner.run_test(
@@ -763,7 +783,10 @@ runner.run_test(
 runner.run_test(
     "WEBSOCKET OPTION CHAIN SUBSCRIBE",
     _ws_subscribe_test(OPTION_CHAIN_TOKENS),
-    request_params={"inputtoken": [t.inputtoken for t in OPTION_CHAIN_TOKENS]},
+    request_params={
+        "inputtoken": [t.inputtoken for t in OPTION_CHAIN_TOKENS],
+        "ack_symbol": True,
+    },
 )
 
 runner.run_test(

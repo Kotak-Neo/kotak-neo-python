@@ -120,8 +120,9 @@ await ws.unsubscribe_scrips([WsToken("nse_cm", "Nifty 50")])
 ```
 
 On the wire this is the documented LTP frame
-`{"event": "subscribeScrips", "inputtoken": "nse_cm|Nifty 50", "json": "false"}`
-(unsubscribe omits the `json` field).
+`{"event": "subscribeScrips", "inputtoken": "nse_cm|Nifty 50", "ack_symbol": true}`
+(`ack_symbol` requests the trading-symbol acknowledgement; see
+[Trading symbol](#trading-symbol)).
 
 ### Option chain (batched)
 
@@ -229,9 +230,10 @@ async for message in ws:
 ## Trading symbol
 
 The binary feed does not include the human-readable trading symbol — the server
-sends it once, in the **subscribe acknowledgement**. The client captures that
-mapping automatically and stamps every subsequent message with its
-`trading_symbol`:
+sends it once, in the **subscribe acknowledgement** (control frame with
+`message_code` 1109). The client requests this by sending `ack_symbol: true` on
+every subscribe frame automatically, captures the returned mapping, and stamps
+every subsequent message with its `trading_symbol`:
 
 ```python
 await ws.subscribe_scrips([WsToken("nse_cm", "2885")])

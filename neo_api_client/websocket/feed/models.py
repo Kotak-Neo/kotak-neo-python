@@ -86,7 +86,7 @@ class SFeedBase(BaseModel):
 
     exchange_segment: str
     instrument_token: str
-    # Resolved from the subscribe acknowledgement (message_code 1118) and
+    # Resolved from the subscribe acknowledgement (message_code 1109) and
     # attached by the client. None until the mapping is known for this token.
     trading_symbol: str | None = None
 

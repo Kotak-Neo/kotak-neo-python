@@ -599,11 +599,11 @@ def test_connect_plain_ws_scheme_skips_ssl(monkeypatch):
     assert asyncio.run(run()) is None  # no TLS context for ws://
 
 
-# ---- trading_symbol map (subscribe ack 1118) --------------------------------
+# ---- trading_symbol map (subscribe ack 1109) --------------------------------
 
 _SUBSCRIBE_ACK = json.dumps(
     {
-        "message_code": 1118,
+        "message_code": 1109,
         "message": "Subscribed",
         "trading_symbols": {
             "nse_cm|2885": "RELIANCE-EQ",
@@ -614,7 +614,7 @@ _SUBSCRIBE_ACK = json.dumps(
 
 
 def test_subscribe_ack_populates_trading_symbol_map(monkeypatch):
-    """A 1118 'Subscribed' ack builds the exchange|token -> symbol map."""
+    """A 1109 'Subscribed' ack builds the exchange|token -> symbol map."""
 
     async def run():
         fake = FakeAsyncWS(incoming=[_AUTH_OK, _SUBSCRIBE_ACK])
@@ -632,13 +632,13 @@ def test_subscribe_ack_populates_trading_symbol_map(monkeypatch):
 
 
 def test_handle_text_frame_ignores_non_ack_and_malformed():
-    """Non-1118 control frames and malformed JSON leave the map untouched."""
+    """Non-1109 control frames and malformed JSON leave the map untouched."""
     ws = SFeedWebSocket(url="wss://fake/feed")
     ws._handle_text_frame('{"message_code": 9999, "foo": "bar"}')
     ws._handle_text_frame("not-json{")
     ws._handle_text_frame(json.dumps(["a", "list"]))
-    ws._handle_text_frame(json.dumps({"message_code": 1118}))  # no trading_symbols
-    ws._handle_text_frame(json.dumps({"message_code": 1118, "trading_symbols": "oops"}))
+    ws._handle_text_frame(json.dumps({"message_code": 1109}))  # no trading_symbols
+    ws._handle_text_frame(json.dumps({"message_code": 1109, "trading_symbols": "oops"}))
     assert ws.trading_symbols == {}
 
 
@@ -648,7 +648,7 @@ def test_subscribe_ack_skips_non_string_entries():
     ws._handle_text_frame(
         json.dumps(
             {
-                "message_code": 1118,
+                "message_code": 1109,
                 "trading_symbols": {
                     "nse_cm|2885": "RELIANCE-EQ",  # valid
                     "nse_cm|99": 12345,  # non-string value -> skipped
