@@ -6,6 +6,22 @@ Comprehensive guides for developers, maintainers, and contributors.
 
 ### For Developers
 
+#### [Migration Guide (v2.0.2 → v2.2.4)](MIGRATION.md) ⭐ **UPGRADING? START HERE**
+Step-by-step guide for upgrading from the previous SDK version.
+
+**Topics Covered:**
+- Authentication (`consumer_key` + TOTP) confirmation
+- Stricter order validation (product `CNC`/`NRML`/`MIS`, per-segment validity)
+- Error handling: exceptions instead of silent `{"Error": ...}` dicts
+- Removed methods (legacy WebSocket, cover/bracket cancel)
+- WebSocket migration: callbacks → async/await with typed messages
+- Upgrade checklist
+
+**Who should read:**
+- Anyone upgrading existing code from v2.0.2
+
+---
+
 #### [SFeed WebSocket Guide](websocket.md)
 Modern async/await streaming client for live market data (v2.2.0+).
 
@@ -99,6 +115,9 @@ Complete guide for building and publishing the package to PyPI (production).
 - **[Publishing Guide](PUBLISHING.md)** - Production release
 - **[PyPI Best Practices](PUBLISHING.md#security-best-practices)** - Security guidelines
 
+### Upgrading
+- **[Migration Guide (v2.0.2 → v2.2.4)](MIGRATION.md)** - Upgrade existing code
+
 ### API Documentation
 - **[API Functions](../functions/README.md)** - Complete API reference
 - **[Authentication](../functions/authentication/)** - Login & auth
@@ -126,6 +145,9 @@ Complete guide for building and publishing the package to PyPI (production).
 **...publish to production PyPI**
 → [Publishing Guide](PUBLISHING.md)
 
+**...upgrade from an older version (v2.0.2)**
+→ [Migration Guide](MIGRATION.md)
+
 **...learn the API**
 → [API Functions Documentation](../functions/README.md)
 
@@ -140,6 +162,7 @@ Complete guide for building and publishing the package to PyPI (production).
 docs/
 ├── guides/                          # 📖 You are here
 │   ├── README.md                    # This file
+│   ├── MIGRATION.md                 # v2.0.2 → v2.2.4 upgrade guide
 │   ├── websocket.md         # Async SFeed WebSocket guide
 │   ├── INSTALLATION_REFERENCE.md    # Complete installation guide
 │   ├── TESTPYPI_UPLOAD_GUIDE.md    # TestPyPI publishing

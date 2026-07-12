@@ -146,10 +146,11 @@ jobs:
           cx_tenant: ${{ secrets.CX_TENANT }}
           cx_client_id: ${{ secrets.CX_CLIENT_ID }}
           cx_client_secret: ${{ secrets.CX_CLIENT_SECRET }}
+          project_name: kotak-neo-python
+          branch: ${{ github.ref_name }}
           # Scan the SDK source; exclude built artifacts, the large scrip-master
-          # CSV data files (not code), tests, and caches to reduce noise.
-          additional_params: >-
+          # CSV data files (not code), and caches to reduce noise.
+          # scan_params replaces the deprecated additional_params.
+          scan_params: >-
             --scan-types sast,sca,secret-detection
-            --project-name kotak-neo-python
-            --branch ${{ github.ref_name }}
             --file-filter "!**/dist/**,!**/*.csv,!**/__pycache__/**,!**/*.egg-info/**"

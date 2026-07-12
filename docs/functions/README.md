@@ -2,6 +2,10 @@
 
 Complete reference for all Kotak Neo Python SDK functions with examples and real API responses.
 
+> **Upgrading from an older version?** See the
+> [Migration Guide (v2.0.2 → v2.2.4)](../guides/MIGRATION.md) for breaking changes
+> in order validation, error handling, and the WebSocket API.
+
 ## Getting Started
 
 Before using any API functions, you must:

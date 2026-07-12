@@ -126,6 +126,9 @@ Detailed documentation for all SDK functions with examples and real API response
 
 ### 📖 Guides & Documentation
 
+**Upgrading:**
+- **[Migration Guide (v2.0.2 → v2.2.4)](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/guides/MIGRATION.md)** - Upgrade existing code to the latest version
+
 **Installation:**
 - **[Installation Overview](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/installation/README.md)** - All installation options
 - **[Installation Reference](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/guides/INSTALLATION_REFERENCE.md)** - Complete platform guide
