@@ -124,3 +124,32 @@ jobs:
         # vulnerabilities. Skip the local editable package itself (not on PyPI).
         run: |
           pip-audit --skip-editable
+
+  checkmarx:
+    name: Checkmarx One Scan
+    runs-on: ubuntu-24.04
+    # Only run when the Checkmarx credentials are configured (skips on forks/PRs
+    # from contributors without access to the org secrets).
+    if: ${{ github.event_name == 'push' || github.repository == 'Kotak-Neo/kotak-neo-python' }}
+
+    steps:
+      - name: Checkout Repository
+        # full history so Checkmarx can attribute findings to commits
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Checkmarx One (SAST + SCA + secret detection)
+        uses: checkmarx/ast-github-action@main
+        with:
+          base_uri: ${{ secrets.CX_BASE_URI }}
+          cx_tenant: ${{ secrets.CX_TENANT }}
+          cx_client_id: ${{ secrets.CX_CLIENT_ID }}
+          cx_client_secret: ${{ secrets.CX_CLIENT_SECRET }}
+          # Scan the SDK source; exclude built artifacts, the large scrip-master
+          # CSV data files (not code), tests, and caches to reduce noise.
+          additional_params: >-
+            --scan-types sast,sca,secret-detection
+            --project-name kotak-neo-python
+            --branch ${{ github.ref_name }}
+            --file-filter "!**/dist/**,!**/*.csv,!**/__pycache__/**,!**/*.egg-info/**"
