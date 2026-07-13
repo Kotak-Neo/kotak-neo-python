@@ -24,7 +24,7 @@ client = NeoAPI(
     environment='prod'
 )
 
-# Get quotes
+# Get quotes for one or more instruments in a single call
 instrument_tokens = [
     {"instrument_token": "1333", "exchange_segment": "nse_cm"},  # HDFCBANK
     {"instrument_token": "2885", "exchange_segment": "nse_cm"}   # RELIANCE
@@ -37,11 +37,13 @@ except Exception as e:
     print("Exception when calling quotes: %s\n" % e)
 ```
 
+> **Multiple instruments:** Pass multiple entries in `instrument_tokens` to fetch quotes for several instruments in a single request. The SDK combines them the same way the REST API expects, e.g. two tokens become one request to `.../neosymbol/nse_cm|1333,nse_cm|2885/all`.
+
 ## Parameters
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `instrument_tokens` | list | Yes | List of instrument dictionaries |
+| `instrument_tokens` | list | Yes | List of instrument dictionaries. Supports one or many instruments per call. |
 | `quote_type` | str | No | Type of quote data to fetch (default: 'all') |
 
 ### Quote Types
@@ -184,7 +186,7 @@ except Exception as e:
 ## HTTP Request Details
 
 - **Method**: GET
-- **Endpoint**: `/script-details/1.0/quotes/neosymbol/{exchange}|{token}/{quote_type}`
+- **Endpoint**: `/script-details/1.0/quotes/neosymbol/{exchange}|{token}[,{exchange}|{token}...]/{quote_type}`
 - **Authentication**: Requires consumer_key in header
 
 ## HTTP Response Details

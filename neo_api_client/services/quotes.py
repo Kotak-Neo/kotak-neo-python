@@ -15,7 +15,11 @@ class QuotesAPI:
             f"{item['exchange_segment']}|{item['instrument_token']}" for item in instrument_tokens
         )
 
-        encoded_neo_symbol_str = urllib.parse.quote(neo_symbol_str)
+        # The REST API expects the "|" and "," delimiters between multiple
+        # exchange_segment|instrument_token pairs to stay literal in the path
+        # segment (e.g. .../neosymbol/nse_cm|1333,nse_cm|19084/all); only
+        # encode any other characters.
+        encoded_neo_symbol_str = urllib.parse.quote(neo_symbol_str, safe="|,")
 
         header_params = {
             "Authorization": self.api_client.configuration.consumer_key,
@@ -27,11 +31,6 @@ class QuotesAPI:
             neo_symbols=encoded_neo_symbol_str,
             quote_type=quote_type,
         )
-
-        print("\n===== QUOTES REQUEST =====")
-        print("URL:", URL)
-        print("Headers:", header_params)
-        print("==========================\n")
 
         quotes = self.rest_client.request(
             url=URL,

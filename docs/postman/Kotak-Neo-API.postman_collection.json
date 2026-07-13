@@ -418,21 +418,15 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Sid", "value": "{{edit_sid}}" },
-              { "key": "Auth", "value": "{{edit_token}}" },
-              { "key": "neo-fin-key", "value": "{{neo_fin_key}}" },
-              { "key": "accept", "value": "application/json" }
+              { "key": "Authorization", "value": "{{consumer_key}}" },
+              { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
             ],
             "url": {
-              "raw": "{{base_url}}/quotes/v1/quote?instrument_tokens=nse_cm|19084&quote_type=all",
+              "raw": "{{base_url}}/script-details/1.0/quotes/neosymbol/nse_cm|1333,nse_cm|19084/all",
               "host": ["{{base_url}}"],
-              "path": ["quotes", "v1", "quote"],
-              "query": [
-                { "key": "instrument_tokens", "value": "nse_cm|19084" },
-                { "key": "quote_type", "value": "all" }
-              ]
+              "path": ["script-details", "1.0", "quotes", "neosymbol", "nse_cm|1333,nse_cm|19084", "all"]
             },
-            "description": "NOTE: verify the exact quotes path/params against the current SDK quotes() implementation; the SDK builds this via QuotesAPI."
+            "description": "Does not require 2FA — only consumer_key. Multiple instruments are comma-separated exchange|token pairs in a single path segment; keep '|' and ',' literal (unescaped)."
           }
         }
       ]
