@@ -2,15 +2,17 @@ from neo_api_client.exceptions import ApiValueError
 from neo_api_client.settings import (
     exchange_limits,
     exchange_segment_allowed_values,
+    margin_exchange_segment_allowed_values,
+    margin_order_type_allowed_values,
     order_type_allowed_values,
     place_order_product_allowed_values,
-    product_allowed_values,
     product_limits,
     segment_limits,
     validity_allowed_by_segment,
     validity_allowed_default,
 )
 from neo_api_client.settings import exchange_segment as _exchange_segment_map
+from neo_api_client.settings import order_type as _order_type_map
 from neo_api_client.settings import product as _product_map
 
 
@@ -257,52 +259,55 @@ def margin_validation(
     quantity,
     instrument_token,
     transaction_type,
+    broker_name,
+    branch_id,
     trigger_price=None,
 ):
-    # Exchange Segment validation
-    if not isinstance(exchange_segment, str):
-        raise ApiValueError("Exchange segment must be a string.")
-    if exchange_segment not in exchange_segment_allowed_values:
+    # Exchange Segment validation (mandatory). Margin ("exSeg") supports a
+    # narrower segment set than place/modify order: nse_cm, bse_cm, nse_fo,
+    # bse_fo, mcx_fo only.
+    _require_non_blank(exchange_segment, "exchange_segment")
+    canonical_segment = _exchange_segment_map.get(exchange_segment, exchange_segment)
+    if canonical_segment not in margin_exchange_segment_allowed_values:
         raise ApiValueError(
-            "Invalid exchange segment. Allowed values are NSE or nse_cm, BSE or bse_cm, NFO or nse_fo, "
-            "BFO or bse_fo, CDS or cde_fo, BCD or bcs_fo."
+            "Invalid exchange segment. Allowed values are nse_cm, bse_cm, nse_fo, bse_fo, mcx_fo."
         )
 
-    # Product validation
-    if not isinstance(product, str):
-        raise ApiValueError("Product must be a string.")
-    if product not in product_allowed_values:
-        raise ApiValueError(
-            "Invalid product. Allowed values are  NRML or Normal, CNC or Cash and Carry, MIS, "
-            "INTRADAY, CO or Cover order, BO or Bracket Order."
-        )
+    # Product validation (mandatory). Margin ("prod") accepts only CNC, NRML, MIS.
+    _require_non_blank(product, "product")
+    canonical_product = _product_map.get(product, product)
+    if canonical_product not in place_order_product_allowed_values:
+        raise ApiValueError("Invalid product. Allowed values are CNC, NRML, MIS.")
 
-    # Price validation
-    if not isinstance(price, str):
-        raise ApiValueError("Price must be a string.")
+    # Price validation (mandatory). Margin ("prc") may be zero or a positive number.
+    _require_non_blank(price, "price")
+    _require_numeric(price, "price")
 
-    # Order type validation
-    if not isinstance(order_type, str):
-        raise ApiValueError("Order type must be a string.")
-    if order_type not in order_type_allowed_values:
-        raise ApiValueError(
-            "Invalid order type. Allowed values are L or Limit, MKT or Market, SL or Stop loss limit,"
-            "SL-M or Stop loss market, SP or Spread, 2L or Tow leg, 3L or Three Leg."
-        )
+    # Order type validation (mandatory). Margin ("prcTp") accepts only L, MKT, SL, SL-M.
+    _require_non_blank(order_type, "order_type")
+    canonical_order_type = _order_type_map.get(order_type, order_type)
+    if canonical_order_type not in margin_order_type_allowed_values:
+        raise ApiValueError("Invalid order type. Allowed values are L, MKT, SL, SL-M.")
 
-    # Quantity validation
-    if not isinstance(quantity, str):
-        raise ApiValueError("Quantity must be an string.")
+    # Quantity validation (mandatory). Margin ("qty") must be a non-zero positive value.
+    _require_non_blank(quantity, "quantity")
+    _require_positive_int(quantity, "quantity")
 
-    # Instrument_token validation
-    if not isinstance(instrument_token, str):
-        raise ApiValueError("Instrument token must be a string.")
+    # Instrument token validation (mandatory). Margin ("tok") must be a valid
+    # (positive integer) instrument token.
+    _require_non_blank(instrument_token, "instrument_token")
+    _require_positive_int(instrument_token, "instrument_token")
 
-    # Transaction type validation
-    if not isinstance(transaction_type, str):
-        raise ApiValueError("Transaction type must be a string.")
-    if transaction_type not in ["B", "S", "Buy", "Sell", "sell", "buy"]:
-        raise ApiValueError("Invalid transaction type. Allowed values are B or Buy, S or Sell.")
+    # Transaction type validation (mandatory). Margin ("trnsTp") accepts only B, S.
+    _require_non_blank(transaction_type, "transaction_type")
+    if transaction_type not in ["B", "S"]:
+        raise ApiValueError("Invalid transaction type. Allowed values are B, S.")
+
+    # Broker name validation (mandatory). Margin ("brkName") must be a non-blank string.
+    _require_non_blank(broker_name, "broker_name")
+
+    # Branch id validation (mandatory). Margin ("brnchId") must be a non-blank string.
+    _require_non_blank(branch_id, "branch_id")
 
     # trigger_price validation
     if trigger_price is not None and not isinstance(trigger_price, str):
@@ -310,20 +315,17 @@ def margin_validation(
 
 
 def limits_validation(segment, exchange, product):
-    #  Segment validation
-    if not isinstance(segment, str):
-        raise ApiValueError("Segment must be a string.")
+    #  Segment validation (mandatory). Allowed values are CASH, FO, ALL.
+    _require_non_blank(segment, "segment")
     if segment not in segment_limits:
-        raise ApiValueError("Invalid segment. Allowed values are CASH, CUR, FO, ALL")
+        raise ApiValueError("Invalid segment. Allowed values are CASH, FO, ALL.")
 
-    #  Exchange validation
-    if not isinstance(exchange, str):
-        raise ApiValueError("Exchange must be a string.")
+    #  Exchange validation (mandatory). Allowed values are NSE, BSE, ALL.
+    _require_non_blank(exchange, "exchange")
     if exchange not in exchange_limits:
-        raise ApiValueError("Invalid Exchange. Allowed values are NSE, BSE, ALL")
+        raise ApiValueError("Invalid Exchange. Allowed values are NSE, BSE, ALL.")
 
-    #  Product validation
-    if not isinstance(product, str):
-        raise ApiValueError("Product must be a string.")
+    #  Product validation (mandatory). Allowed values are CNC, NRML, MIS, ALL.
+    _require_non_blank(product, "product")
     if product not in product_limits:
-        raise ApiValueError("Invalid Product. Allowed values are CNC, MIS, NRML, ALL")
+        raise ApiValueError("Invalid Product. Allowed values are CNC, NRML, MIS, ALL.")

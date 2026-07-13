@@ -3,7 +3,7 @@ Get required margin details
 
 ```python
 client.margin_required(exchange_segment = "", price = "", order_type= "", product = "", quantity = "", instrument_token = "",
-                       transaction_type = "")
+                       transaction_type = "", broker_name = "KOTAK", branch_id = "ONLINE")
 ```
 
 ### Example
@@ -18,25 +18,27 @@ client.totp_login(mobilenumber="", ucc="", totp='')
 client.totp_validate(mpin="")
 
 try:
-    client.margin_required(exchange_segment = "", price = "", order_type= "", product = "",   quantity = "", instrument_token = "",  transaction_type = "")
+    client.margin_required(exchange_segment = "nse_cm", price = "100", order_type= "L", product = "CNC", quantity = "1", instrument_token = "11536", transaction_type = "B")
 except Exception as e:
     print("Exception when calling margin_required->margin_required: %s\n" % e)
 ```
 
 ### Parameters
 
-| Name               | Description                                                                                                              | Type           |
-|--------------------|--------------------------------------------------------------------------------------------------------------------------|----------------|
-| *exchange_segment* | nse_cm - NSE<br/>bse_cm - BSE<br/>nse_fo - NFO<br/>bse_fo - BFO<br/>cde_fo - CDS<br/>mcx_fo - MCX                        | Str            |
-| *price*            | Price of the order                                                                                                       | Str            |
-| *order_type*       | L - Limit<br/>MKT - Market<br/>SL - Stop loss limit<br/>SL-M - Stop loss market                                          | Str            |
-| *product*          | NRML - Normal<br/>CNC - Cash and Carry<br/>MIS - MIS<br/>INTRADAY - INTRADAY<br/>CO - Cover Order              | Str            |
-| *quantity*         | Quantity of the order                                                                                    | Str            |
-| *instrument_token* | pSymbol in ScripMaster files                                                                                              | Str            |
-| *transaction_type* | B(Buy), S(sell)                                                                                                          | Str            |
-| *trading_symbol*   | pTrdSymbol in ScripMaster files                                                                                  | Str            |
-| *transaction_type* | B(Buy), S(sell)                                                                                                          | Str            |
-| *trigger_price*    | Optional, required for stop loss and cover order                                                    | Str        |
+All parameters below are mandatory unless noted otherwise, and are validated client-side before the request is sent.
+
+| Name               | Description                                                                | Type           |
+|--------------------|-----------------------------------------------------------------------------|----------------|
+| *exchange_segment* | Allowed values: `nse_cm`, `bse_cm`, `nse_fo`, `bse_fo`, `mcx_fo` (or their aliases, e.g. NSE, BSE, NFO, BFO, MCX) | Str |
+| *price*            | Zero or a positive value                                                    | Str            |
+| *order_type*       | Allowed values: `L`, `MKT`, `SL`, `SL-M` (or their aliases)                 | Str            |
+| *product*          | Allowed values: `CNC`, `NRML`, `MIS`                                        | Str            |
+| *quantity*         | Non-zero positive value                                                     | Str            |
+| *instrument_token* | pSymbol in ScripMaster files. Must be a valid (positive integer) token      | Str            |
+| *transaction_type* | Allowed values: `B` (Buy), `S` (Sell)                                       | Str            |
+| *broker_name*      | Optional, defaults to "KOTAK". If provided, cannot be blank                 | Str            |
+| *branch_id*        | Optional, defaults to "ONLINE". If provided, cannot be blank                | Str            |
+| *trigger_price*    | Optional, required for stop loss and cover order                            | Str            |
 
 
 ### Return type

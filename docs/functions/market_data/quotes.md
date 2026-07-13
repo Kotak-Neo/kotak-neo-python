@@ -10,20 +10,19 @@ client.quotes(
     quote_type='all'
 )
 ```
+
+> **Note:** Unlike most trading/portfolio methods, `quotes()` does not require a completed 2FA (TOTP) session — only `consumer_key` is required, since the underlying API authenticates via the `Authorization` header alone.
+
 ### Example
 
 ```python
 from neo_api_client import NeoAPI
 
-# Initialize with consumer key (REQUIRED)
+# Only consumer_key is required — no totp_login/totp_validate needed
 client = NeoAPI(
     consumer_key='your-token-from-neo-app',
     environment='prod'
 )
-
-# Authenticate first
-client.totp_login(mobile_number='+919876543210', ucc='ABC123', totp='123456')
-client.totp_validate(mpin='123456')
 
 # Get quotes
 instrument_tokens = [

@@ -25,9 +25,9 @@ except Exception as e:
 ### Parameters
 | Name        | Description                                 | Type           |
 |-------------|---------------------------------------------|----------------|
-| *segment*   | CASH, CUR, FO, ALL (Default value - ALL)    | str [Optional] |
+| *segment*   | CASH, FO, ALL (Default value - ALL)         | str [Optional] |
 | *exchange*  | NSE, BSE, ALL (Default value - ALL)         | str [Optional] |
-| *product*   | CNC, MIS, NRML, ALL (Default value - ALL)   | str [Optional] |
+| *product*   | CNC, NRML, MIS, ALL (Default value - ALL)   | str [Optional] |
 
 
 ### Return type

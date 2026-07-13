@@ -306,6 +306,8 @@ def _valid_margin_kwargs(**overrides):
         "quantity": "1",
         "instrument_token": "11536",
         "transaction_type": "B",
+        "broker_name": "KOTAK",
+        "branch_id": "1",
     }
     kwargs.update(overrides)
     return kwargs
@@ -319,9 +321,31 @@ def test_margin_validation_ok():
     "field,value",
     [
         ("exchange_segment", "INVALID"),
+        # Margin supports a narrower segment set than place/modify order.
+        ("exchange_segment", "cde_fo"),
+        ("exchange_segment", "CDS"),
+        ("exchange_segment", "BCD"),
         ("product", "INVALID"),
+        # Margin does not accept INTRADAY/CO/BO/MTF, unlike the general product list.
+        ("product", "INTRADAY"),
         ("order_type", "INVALID"),
+        # Margin does not accept SP/2L/3L, unlike the general order type list.
+        ("order_type", "SP"),
+        ("order_type", "2L"),
         ("transaction_type", "X"),
+        # Margin no longer accepts the "Buy"/"Sell" aliases, only B/S.
+        ("transaction_type", "Buy"),
+        ("transaction_type", "Sell"),
+        ("price", "-1"),
+        ("quantity", "0"),
+        ("quantity", "-1"),
+        ("instrument_token", "0"),
+        ("instrument_token", "-1"),
+        ("instrument_token", "abc"),
+        ("broker_name", ""),
+        ("broker_name", "   "),
+        ("branch_id", ""),
+        ("branch_id", "   "),
     ],
 )
 def test_margin_validation_value_errors(field, value):
@@ -339,6 +363,8 @@ def test_margin_validation_value_errors(field, value):
         ("quantity", 1),
         ("instrument_token", 1),
         ("transaction_type", 1),
+        ("broker_name", 1),
+        ("branch_id", 1),
     ],
 )
 def test_margin_validation_type_errors(field, value):
@@ -349,6 +375,16 @@ def test_margin_validation_type_errors(field, value):
 def test_margin_validation_bad_trigger_price():
     with pytest.raises(ApiValueError):
         margin_validation(**_valid_margin_kwargs(), trigger_price=100)
+
+
+def test_margin_validation_missing_broker_name():
+    with pytest.raises(TypeError):
+        margin_validation(**{k: v for k, v in _valid_margin_kwargs().items() if k != "broker_name"})
+
+
+def test_margin_validation_missing_branch_id():
+    with pytest.raises(TypeError):
+        margin_validation(**{k: v for k, v in _valid_margin_kwargs().items() if k != "branch_id"})
 
 
 # ---- limits_validation ------------------------------------------------------
@@ -362,6 +398,8 @@ def test_limits_validation_ok():
     "segment,exchange,product",
     [
         ("INVALID", "ALL", "ALL"),
+        # "CUR" is no longer an allowed segment for limits.
+        ("CUR", "ALL", "ALL"),
         ("ALL", "INVALID", "ALL"),
         ("ALL", "ALL", "INVALID"),
     ],

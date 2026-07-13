@@ -520,16 +520,16 @@ class NeoAPI:
         Calculates the margin required for a given trade using the NEO API.
 
         Args:
-            exchange_segment (str): A string representing the exchange segment for the trade.
-            price (float): The price at which to execute the trade.
-            order_type (str): A string representing the type of order to place.
-            product (str): A string representing the product type for the trade.
-            quantity (float): The quantity to trade.
-            instrument_token (int): The instrument token of the stock to trade.
-            transaction_type (str): A string representing the type of transaction to perform.
+            exchange_segment (str): Allowed values: nse_cm, bse_cm, nse_fo, bse_fo, mcx_fo (or their aliases).
+            price (float): The price at which to execute the trade. Zero or a positive value.
+            order_type (str): Allowed values: L, MKT, SL, SL-M (or their aliases).
+            product (str): Allowed values: CNC, NRML, MIS.
+            quantity (float): The quantity to trade. Must be a non-zero positive value.
+            instrument_token (int): The instrument token (pSymbol) of the stock to trade. Must be a valid positive integer token.
+            transaction_type (str): Allowed values: B, S.
             trigger_price (float, optional): The trigger price for the trade.
-            broker_name (str, optional): The name of the broker to use. Defaults to "KOTAK".
-            branch_id (str, optional): The ID of the branch to use. Defaults to "ONLINE".
+            broker_name (str, optional): The name of the broker to use. Defaults to "KOTAK". Mandatory, non-blank.
+            branch_id (str, optional): The ID of the branch to use. Defaults to "ONLINE". Mandatory, non-blank.
             stop_loss_type (str, optional): The type of stop loss to use.
             stop_loss_value (float, optional): The value for the stop loss.
             square_off_type (str, optional): The type of square off to use.
@@ -554,6 +554,9 @@ class NeoAPI:
                     quantity,
                     instrument_token,
                     transaction_type,
+                    broker_name=broker_name,
+                    branch_id=branch_id,
+                    trigger_price=trigger_price,
                 )
 
                 exchange_segment = settings.exchange_segment[exchange_segment]

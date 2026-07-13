@@ -381,7 +381,7 @@
               "urlencoded": [
                 {
                   "key": "jData",
-                  "value": "{\"es\":\"nse_cm\",\"pr\":\"100\",\"pt\":\"MKT\",\"pc\":\"CNC\",\"qt\":\"1\",\"tk\":\"19084\",\"tt\":\"B\"}"
+                  "value": "{\"exSeg\":\"nse_cm\",\"prc\":\"100\",\"prcTp\":\"MKT\",\"prod\":\"CNC\",\"qty\":\"1\",\"tok\":\"19084\",\"trnsTp\":\"B\",\"trgPrc\":\"0\",\"brkName\":\"KOTAK\",\"brnchId\":\"ONLINE\"}"
                 }
               ]
             },

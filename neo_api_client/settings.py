@@ -81,6 +81,17 @@ product_allowed_values = [
 # before the check.
 place_order_product_allowed_values = ["CNC", "NRML", "MIS"]
 
+# Exchange segments accepted by the check-margin API (canonical codes only).
+# Aliases (e.g. "NSE", "MCX") are resolved to these via the `exchange_segment`
+# map before the check. Margin does not support the currency (cde_fo) or
+# BCD (bcs-fo) segments that place/modify order allow.
+margin_exchange_segment_allowed_values = ["bse_cm", "nse_cm", "nse_fo", "bse_fo", "mcx_fo"]
+
+# Order types accepted by the check-margin API (canonical codes only). Aliases
+# (e.g. "Limit", "Market") are resolved to these via the `order_type` map
+# before the check.
+margin_order_type_allowed_values = ["L", "MKT", "SL", "SL-M"]
+
 order_type_allowed_values = [
     "Limit",
     "Market",
@@ -180,7 +191,7 @@ validity_allowed_by_segment = {
 # Default validity set for any segment not explicitly listed above.
 validity_allowed_default = ["DAY", "IOC"]
 
-segment_limits = ["CASH", "CUR", "FO", "ALL"]
+segment_limits = ["CASH", "FO", "ALL"]
 exchange_limits = ["NSE", "BSE", "ALL"]
 product_limits = ["CNC", "MIS", "NRML", "ALL"]
 
