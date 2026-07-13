@@ -354,6 +354,15 @@ if first_order_no:
 else:
     print("\n[SKIPPED] ORDER REPORT BY ID - No order number available from order book")
 
+if first_order_no:
+    runner.run_test(
+        "ORDER HISTORY",
+        lambda: runner.client.order_history(order_id=first_order_no),
+        request_params={"order_id": first_order_no},
+    )
+else:
+    print("\n[SKIPPED] ORDER HISTORY - No order number available from order book")
+
 runner.run_test(
     "TRADE REPORT",
     lambda: runner.client.trade_report(),

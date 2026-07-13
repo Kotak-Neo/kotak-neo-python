@@ -102,11 +102,19 @@ def test_scrip_master_success(authenticated_client, requests_mock):
     assert result is not None
 
 
-def test_scrip_master_without_2fa():
-    """Test scrip_master without 2FA."""
+def test_scrip_master_without_2fa_succeeds_with_consumer_key_only(requests_mock):
+    """scrip_master() does not require a completed 2FA session — only
+    consumer_key is needed, since the API authenticates via Authorization alone."""
     client = NeoAPI(environment="prod", consumer_key="test_key")
+    url = client.configuration.get_url_details("scrip_master")
+
+    requests_mock.get(
+        url,
+        json={"stat": "Ok", "data": {"filesPaths": ["nse_cm.csv"]}},
+        status_code=200,
+    )
 
     result = client.scrip_master()
 
-    assert "Error Message" in result
-    assert "2fa" in result["Error Message"]
+    assert result == {"filesPaths": ["nse_cm.csv"]}
+    assert requests_mock.last_request.headers.get("authorization") == "test_key"

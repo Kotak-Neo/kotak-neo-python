@@ -646,6 +646,34 @@ def test_search_scrip_invalid_segment_returns_error(authenticated_client):
     assert "Error" in result
 
 
+def test_search_scrip_without_2fa_succeeds_with_consumer_key_only(requests_mock):
+    """search_scrip() does not require a completed 2FA session — only
+    consumer_key is needed, since the API authenticates via Authorization alone."""
+    client = NeoAPI(environment="prod", consumer_key="test_key")
+
+    url = client.configuration.get_url_details("scrip_master")
+    csv_path = "https://api.kotaksecurities.com/scripmaster/NSE_CM.csv"
+    requests_mock.get(
+        url,
+        json={"stat": "Ok", "data": {"filesPaths": [csv_path]}},
+        status_code=200,
+    )
+    csv = "pSymbol,pTrdSymbol,pExchSeg,pSymbolName,dStrikePrice;\n1,RELIANCE-EQ,nse_cm,RELIANCE,0\n"
+    requests_mock.get(csv_path, text=csv, status_code=200)
+
+    result = client.search_scrip(exchange_segment="nse_cm", symbol="RELIANCE")
+
+    assert result == [
+        {
+            "pSymbol": 1,
+            "pTrdSymbol": "RELIANCE-EQ",
+            "pExchSeg": "nse_cm",
+            "pSymbolName": "RELIANCE",
+            "dStrikePrice;": 0,
+        }
+    ]
+
+
 def test_logout_success(authenticated_client):
     """logout() clears session tokens and returns an OK state."""
     result = authenticated_client.logout()

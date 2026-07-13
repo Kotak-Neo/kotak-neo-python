@@ -319,17 +319,22 @@ def test_neo_api_limits_without_login():
     assert "2fa" in result["Error Message"]
 
 
-def test_neo_api_scrip_master_without_login():
-    """Test scrip_master without login."""
+def test_neo_api_scrip_master_without_login(requests_mock):
+    """scrip_master() does not require login/2FA — only consumer_key."""
     client = NeoAPI(
         environment="prod",
         consumer_key="test_key",
     )
+    url = client.configuration.get_url_details("scrip_master")
+    requests_mock.get(
+        url,
+        json={"stat": "Ok", "data": {"filesPaths": ["nse_cm.csv"]}},
+        status_code=200,
+    )
 
     result = client.scrip_master()
 
-    assert "Error Message" in result
-    assert "2fa" in result["Error Message"]
+    assert result == {"filesPaths": ["nse_cm.csv"]}
 
 
 def test_neo_api_order_history_without_login():

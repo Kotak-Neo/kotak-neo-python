@@ -587,6 +587,10 @@ class NeoAPI:
         """
         Retrieves the list of scrips available in the given exchange segment using the NEO API.
 
+        Unlike most trading/portfolio methods, this does not require a completed
+        2FA (TOTP) session — only `consumer_key` is required, since the
+        underlying API authenticates via the `Authorization` header alone.
+
         Args:
             exchange_segment (str): A string representing the exchange segment to retrieve the list of scrips from.
 
@@ -597,16 +601,13 @@ class NeoAPI:
         Returns:
             A list of scrips available in the given exchange segment.
         """
-        if self.configuration.edit_token and self.configuration.edit_sid:
-            try:
-                scrip_list = ScripMasterAPI(self.api_client).scrip_master_init(
-                    exchange_segment=exchange_segment
-                )
-                return scrip_list
-            except Exception:
-                return {"Error": "Exchange Segment is not available"}
-        else:
-            return {"Error Message": "Complete the 2fa process before accessing this application"}
+        try:
+            scrip_list = ScripMasterAPI(self.api_client).scrip_master_init(
+                exchange_segment=exchange_segment
+            )
+            return scrip_list
+        except Exception:
+            return {"Error": "Exchange Segment is not available"}
 
     def limits(self, segment="ALL", exchange="ALL", product="ALL"):
         """
@@ -660,35 +661,37 @@ class NeoAPI:
             dict: A dictionary containing information about the scrip. If there was an error, the dictionary will contain an "error"
             key with a list of error messages.
 
+        Note:
+            Unlike most trading/portfolio methods, this does not require a
+            completed 2FA (TOTP) session — only `consumer_key` is required,
+            since the underlying API authenticates via the `Authorization`
+            header alone.
         """
-        if self.configuration.edit_token and self.configuration.edit_sid:
-            if not exchange_segment:
-                error = {
-                    "error": [
-                        {
-                            "code": "10300",
-                            "message": "Validation Errors! Exchange Segment is Mandate to proceed "
-                            "further",
-                        }
-                    ]
-                }
-                return error
-            try:
-                exchange_segment = settings.exchange_segment[exchange_segment]
-                symbol = str(symbol).lower()
-                scrip_list = ScripSearch(self.api_client).scrip_search(
-                    exchange_segment=exchange_segment,
-                    symbol=symbol,
-                    expiry=expiry,
-                    option_type=option_type,
-                    strike_price=strike_price,
-                    ignore_50multiple=ignore_50multiple,
-                )
-                return scrip_list
-            except Exception as e:
-                return {"Error": e, "message": "Exchange Segment is not available"}
-        else:
-            return {"Error Message": "Complete the 2fa process before accessing this application"}
+        if not exchange_segment:
+            error = {
+                "error": [
+                    {
+                        "code": "10300",
+                        "message": "Validation Errors! Exchange Segment is Mandate to proceed "
+                        "further",
+                    }
+                ]
+            }
+            return error
+        try:
+            exchange_segment = settings.exchange_segment[exchange_segment]
+            symbol = str(symbol).lower()
+            scrip_list = ScripSearch(self.api_client).scrip_search(
+                exchange_segment=exchange_segment,
+                symbol=symbol,
+                expiry=expiry,
+                option_type=option_type,
+                strike_price=strike_price,
+                ignore_50multiple=ignore_50multiple,
+            )
+            return scrip_list
+        except Exception as e:
+            return {"Error": e, "message": "Exchange Segment is not available"}
 
     # ------------------------------------------------------------------
     # Legacy WebSocket API (removed in 2.2.0)

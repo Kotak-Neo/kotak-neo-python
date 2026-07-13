@@ -1,0 +1,474 @@
+{
+  "info": {
+    "name": "Kotak Neo Trading APIs",
+    "description": "REST + WebSocket collection mirroring the kotak-neo-python SDK (neo_api_client).\n\nUSAGE\n1. Set collection variables (or use the linked environment):\n   - consumer_key   : token from Kotak Neo app -> Invest -> Trade API\n   - mobile_number  : +91XXXXXXXXXX\n   - ucc            : your UCC\n   - totp           : current 6-digit code from your authenticator app\n   - mpin           : your trading MPIN\n2. Run 'Auth > 1. TOTP Login'  -> captures view_token + sid automatically.\n3. Run 'Auth > 2. TOTP Validate' -> captures edit_token + edit_sid + base_url automatically.\n4. All trading / data requests then work (they read the captured tokens).\n\nNotes:\n- session_base_url is the login host (mis.kotaksecurities.com).\n- base_url is the trading host returned by tradeApiValidate (auto-set in step 3).\n- neo-fin-key is always 'neotradeapi'.\n- Order form bodies are x-www-form-urlencoded under a single 'jData' field, exactly as the SDK sends them.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "session_base_url", "value": "https://mis.kotaksecurities.com" },
+    { "key": "base_url", "value": "https://gw-napi.kotaksecurities.com" },
+    { "key": "neo_fin_key", "value": "neotradeapi" },
+    { "key": "consumer_key", "value": "" },
+    { "key": "mobile_number", "value": "+91XXXXXXXXXX" },
+    { "key": "ucc", "value": "" },
+    { "key": "totp", "value": "" },
+    { "key": "mpin", "value": "" },
+    { "key": "view_token", "value": "" },
+    { "key": "sid", "value": "" },
+    { "key": "edit_token", "value": "" },
+    { "key": "edit_sid", "value": "" },
+    { "key": "order_id", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "1. TOTP Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "const data = json.data || {};",
+                  "if (data.token) pm.collectionVariables.set('view_token', data.token);",
+                  "if (data.sid) pm.collectionVariables.set('sid', data.sid);",
+                  "pm.test('login ok', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "{{consumer_key}}" },
+              { "key": "neo-fin-key", "value": "{{neo_fin_key}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mobileNumber\": \"{{mobile_number}}\",\n  \"ucc\": \"{{ucc}}\",\n  \"totp\": \"{{totp}}\"\n}"
+            },
+            "url": {
+              "raw": "{{session_base_url}}/login/1.0/tradeApiLogin",
+              "host": ["{{session_base_url}}"],
+              "path": ["login", "1.0", "tradeApiLogin"]
+            },
+            "description": "TOTP login. Captures view_token + sid into collection variables."
+          }
+        },
+        {
+          "name": "2. TOTP Validate (MPIN)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "const data = json.data || {};",
+                  "if (data.token) pm.collectionVariables.set('edit_token', data.token);",
+                  "if (data.sid) pm.collectionVariables.set('edit_sid', data.sid);",
+                  "if (data.baseUrl) pm.collectionVariables.set('base_url', data.baseUrl);",
+                  "pm.test('validate ok', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "{{consumer_key}}" },
+              { "key": "sid", "value": "{{sid}}" },
+              { "key": "Auth", "value": "{{view_token}}" },
+              { "key": "neo-fin-key", "value": "{{neo_fin_key}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mpin\": \"{{mpin}}\"\n}"
+            },
+            "url": {
+              "raw": "{{session_base_url}}/login/1.0/tradeApiValidate",
+              "host": ["{{session_base_url}}"],
+              "path": ["login", "1.0", "tradeApiValidate"]
+            },
+            "description": "Completes 2FA with MPIN. Captures edit_token, edit_sid, and base_url (trading host)."
+          }
+        },
+        {
+          "name": "What's My IP",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Auth", "value": "{{edit_token}}" },
+              { "key": "Sid", "value": "{{edit_sid}}" },
+              { "key": "neo-fin-key", "value": "{{neo_fin_key}}" },
+              { "key": "accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{session_base_url}}/login/1.0/get-client-ip",
+              "host": ["{{session_base_url}}"],
+              "path": ["login", "1.0", "get-client-ip"]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Auth", "value": "{{edit_token}}" },
+              { "key": "Sid", "value": "{{edit_sid}}" },
+              { "key": "neo-fin-key", "value": "{{neo_fin_key}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{session_base_url}}/apim/login/2.0/logout",
+              "host": ["{{session_base_url}}"],
+              "path": ["apim", "login", "2.0", "logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "Place Order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try { const j = pm.response.json(); if (j.nOrdNo) pm.collectionVariables.set('order_id', j.nOrdNo); } catch (e) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "{{consumer_key}}" },
+              { "key": "Sid", "value": "{{edit_sid}}" },
+              { "key": "Auth", "value": "{{edit_token}}" },
+              { "key": "neo-fin-key", "value": "{{neo_fin_key}}" },
+              { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "jData",
+                  "value": "{\"am\":\"NO\",\"dq\":\"0\",\"es\":\"nse_cm\",\"mp\":\"0\",\"pc\":\"CNC\",\"pf\":\"N\",\"pr\":\"1\",\"pt\":\"L\",\"qt\":\"1\",\"rt\":\"DAY\",\"tp\":\"0\",\"ts\":\"ITBEES-EQ\",\"tt\":\"B\",\"os\":\"API\"}"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/quick/order/rule/ms/place",
+              "host": ["{{base_url}}"],
+              "path": ["quick", "order", "rule", "ms", "place"]
+            },
+            "description": "Place order. jData keys: am(amo), dq, es(exchange_segment), mp, pc(product CNC/NRML/MIS), pf, pr(price), pt(order_type), qt(quantity), rt(validity DAY/IOC; mcx_fo=DAY), tp(trigger), ts(trading_symbol), tt(B/S)."
+          }
+        },
+        {
+          "name": "Modify Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "{{consumer_key}}" },
+              { "key": "Sid", "value": "{{edit_sid}}" },
+              { "key": "Auth", "value": "{{edit_token}}" },
+              { "key": "neo-fin-key", "value": "{{neo_fin_key}}" },
+              { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "jData",
+                  "value": "{\"tk\":\"11536\",\"mp\":\"0\",\"pc\":\"CNC\",\"dd\":\"NA\",\"dq\":\"0\",\"vd\":\"DAY\",\"ts\":\"ITBEES-EQ\",\"tt\":\"B\",\"pr\":\"2\",\"pt\":\"L\",\"fq\":\"0\",\"am\":\"NO\",\"tp\":\"0\",\"qt\":\"1\",\"no\":\"{{order_id}}\",\"es\":\"nse_cm\",\"os\":\"API\"}"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/quick/order/vr/modify",
+              "host": ["{{base_url}}"],
+              "path": ["quick", "order", "vr", "modify"]
+            },
+            "description": "Modify order. no = order number to modify (auto-filled from Place Order)."
+          }
+        },
+        {
+          "name": "Cancel Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "{{consumer_key}}" },
+              { "key": "Sid", "value": "{{edit_sid}}" },
+              { "key": "Auth", "value": "{{edit_token}}" },
+              { "key": "neo-fin-key", "value": "{{neo_fin_key}}" },
+              { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "jData", "value": "{\"on\":\"{{order_id}}\",\"am\":\"NO\"}" }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/quick/order/cancel",
+              "host": ["{{base_url}}"],
+              "path": ["quick", "order", "cancel"]
+            },
+            "description": "Cancel order. on = order number (auto-filled from Place Order)."
+          }
+        },
+        {
+          "name": "Order Book",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Sid", "value": "{{edit_sid}}" },
+              { "key": "Auth", "value": "{{edit_token}}" },
+              { "key": "neo-fin-key", "value": "{{neo_fin_key}}" },
+              { "key": "accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/quick/user/orders",
+              "host": ["{{base_url}}"],
+              "path": ["quick", "user", "orders"]
+            }
+          }
+        },
+        {
+          "name": "Order Book by Order ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Sid", "value": "{{edit_sid}}" },
+              { "key": "Auth", "value": "{{edit_token}}" },
+              { "key": "neo-fin-key", "value": "{{neo_fin_key}}" },
+              { "key": "accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/quick/user/orders/{{order_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["quick", "user", "orders", "{{order_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Order History",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Sid", "value": "{{edit_sid}}" },
+              { "key": "Auth", "value": "{{edit_token}}" },
+              { "key": "neo-fin-key", "value": "{{neo_fin_key}}" },
+              { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "jData", "value": "{\"nOrdNo\":\"{{order_id}}\"}" }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/quick/order/history",
+              "host": ["{{base_url}}"],
+              "path": ["quick", "order", "history"]
+            }
+          }
+        },
+        {
+          "name": "Trade Book",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Sid", "value": "{{edit_sid}}" },
+              { "key": "Auth", "value": "{{edit_token}}" },
+              { "key": "neo-fin-key", "value": "{{neo_fin_key}}" },
+              { "key": "accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/quick/user/trades",
+              "host": ["{{base_url}}"],
+              "path": ["quick", "user", "trades"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Portfolio",
+      "item": [
+        {
+          "name": "Positions",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Sid", "value": "{{edit_sid}}" },
+              { "key": "Auth", "value": "{{edit_token}}" },
+              { "key": "neo-fin-key", "value": "{{neo_fin_key}}" },
+              { "key": "accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/quick/user/positions",
+              "host": ["{{base_url}}"],
+              "path": ["quick", "user", "positions"]
+            }
+          }
+        },
+        {
+          "name": "Holdings",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Sid", "value": "{{edit_sid}}" },
+              { "key": "Auth", "value": "{{edit_token}}" },
+              { "key": "neo-fin-key", "value": "{{neo_fin_key}}" },
+              { "key": "accept", "value": "*/*" },
+              { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/portfolio/v1/holdings",
+              "host": ["{{base_url}}"],
+              "path": ["portfolio", "v1", "holdings"]
+            }
+          }
+        },
+        {
+          "name": "Limits",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Sid", "value": "{{edit_sid}}" },
+              { "key": "Auth", "value": "{{edit_token}}" },
+              { "key": "neo-fin-key", "value": "{{neo_fin_key}}" },
+              { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "jData", "value": "{\"seg\":\"ALL\",\"exch\":\"ALL\",\"prod\":\"ALL\"}" }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/quick/user/limits",
+              "host": ["{{base_url}}"],
+              "path": ["quick", "user", "limits"]
+            }
+          }
+        },
+        {
+          "name": "Margin Required",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Sid", "value": "{{edit_sid}}" },
+              { "key": "Auth", "value": "{{edit_token}}" },
+              { "key": "neo-fin-key", "value": "{{neo_fin_key}}" },
+              { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "jData",
+                  "value": "{\"es\":\"nse_cm\",\"pr\":\"100\",\"pt\":\"MKT\",\"pc\":\"CNC\",\"qt\":\"1\",\"tk\":\"19084\",\"tt\":\"B\"}"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/quick/user/check-margin",
+              "host": ["{{base_url}}"],
+              "path": ["quick", "user", "check-margin"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Market Data",
+      "item": [
+        {
+          "name": "Scrip Master (file paths)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "{{consumer_key}}" },
+              { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/script-details/1.0/masterscrip/file-paths",
+              "host": ["{{base_url}}"],
+              "path": ["script-details", "1.0", "masterscrip", "file-paths"]
+            },
+            "description": "Returns CSV file URLs per segment. Download the CSV to search/parse scrips (the SDK's search_scrip does this with pandas)."
+          }
+        },
+        {
+          "name": "Quotes",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Sid", "value": "{{edit_sid}}" },
+              { "key": "Auth", "value": "{{edit_token}}" },
+              { "key": "neo-fin-key", "value": "{{neo_fin_key}}" },
+              { "key": "accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/quotes/v1/quote?instrument_tokens=nse_cm|19084&quote_type=all",
+              "host": ["{{base_url}}"],
+              "path": ["quotes", "v1", "quote"],
+              "query": [
+                { "key": "instrument_tokens", "value": "nse_cm|19084" },
+                { "key": "quote_type", "value": "all" }
+              ]
+            },
+            "description": "NOTE: verify the exact quotes path/params against the current SDK quotes() implementation; the SDK builds this via QuotesAPI."
+          }
+        }
+      ]
+    },
+    {
+      "name": "WebSocket (reference)",
+      "item": [
+        {
+          "name": "SFeed Market Data (wss)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "wss://sfeed.kotaksecurities.com/wsfeed",
+              "protocol": "wss",
+              "host": ["sfeed", "kotaksecurities", "com"],
+              "path": ["wsfeed"]
+            },
+            "description": "SFeed native_batch market-data feed. In Postman: create a NEW 'WebSocket Request' (not this stub) to this URL.\n\nAfter connect, send the auth frame (JSON), then a subscribe frame, e.g.:\n\nSubscribe LTP:\n{\"event\":\"subscribeScrips\",\"inputtoken\":\"nse_cm|11536\",\"ack_symbol\":true}\n\nSubscribe indices:\n{\"event\":\"subscribeIndices\",\"inputtoken\":\"nse_cm|Nifty 50\",\"ack_symbol\":true}\n\nUnsubscribe:\n{\"event\":\"unsubscribeScrips\",\"inputtoken\":\"nse_cm|11536\"}\n\nLimitation: Postman shows text frames but does not decode the binary market-data packets or automate the auth handshake. Use the SDK (create_websocket) for real data."
+          }
+        },
+        {
+          "name": "Order & Position Feed (wss)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "wss://mis.kotaksecurities.com/realtime",
+              "protocol": "wss",
+              "host": ["mis", "kotaksecurities", "com"],
+              "path": ["realtime"]
+            },
+            "description": "Order/position feed at wss://<base_url host>/realtime.\n\nImmediately after connect, send the RAW (non-JSON) handshake string:\n{type:cn,Authorization:<edit_token>,Sid:<edit_sid>,src:WEB}\n\nThen order/position updates arrive as JSON text frames. Use the SDK (create_order_feed) for production. Postman can connect and send the raw frame but has no auto-reconnect/parsing."
+          }
+        }
+      ]
+    }
+  ]
+}

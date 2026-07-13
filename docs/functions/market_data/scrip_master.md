@@ -7,6 +7,8 @@ client.scrip_master()
 
 To get ScripMaster file of a particular segment, pass the exchange segment within bracket. For example - `client.scripmaster(nse_cm)`
 
+> **Note:** Unlike most trading/portfolio methods, `scrip_master()` does not require a completed 2FA (TOTP) session — only `consumer_key` is required, since the underlying API authenticates via the `Authorization` header alone.
+
 ### Example
 
 ```python
@@ -14,10 +16,8 @@ To get ScripMaster file of a particular segment, pass the exchange segment withi
 from neo_api_client import NeoAPI
 
 
-#First initialize session and generate session token
-client = NeoAPI(environment='prod', access_token=None, neo_fin_key=None)
-client.totp_login(mobilenumber="", ucc="", totp='')
-client.totp_validate(mpin="")
+#Only consumer_key is required — no totp_login/totp_validate needed
+client = NeoAPI(environment='prod', consumer_key='your_consumer_key')
 
 try:
     client.scrip_master()
