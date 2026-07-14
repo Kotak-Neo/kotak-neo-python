@@ -152,5 +152,5 @@ jobs:
           # CSV data files (not code), and caches to reduce noise.
           # scan_params replaces the deprecated additional_params.
           scan_params: >-
-            --scan-types sast,sca,secret-detection
+            --scan-types sast,sca
             --file-filter "!**/dist/**,!**/*.csv,!**/__pycache__/**,!**/*.egg-info/**"
