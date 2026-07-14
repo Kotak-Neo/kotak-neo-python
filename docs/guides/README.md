@@ -11,7 +11,7 @@ Step-by-step guide for upgrading from the previous SDK version.
 
 **Topics Covered:**
 - Authentication (`consumer_key` + TOTP) confirmation
-- Stricter order validation (product `CNC`/`NRML`/`MIS`, per-segment validity)
+- Stricter order validation (product `CNC`/`NRML`/`MIS`/`MTF`, per-segment validity)
 - Error handling: exceptions instead of silent `{"Error": ...}` dicts
 - Removed methods (legacy WebSocket, cover/bracket cancel)
 - WebSocket migration: callbacks → async/await with typed messages

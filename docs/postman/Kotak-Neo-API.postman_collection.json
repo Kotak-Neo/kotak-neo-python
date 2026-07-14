@@ -173,7 +173,7 @@
               "host": ["{{base_url}}"],
               "path": ["quick", "order", "rule", "ms", "place"]
             },
-            "description": "Place order. jData keys: am(amo), dq, es(exchange_segment), mp, pc(product CNC/NRML/MIS), pf, pr(price), pt(order_type), qt(quantity), rt(validity DAY/IOC; mcx_fo=DAY), tp(trigger), ts(trading_symbol), tt(B/S)."
+            "description": "Place order. jData keys: am(amo), dq, es(exchange_segment), mp, pc(product CNC/NRML/MIS/MTF), pf, pr(price), pt(order_type), qt(quantity), rt(validity DAY/IOC; mcx_fo=DAY), tp(trigger), ts(trading_symbol), tt(B/S)."
           }
         },
         {

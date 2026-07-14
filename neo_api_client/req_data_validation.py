@@ -125,12 +125,12 @@ def place_order_validation(
         )
 
     # Product validation (mandatory, non-blank). Place order accepts only
-    # CNC, NRML and MIS. Resolve any known alias (e.g. "Normal", "Cash and
-    # Carry", "cnc") to its canonical code before checking.
+    # CNC, NRML, MIS and MTF. Resolve any known alias (e.g. "Normal", "Cash
+    # and Carry", "cnc") to its canonical code before checking.
     _require_non_blank(product, "product")
     canonical_product = _product_map.get(product, product)
     if canonical_product not in place_order_product_allowed_values:
-        raise ApiValueError("Invalid product. Allowed values are CNC, NRML, MIS.")
+        raise ApiValueError("Invalid product. Allowed values are CNC, NRML, MIS, MTF.")
 
     # Price validation (mandatory, non-blank numeric string)
     _require_non_blank(price, "price")
@@ -293,11 +293,11 @@ def margin_validation(
             "Invalid exchange segment. Allowed values are nse_cm, bse_cm, nse_fo, bse_fo, mcx_fo."
         )
 
-    # Product validation (mandatory). Margin ("prod") accepts only CNC, NRML, MIS.
+    # Product validation (mandatory). Margin ("prod") accepts only CNC, NRML, MIS, MTF.
     _require_non_blank(product, "product")
     canonical_product = _product_map.get(product, product)
     if canonical_product not in place_order_product_allowed_values:
-        raise ApiValueError("Invalid product. Allowed values are CNC, NRML, MIS.")
+        raise ApiValueError("Invalid product. Allowed values are CNC, NRML, MIS, MTF.")
 
     # Price validation (mandatory). Margin ("prc") may be zero or a positive number.
     _require_non_blank(price, "price")

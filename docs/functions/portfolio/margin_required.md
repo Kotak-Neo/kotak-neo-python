@@ -32,7 +32,7 @@ All parameters below are mandatory unless noted otherwise, and are validated cli
 | *exchange_segment* | Allowed values: `nse_cm`, `bse_cm`, `nse_fo`, `bse_fo`, `mcx_fo` (or their aliases, e.g. NSE, BSE, NFO, BFO, MCX) | Str |
 | *price*            | Zero or a positive value                                                    | Str            |
 | *order_type*       | Allowed values: `L`, `MKT`, `SL`, `SL-M` (or their aliases)                 | Str            |
-| *product*          | Allowed values: `CNC`, `NRML`, `MIS`                                        | Str            |
+| *product*          | Allowed values: `CNC`, `NRML`, `MIS`, `MTF`                                 | Str            |
 | *quantity*         | Non-zero positive value                                                     | Str            |
 | *instrument_token* | pSymbol in ScripMaster files. Must be a valid (positive integer) token      | Str            |
 | *transaction_type* | Allowed values: `B` (Buy), `S` (Sell)                                       | Str            |

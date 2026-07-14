@@ -469,3 +469,81 @@ def test_scrip_search_mcx_plain_expiry_conversion(api_client, requests_mock):
         ignore_50multiple=True,
     )
     assert result is not None
+
+
+# ---- same-day CSV cache -----------------------------------------------------
+
+
+def test_scrip_search_uses_cache_on_second_call(api_client, requests_mock):
+    """A second search on the same day for the same segment must not
+    re-fetch the scrip-master listing or re-download the CSV."""
+    url = api_client.configuration.get_url_details("scrip_master")
+    csv_path = "https://api.kotaksecurities.com/scripmaster/NSE_CM_CACHE_TEST.csv"
+    csv_content = (
+        "pSymbol,pTrdSymbol,pExchSeg,pSymbolName,dStrikePrice;\n1,RELIANCE-EQ,nse_cm,RELIANCE,0\n"
+    )
+
+    listing_route = requests_mock.get(
+        url, json={"stat": "Ok", "data": {"filesPaths": [csv_path]}}, status_code=200
+    )
+    csv_route = requests_mock.get(csv_path, text=csv_content, status_code=200)
+
+    scrip = ScripSearch(api_client)
+    kwargs = {
+        "symbol": "reliance",
+        "exchange_segment": "nse_cm",
+        "expiry": None,
+        "option_type": None,
+        "strike_price": None,
+        "ignore_50multiple": True,
+    }
+    first = scrip.scrip_search(**kwargs)
+    second = scrip.scrip_search(**kwargs)
+
+    assert first == second
+    assert isinstance(first, list) and len(first) == 1
+    assert listing_route.call_count == 1
+    assert csv_route.call_count == 1
+
+
+def test_scrip_search_cache_is_per_segment(api_client, requests_mock):
+    """Caching one segment must not serve stale data for a different segment."""
+    cm_url = api_client.configuration.get_url_details("scrip_master")
+    cm_path = "https://api.kotaksecurities.com/scripmaster/NSE_CM_SEG_TEST.csv"
+    fo_path = "https://api.kotaksecurities.com/scripmaster/NSE_FO_SEG_TEST.csv"
+    cm_csv = (
+        "pSymbol,pTrdSymbol,pExchSeg,pSymbolName,dStrikePrice;\n1,RELIANCE-EQ,nse_cm,RELIANCE,0\n"
+    )
+    fo_csv = (
+        "pSymbol,pTrdSymbol,pExchSeg,pSymbolName,pOptionType,dStrikePrice;,pExpiryDate,pInstType\n"
+        "1,NIFTY24JUN22000CE,nse_fo,NIFTY,CE,2200000,1403222400,OPTIDX\n"
+    )
+
+    requests_mock.get(
+        cm_url,
+        json={"stat": "Ok", "data": {"filesPaths": [cm_path, fo_path]}},
+        status_code=200,
+    )
+    requests_mock.get(cm_path, text=cm_csv, status_code=200)
+    requests_mock.get(fo_path, text=fo_csv, status_code=200)
+
+    scrip = ScripSearch(api_client)
+    cm_result = scrip.scrip_search(
+        symbol="reliance",
+        exchange_segment="nse_cm",
+        expiry=None,
+        option_type=None,
+        strike_price=None,
+        ignore_50multiple=True,
+    )
+    fo_result = scrip.scrip_search(
+        symbol="nifty",
+        exchange_segment="nse_fo",
+        expiry=None,
+        option_type=None,
+        strike_price=None,
+        ignore_50multiple=True,
+    )
+
+    assert cm_result[0]["pSymbolName"] == "RELIANCE"
+    assert fo_result[0]["pSymbolName"] == "NIFTY"

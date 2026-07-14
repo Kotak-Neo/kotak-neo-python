@@ -63,14 +63,14 @@ Points to verify when upgrading:
 The SDK now validates order parameters **before** sending the request and raises
 a clear error for invalid input, instead of forwarding it to the exchange.
 
-### 3.1 Product type — only `CNC`, `NRML`, `MIS`
+### 3.1 Product type — only `CNC`, `NRML`, `MIS`, `MTF`
 
 ```python
 # v2.2.4: allowed product values
-client.place_order(..., product="CNC")   # or "NRML" or "MIS"
+client.place_order(..., product="CNC")   # or "NRML", "MIS", or "MTF"
 ```
 
-`CO` (Cover Order), `BO` (Bracket Order) and `MTF` are **no longer accepted** by
+`CO` (Cover Order) and `BO` (Bracket Order) are **no longer accepted** by
 `place_order` and now raise a validation error. If your v2.0.2 code placed
 cover/bracket orders, that path is removed (see §5).
 
@@ -287,7 +287,7 @@ See **[Order Feed](../functions/websocket/order_feed.md)**.
 - [ ] Bump Python to 3.10+ and `pip install --upgrade kotakneoapi`.
 - [ ] Remove any exact transitive pins carried over from v2.0.2.
 - [ ] Confirm auth uses `consumer_key` + `totp_login(mobile_number=...)` + `totp_validate(mpin=...)`.
-- [ ] Replace `product="CO"/"BO"/"MTF"` and `validity="GTC"/"EOS"/"GTD"` usages.
+- [ ] Replace `product="CO"/"BO"` and `validity="GTC"/"EOS"/"GTD"` usages.
 - [ ] Replace `price="0"`/blank on `L`/`SL` orders with a real limit price.
 - [ ] Wrap order/API calls in `try/except` for the new exception hierarchy.
 - [ ] Rewrite WebSocket code to the async `create_websocket()` / `create_order_feed()` model.

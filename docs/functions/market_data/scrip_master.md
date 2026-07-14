@@ -5,7 +5,17 @@ Get ScripMaster CSV file
 client.scrip_master()
 ```
 
-To get ScripMaster file of a particular segment, pass the exchange segment within bracket. For example - `client.scripmaster(nse_cm)`
+To get the ScripMaster file of a particular segment, pass the exchange segment. For example:
+
+```python
+client.scrip_master(exchange_segment="nse_cm")
+```
+
+```json
+"https://lapi.kotaksecurities.com/wso2-scripmaster/v1/prod/2026-07-14/transformed-v1/nse_cm-v1.csv"
+```
+
+This returns just the matching file's URL (a string), not the CSV content itself — the caller is responsible for downloading it (this is what `search_scrip()` does internally).
 
 > **Note:** Unlike most trading/portfolio methods, `scrip_master()` does not require a completed 2FA (TOTP) session — only `consumer_key` is required, since the underlying API authenticates via the `Authorization` header alone.
 
@@ -33,17 +43,25 @@ except Exception as e:
 
 ```json
 {
+    "baseFolder": "https://lapi.kotaksecurities.com/wso2-scripmaster/v1/prod",
     "filesPaths": [
-        "https://lapi.kotaksecurities.com/wso2-scripmaster/v1/prod/2025-01-22/transformed/bse_cm.csv",
-        "https://lapi.kotaksecurities.com/wso2-scripmaster/v1/prod/2025-01-22/transformed/cde_fo.csv",
-        "https://lapi.kotaksecurities.com/wso2-scripmaster/v1/prod/2025-01-22/transformed/mcx_fo.csv",
-        "https://lapi.kotaksecurities.com/wso2-scripmaster/v1/prod/2025-01-22/transformed/nse_cm.csv",
-        "https://lapi.kotaksecurities.com/wso2-scripmaster/v1/prod/2025-01-22/transformed/nse_fo.csv",
-        "https://lapi.kotaksecurities.com/wso2-scripmaster/v1/prod/2025-01-22/transformed/bse_fo.csv"
-    ],
-    "baseFolder": "https://lapi.kotaksecurities.com/wso2-scripmaster/v1/prod"
+        "https://lapi.kotaksecurities.com/wso2-scripmaster/v1/prod/2026-07-14/transformed/cde_fo.csv",
+        "https://lapi.kotaksecurities.com/wso2-scripmaster/v1/prod/2026-07-14/transformed/mcx_fo.csv",
+        "https://lapi.kotaksecurities.com/wso2-scripmaster/v1/prod/2026-07-14/transformed/nse_fo.csv",
+        "https://lapi.kotaksecurities.com/wso2-scripmaster/v1/prod/2026-07-14/transformed/bse_fo.csv",
+        "https://lapi.kotaksecurities.com/wso2-scripmaster/v1/prod/2026-07-14/transformed/nse_com.csv",
+        "https://lapi.kotaksecurities.com/wso2-scripmaster/v1/prod/2026-07-14/transformed-v1/bse_cm-v1.csv",
+        "https://lapi.kotaksecurities.com/wso2-scripmaster/v1/prod/2026-07-14/transformed-v1/nse_cm-v1.csv"
+    ]
 }
 ```
+
+> **Note:** The folder is date-stamped (changes daily) and file naming varies by
+> segment/version — e.g. `nse_cm` and `bse_cm` are currently served from a
+> `transformed-v1` folder as `nse_cm-v1.csv` / `bse_cm-v1.csv`, while other
+> segments are served from `transformed` with plain names (note `nse_com.csv`,
+> not `nse_cm.csv`, for the older-format NSE CM file). Always resolve the exact
+> filename from this response rather than hardcoding a path.
 
 ### HTTP request headers
 

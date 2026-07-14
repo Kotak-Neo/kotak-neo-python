@@ -38,7 +38,7 @@ Order/limits/margin endpoints send an **`x-www-form-urlencoded`** body with a
 single **`jData`** field containing JSON (exactly as the SDK does). Edit the
 `jData` value to change parameters. Key wire fields:
 
-- Place: `es`(exchange_segment) `pc`(product: CNC/NRML/MIS) `pr`(price)
+- Place: `es`(exchange_segment) `pc`(product: CNC/NRML/MIS/MTF) `pr`(price)
   `pt`(order_type) `qt`(quantity) `rt`(validity: DAY/IOC; mcx_fo=DAY only)
   `tp`(trigger) `ts`(trading_symbol) `tt`(B/S) `am`(amo YES/NO)
 - Cancel: `on`(order number) `am`

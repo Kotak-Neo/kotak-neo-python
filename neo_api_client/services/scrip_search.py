@@ -5,6 +5,7 @@ import httpx
 import pandas as pd
 
 from neo_api_client.exceptions import ApiException
+from neo_api_client.utils import scrip_cache
 
 
 class ScripSearch:
@@ -20,28 +21,38 @@ class ScripSearch:
             "Content-Type": "application/x-www-form-urlencoded",
         }
 
-        URL = self.api_client.configuration.get_url_details("scrip_master")
-
         try:
-            scrip_report = self.rest_client.request(url=URL, method="GET", headers=header_params)
-            if scrip_report.status_code != 200:
-                return scrip_report.json()
-
-            data = scrip_report.json()["data"]
             if exchange_segment is not None:
-                exchange_segment_csv = [
-                    file for file in data["filesPaths"] if exchange_segment.lower() in file.lower()
-                ]
+                csv_content = scrip_cache.read_csv(exchange_segment)
+                if csv_content is None:
+                    URL = self.api_client.configuration.get_url_details("scrip_master")
+                    scrip_report = self.rest_client.request(
+                        url=URL, method="GET", headers=header_params
+                    )
+                    if scrip_report.status_code != 200:
+                        return scrip_report.json()
 
-                response = httpx.get(
-                    exchange_segment_csv[0],
-                    timeout=30,
-                    follow_redirects=True,
-                )
-                response.raise_for_status()
+                    data = scrip_report.json()["data"]
+                    exchange_segment_csv = [
+                        file
+                        for file in data["filesPaths"]
+                        if exchange_segment.lower() in file.lower()
+                    ]
+
+                    response = httpx.get(
+                        exchange_segment_csv[0],
+                        timeout=30,
+                        follow_redirects=True,
+                    )
+                    response.raise_for_status()
+                    csv_content = response.content
+                    # Cache today's CSV so repeat searches on the same day
+                    # reuse it instead of re-downloading; TTL expires at
+                    # midnight (see neo_api_client.utils.scrip_cache).
+                    scrip_cache.write_csv(exchange_segment, csv_content)
 
                 df = pd.read_csv(
-                    io.BytesIO(response.content),
+                    io.BytesIO(csv_content),
                     low_memory=False,
                 )
 

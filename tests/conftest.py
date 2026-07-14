@@ -27,6 +27,17 @@ def requests_mock():
         mock.stop()
 
 
+@pytest.fixture(autouse=True)
+def _isolate_scrip_cache(tmp_path, monkeypatch):
+    """Give every test its own scrip-master CSV cache directory.
+
+    Without this, tests that mock different CSV content for the same
+    exchange_segment (e.g. "nse_cm") would leak cached files into each other
+    via the real on-disk cache used by search_scrip().
+    """
+    monkeypatch.setenv("NEO_SCRIP_CACHE_DIR", str(tmp_path / "scrip_cache"))
+
+
 @pytest.fixture
 def api_client():
     utility = NeoUtility(

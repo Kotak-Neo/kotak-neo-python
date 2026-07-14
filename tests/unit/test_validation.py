@@ -55,17 +55,17 @@ def test_place_order_validation_ok():
 
 @pytest.mark.parametrize(
     "product",
-    ["CNC", "NRML", "MIS", "Normal", "Cash and Carry", "cnc", "mis"],
+    ["CNC", "NRML", "MIS", "MTF", "Normal", "Cash and Carry", "cnc", "mis", "mtf"],
 )
 def test_place_order_allowed_products(product):
-    """Only CNC/NRML/MIS (and their aliases) are accepted for place order."""
+    """Only CNC/NRML/MIS/MTF (and their aliases) are accepted for place order."""
     place_order_validation(**_valid_place_kwargs(product=product))
 
 
-@pytest.mark.parametrize("product", ["CO", "BO", "MTF", "INTRADAY", "XYZ"])
+@pytest.mark.parametrize("product", ["CO", "BO", "INTRADAY", "XYZ"])
 def test_place_order_rejects_disallowed_products(product):
-    """CO/BO/MTF/INTRADAY (and unknown) are not valid place-order products."""
-    with pytest.raises(ApiValueError, match="Allowed values are CNC, NRML, MIS"):
+    """CO/BO/INTRADAY (and unknown) are not valid place-order products."""
+    with pytest.raises(ApiValueError, match="Allowed values are CNC, NRML, MIS, MTF"):
         place_order_validation(**_valid_place_kwargs(product=product))
 
 
@@ -354,7 +354,7 @@ def test_margin_validation_ok():
         ("exchange_segment", "CDS"),
         ("exchange_segment", "BCD"),
         ("product", "INVALID"),
-        # Margin does not accept INTRADAY/CO/BO/MTF, unlike the general product list.
+        # Margin does not accept INTRADAY/CO/BO, unlike the general product list.
         ("product", "INTRADAY"),
         ("order_type", "INVALID"),
         # Margin does not accept SP/2L/3L, unlike the general order type list.

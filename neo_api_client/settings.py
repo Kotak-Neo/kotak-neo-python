@@ -76,10 +76,10 @@ product_allowed_values = [
     "MTF",
 ]
 
-# Product types accepted by the place-order API (canonical codes only). Aliases
-# (e.g. "Normal", "Cash and Carry") are resolved to these via the `product` map
-# before the check.
-place_order_product_allowed_values = ["CNC", "NRML", "MIS"]
+# Product types accepted by the place-order (and margin) API (canonical codes
+# only). Aliases (e.g. "Normal", "Cash and Carry") are resolved to these via
+# the `product` map before the check.
+place_order_product_allowed_values = ["CNC", "NRML", "MIS", "MTF"]
 
 # Exchange segments accepted by the check-margin API (canonical codes only).
 # Aliases (e.g. "NSE", "MCX") are resolved to these via the `exchange_segment`
