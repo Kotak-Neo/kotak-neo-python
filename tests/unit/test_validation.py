@@ -164,6 +164,21 @@ def test_place_order_validation_negative_price():
         place_order_validation(**_valid_place_kwargs(price="-1"))
 
 
+@pytest.mark.parametrize("order_type", ["L", "Limit", "SL", "Stop loss limit"])
+def test_place_order_validation_zero_price_rejected_for_limit_types(order_type):
+    """L/SL orders need a real limit price; price=0 must be rejected rather
+    than silently sent through (the exchange has been observed to substitute
+    a nonsense default price instead of rejecting such orders)."""
+    with pytest.raises(ApiValueError, match="greater than zero"):
+        place_order_validation(**_valid_place_kwargs(order_type=order_type, price="0"))
+
+
+@pytest.mark.parametrize("order_type", ["MKT", "Market", "SL-M", "Stop loss market"])
+def test_place_order_validation_zero_price_allowed_for_market_types(order_type):
+    """MKT/SL-M orders execute at the prevailing market price, so price=0 is valid."""
+    place_order_validation(**_valid_place_kwargs(order_type=order_type, price="0"))
+
+
 @pytest.mark.parametrize("bad_qty", ["abc", "1.5", "0", "-3"])
 def test_place_order_validation_invalid_quantity(bad_qty):
     with pytest.raises(ApiValueError, match="integer|greater than zero"):
@@ -249,6 +264,19 @@ def test_modify_order_validation_blank_mandatory(field, blank):
 def test_modify_order_validation_bad_price(bad_price):
     with pytest.raises(ApiValueError, match="number|negative"):
         modify_order_validation(**_valid_modify_kwargs(price=bad_price))
+
+
+@pytest.mark.parametrize("order_type", ["L", "SL"])
+def test_modify_order_validation_zero_price_rejected_for_limit_types(order_type):
+    """L/SL modifications need a real limit price; price=0 must be rejected."""
+    with pytest.raises(ApiValueError, match="greater than zero"):
+        modify_order_validation(**_valid_modify_kwargs(order_type=order_type, price="0"))
+
+
+@pytest.mark.parametrize("order_type", ["MKT", "SL-M"])
+def test_modify_order_validation_zero_price_allowed_for_market_types(order_type):
+    """MKT/SL-M modifications execute at the prevailing market price, so price=0 is valid."""
+    modify_order_validation(**_valid_modify_kwargs(order_type=order_type, price="0"))
 
 
 @pytest.mark.parametrize("bad_qty", ["abc", "0", "-3", "1.5"])

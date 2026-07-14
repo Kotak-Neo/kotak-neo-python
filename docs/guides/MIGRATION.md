@@ -85,14 +85,31 @@ Validity is now validated against the exchange segment:
 
 `GTC`, `EOS`, and `GTD` are **no longer accepted** and raise a validation error.
 
-### 3.3 Blank / invalid inputs are rejected
+### 3.3 Price — must be positive for `L`/`SL` orders
+
+```python
+# v2.2.4: price=0 is now rejected for Limit and Stop-Loss-Limit orders
+client.place_order(..., order_type="L", price="0")   # raises ApiValueError
+client.place_order(..., order_type="L", price="1500")  # OK — a real limit price
+client.place_order(..., order_type="MKT", price="0")  # still OK — market orders ignore price
+```
+
+`price=0` (or blank) previously reached the exchange for `L` (Limit) and `SL`
+(Stop-Loss Limit) orders, which has been observed to make the exchange silently
+substitute a default price instead of rejecting the order — resulting in an
+unintended fill at a nonsense price. The SDK now rejects `price=0` client-side
+for `L`/`SL` order types. `MKT` and `SL-M` orders are unaffected — they
+legitimately execute at the prevailing market price, so `price=0` remains valid
+there. The same rule applies to `modify_order`.
+
+### 3.4 Blank / invalid inputs are rejected
 
 Mandatory fields (`exchange_segment`, `product`, `price`, `order_type`,
 `quantity`, `validity`, `trading_symbol`, `transaction_type`) must be non-blank
 and well-formed (numeric price, positive-integer quantity, …). Blank or malformed
 values now raise a validation error rather than being silently sent.
 
-### 3.4 `modify_order` — optional exchange-rejection check (`isVerify`)
+### 3.5 `modify_order` — optional exchange-rejection check (`isVerify`)
 
 Order modification is acknowledged asynchronously: the server returns
 `stat: "Ok"` when it *accepts* the request, but the exchange may reject it moments
@@ -111,7 +128,7 @@ result = client.modify_order(
 )
 ```
 
-### 3.5 AMO orders
+### 3.6 AMO orders
 
 Pass `amo="YES"` to place/modify/cancel an After-Market Order. The `am` flag is
 always sent (defaults to `"NO"`).
@@ -271,6 +288,7 @@ See **[Order Feed](../functions/websocket/order_feed.md)**.
 - [ ] Remove any exact transitive pins carried over from v2.0.2.
 - [ ] Confirm auth uses `consumer_key` + `totp_login(mobile_number=...)` + `totp_validate(mpin=...)`.
 - [ ] Replace `product="CO"/"BO"/"MTF"` and `validity="GTC"/"EOS"/"GTD"` usages.
+- [ ] Replace `price="0"`/blank on `L`/`SL` orders with a real limit price.
 - [ ] Wrap order/API calls in `try/except` for the new exception hierarchy.
 - [ ] Rewrite WebSocket code to the async `create_websocket()` / `create_order_feed()` model.
 - [ ] Replace `subscribe_to_orderfeed` and any cover/bracket cancel calls.

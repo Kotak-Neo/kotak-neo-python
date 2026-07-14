@@ -6,6 +6,7 @@ from neo_api_client.settings import (
     margin_order_type_allowed_values,
     order_type_allowed_values,
     place_order_product_allowed_values,
+    price_required_order_types,
     product_limits,
     segment_limits,
     validity_allowed_by_segment,
@@ -52,6 +53,19 @@ def _require_non_negative_int(value, name):
         raise ApiValueError(f"{name} must be a valid integer, got {value!r}.") from exc
     if parsed < 0:
         raise ApiValueError(f"{name} cannot be negative.")
+
+
+def _require_positive_price_for_order_type(price, order_type):
+    """Reject a zero price for order types that need a real limit price.
+
+    MKT/SL-M orders execute at the prevailing market price, so price=0 is
+    valid there. L/SL orders need an actual limit price — leaving price at
+    0 has been observed to make the exchange silently substitute a default
+    price instead of rejecting the order.
+    """
+    canonical_order_type = _order_type_map.get(order_type, order_type)
+    if canonical_order_type in price_required_order_types and float(price) <= 0:
+        raise ApiValueError(f"price must be greater than zero for order_type '{order_type}'.")
 
 
 def _require_valid_validity(validity, exchange_segment):
@@ -129,6 +143,9 @@ def place_order_validation(
             "Invalid order type. Allowed values are L or Limit, MKT or Market, SL or Stop loss limit,"
             "SL-M or Stop loss market, SP or Spread, 2L or Tow leg, 3L or Three Leg."
         )
+
+    # L/SL orders need a real limit price; MKT/SL-M may legitimately use 0.
+    _require_positive_price_for_order_type(price, order_type)
 
     # Quantity validation (mandatory, non-blank positive integer string)
     _require_non_blank(quantity, "quantity")
@@ -218,6 +235,9 @@ def modify_order_validation(
             "Invalid order type. Allowed values are L or Limit, MKT or Market, SL or Stop loss limit,"
             "SL-M or Stop loss market, SP or Spread, 2L or Tow leg, 3L or Three Leg."
         )
+
+    # L/SL orders need a real limit price; MKT/SL-M may legitimately use 0.
+    _require_positive_price_for_order_type(price, order_type)
 
     # Quantity (mandatory, non-blank positive integer string)
     _require_non_blank(quantity, "quantity")

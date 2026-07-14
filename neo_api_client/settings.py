@@ -177,6 +177,14 @@ order_type = {
     "Three leg": "3L",
 }
 
+# Order types (canonical codes) that need a real, strictly-positive limit
+# price. MKT and SL-M orders execute at the prevailing market price, so
+# price=0 is valid there; L and SL orders need an actual limit price —
+# sending price=0 (or blank) has been observed to make the exchange
+# silently substitute a default price (e.g. 1) instead of rejecting the
+# order, resulting in an unintended fill at a nonsense price.
+price_required_order_types = ["L", "SL"]
+
 # Allowed order-validity values per (canonical) exchange segment, used by place
 # and modify order validation. Keyed by the normalized segment name (the value
 # side of the `exchange_segment` map above). Segments not listed fall back to
