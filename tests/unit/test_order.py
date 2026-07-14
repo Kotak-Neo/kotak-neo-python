@@ -141,8 +141,8 @@ def test_order_cancelling_with_verification_rejected(api_client, requests_mock):
 
     result = order_api_instance.order_cancelling(order_id="12345", isVerify=True)
 
-    assert "Error" in result
-    assert result["Error"] == "The Given Order Status is rejected"
+    assert result["status_code"] == 409
+    assert result["ordSt"] == "rejected"
     assert result["Reason"] == "Insufficient funds"
 
 
@@ -161,8 +161,8 @@ def test_order_cancelling_with_verification_complete(api_client, requests_mock):
 
     result = order_api_instance.order_cancelling(order_id="12345", isVerify=True)
 
-    assert "Error" in result
-    assert result["Error"] == "The Given Order Status is Traded"
+    assert result["status_code"] == 409
+    assert result["ordSt"] == "complete"
 
 
 def test_order_cancelling_with_verification_cancelled(api_client, requests_mock):
@@ -180,8 +180,8 @@ def test_order_cancelling_with_verification_cancelled(api_client, requests_mock)
 
     result = order_api_instance.order_cancelling(order_id="12345", isVerify=True)
 
-    assert "Error" in result
-    assert result["Error"] == "The Given Order Status is cancelled"
+    assert result["status_code"] == 409
+    assert result["ordSt"] == "cancelled"
 
 
 def test_order_cancelling_with_amo(api_client, requests_mock):

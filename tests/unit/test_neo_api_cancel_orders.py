@@ -57,6 +57,25 @@ def test_cancel_order_with_amo(authenticated_client, requests_mock):
     assert result["stat"] == "Ok"
 
 
+def test_cancel_order_rejects_already_completed_order(authenticated_client, requests_mock):
+    """cancel_order() must reject (409) an order that's already terminal,
+    without ever sending the actual cancel request."""
+    order_book_url = authenticated_client.configuration.get_url_details("order_book")
+    cancel_url = authenticated_client.configuration.get_url_details("cancel_order")
+
+    requests_mock.get(
+        order_book_url,
+        json={"data": [{"nOrdNo": "240101000000001", "ordSt": "complete", "rejRsn": ""}]},
+    )
+    cancel_route = requests_mock.post(cancel_url, json={"stat": "Ok"})
+
+    result = authenticated_client.cancel_order(order_id="240101000000001")
+
+    assert result["status_code"] == 409
+    assert result["ordSt"] == "complete"
+    assert cancel_route.call_count == 0
+
+
 def test_order_report_without_2fa():
     """Test order_report without 2FA."""
     client = NeoAPI(environment="prod", consumer_key="test_key")

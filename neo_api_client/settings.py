@@ -177,6 +177,16 @@ order_type = {
     "Three leg": "3L",
 }
 
+# Order types (canonical codes) that don't use a trigger price — a trigger is
+# only meaningful for stop-loss variants (SL/SL-M). For these, the REST API
+# still requires the "tp" field to be present, but the value doesn't matter,
+# so the SDK sends "0" and doesn't require the caller to supply it.
+NO_TRIGGER_ORDER_TYPES = {"L", "MKT"}
+
+# Order book statuses ("ordSt") that mean an order is finished and can no
+# longer be modified or cancelled.
+TERMINAL_ORDER_STATUSES = {"complete", "traded", "rejected", "cancelled"}
+
 # Order types (canonical codes) that need a real, strictly-positive limit
 # price. MKT and SL-M orders execute at the prevailing market price, so
 # price=0 is valid there; L and SL orders need an actual limit price —

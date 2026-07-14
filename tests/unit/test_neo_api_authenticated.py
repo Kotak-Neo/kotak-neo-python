@@ -72,6 +72,61 @@ def test_place_order_with_optional_params(authenticated_client, requests_mock):
     assert result["stat"] == "Ok"
 
 
+def test_place_order_defaults_trigger_price_for_limit_when_none(authenticated_client, monkeypatch):
+    """trigger_price=None is coerced to '0' for L/MKT order types — the REST
+    API still requires the "tp" field, but the value doesn't matter for these
+    order types, so the caller shouldn't have to supply it."""
+    captured = {}
+
+    def fake_order_placing(self, **kwargs):
+        captured.update(kwargs)
+        return {"stat": "Ok"}
+
+    monkeypatch.setattr("neo_api_client.neo_api.OrderAPI.order_placing", fake_order_placing)
+
+    authenticated_client.place_order(
+        exchange_segment="nse_cm",
+        product="CNC",
+        price="1500",
+        order_type="L",
+        quantity="1",
+        validity="DAY",
+        trading_symbol="RELIANCE-EQ",
+        transaction_type="B",
+        trigger_price=None,
+    )
+
+    assert captured["trigger_price"] == "0"
+
+
+def test_place_order_does_not_default_trigger_price_for_sl_when_none(
+    authenticated_client, monkeypatch
+):
+    """trigger_price=None is left as-is for SL/SL-M — a real trigger price is
+    required there, so silently defaulting to '0' would be unsafe."""
+    captured = {}
+
+    def fake_order_placing(self, **kwargs):
+        captured.update(kwargs)
+        return {"stat": "Ok"}
+
+    monkeypatch.setattr("neo_api_client.neo_api.OrderAPI.order_placing", fake_order_placing)
+
+    authenticated_client.place_order(
+        exchange_segment="nse_cm",
+        product="CNC",
+        price="1500",
+        order_type="SL",
+        quantity="1",
+        validity="DAY",
+        trading_symbol="RELIANCE-EQ",
+        transaction_type="B",
+        trigger_price=None,
+    )
+
+    assert captured["trigger_price"] is None
+
+
 def test_place_order_validation_error(authenticated_client):
     """Test place_order with validation error."""
     result = authenticated_client.place_order(
@@ -473,6 +528,125 @@ def test_modify_order_quick_path_success(authenticated_client, requests_mock):
         transaction_type="B",
     )
     assert result["stat"] == "Ok"
+
+
+def test_modify_order_quick_path_rejects_already_completed_order(
+    authenticated_client, requests_mock
+):
+    """modify_order() quick path must reject (409) an already-terminal order,
+    without ever sending the actual modify request."""
+    order_book_url = authenticated_client.configuration.get_url_details("order_book")
+    modify_url = authenticated_client.configuration.get_url_details("modify_order")
+
+    requests_mock.get(
+        order_book_url,
+        json={"data": [{"nOrdNo": "12345", "ordSt": "traded", "rejRsn": ""}]},
+    )
+    modify_route = requests_mock.post(modify_url, json={"stat": "Ok"})
+
+    result = authenticated_client.modify_order(
+        order_id="12345",
+        price="105",
+        order_type="L",
+        quantity="2",
+        validity="DAY",
+        instrument_token="11536",
+        exchange_segment="nse_cm",
+        product="CNC",
+        trading_symbol="RELIANCE-EQ",
+        transaction_type="B",
+    )
+
+    assert result["status_code"] == 409
+    assert result["ordSt"] == "traded"
+    assert modify_route.call_count == 0
+
+
+def test_modify_order_by_orderid_path_rejects_already_completed_order(
+    authenticated_client, requests_mock
+):
+    """modify_order() order-id-only path must reject (409) an already-terminal
+    order, without ever sending the actual modify request."""
+    order_book_url = authenticated_client.configuration.get_url_details("order_book")
+    modify_url = authenticated_client.configuration.get_url_details("modify_order")
+
+    requests_mock.get(
+        order_book_url,
+        json={"data": [{"nOrdNo": "12345", "ordSt": "rejected", "rejRsn": "Insufficient funds"}]},
+    )
+    modify_route = requests_mock.post(modify_url, json={"stat": "Ok"})
+
+    result = authenticated_client.modify_order(
+        order_id="12345",
+        price="105",
+        order_type="L",
+        quantity="2",
+        validity="DAY",
+    )
+
+    assert result["status_code"] == 409
+    assert result["ordSt"] == "rejected"
+    assert result["Reason"] == "Insufficient funds"
+    assert modify_route.call_count == 0
+
+
+def test_modify_order_quick_path_defaults_trigger_price_for_limit(
+    authenticated_client, monkeypatch
+):
+    """Quick-modify path: trigger_price=None is coerced to '0' for L/MKT."""
+    captured = {}
+
+    def fake_quick_modification(self, **kwargs):
+        captured.update(kwargs)
+        return {"stat": "Ok"}
+
+    monkeypatch.setattr(
+        "neo_api_client.neo_api.ModifyOrder.quick_modification", fake_quick_modification
+    )
+
+    authenticated_client.modify_order(
+        order_id="12345",
+        price="105",
+        order_type="L",
+        quantity="2",
+        validity="DAY",
+        instrument_token="11536",
+        exchange_segment="nse_cm",
+        product="CNC",
+        trading_symbol="RELIANCE-EQ",
+        transaction_type="B",
+        trigger_price=None,
+    )
+
+    assert captured["trigger_price"] == "0"
+
+
+def test_modify_order_by_orderid_path_defaults_trigger_price_for_limit(
+    authenticated_client, monkeypatch
+):
+    """Order-id-only path: trigger_price=None is coerced to '0' for L/MKT."""
+    captured = {}
+
+    def fake_modification_with_orderid(self, **kwargs):
+        captured.update(kwargs)
+        return {"stat": "Ok"}
+
+    monkeypatch.setattr(
+        "neo_api_client.neo_api.ModifyOrder.modification_with_orderid",
+        fake_modification_with_orderid,
+    )
+
+    authenticated_client.modify_order(
+        order_id="12345",
+        price="105",
+        order_type="L",
+        quantity="2",
+        validity="DAY",
+        trigger_price=None,
+    )
+
+    assert captured["trigger_price"] == "0"
+    assert captured["order_type"] == "L"
 
 
 def test_modify_order_requires_order_id(authenticated_client):

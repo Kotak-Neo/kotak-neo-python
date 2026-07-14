@@ -74,6 +74,43 @@ def test_quick_modification_api_exception(api_client, monkeypatch):
     assert "error" in result
 
 
+def test_quick_modification_rejects_terminal_order(api_client, requests_mock):
+    """quick_modification() must reject (409) a modify on an already-terminal
+    order without ever sending the modify request."""
+    modify_order_api = ModifyOrder(api_client)
+    order_book_url = api_client.configuration.get_url_details("order_book")
+    modify_url = api_client.configuration.get_url_details("modify_order")
+
+    requests_mock.get(
+        order_book_url,
+        json={"data": [{"nOrdNo": "12345", "ordSt": "complete", "rejRsn": ""}]},
+    )
+    modify_route = requests_mock.post(modify_url, json={"stat": "Ok"})
+
+    result = modify_order_api.quick_modification(
+        order_id="12345",
+        price="105.00",
+        order_type="L",
+        quantity="15",
+        validity="DAY",
+        instrument_token="11536",
+        exchange_segment="nse_cm",
+        product="CNC",
+        trading_symbol="RELIANCE-EQ",
+        transaction_type="B",
+        trigger_price="104.00",
+        dd="NA",
+        market_protection="0",
+        disclosed_quantity="5",
+        filled_quantity="0",
+        amo="NO",
+    )
+
+    assert result["status_code"] == 409
+    assert result["ordSt"] == "complete"
+    assert modify_route.call_count == 0
+
+
 def test_modification_with_orderid_success(api_client, requests_mock):
     """Test successful modification with order ID lookup"""
     modify_order_api = ModifyOrder(api_client)
@@ -150,7 +187,7 @@ def test_modification_with_orderid_no_data(api_client, requests_mock):
     )
 
     assert "Message" in result
-    assert result["Message"] == "There is no Data in the Order Book"
+    assert "not matching" in result["Message"]
 
 
 def test_modification_with_orderid_rejected(api_client, requests_mock):
@@ -288,8 +325,8 @@ def test_modification_with_orderid_complete(api_client, requests_mock):
         amo="NO",
     )
 
-    assert "Error" in result
-    assert "Traded" in result["Error"]
+    assert result["status_code"] == 409
+    assert result["ordSt"] == "complete"
 
 
 def test_modification_with_orderid_traded(api_client, requests_mock):
@@ -703,9 +740,17 @@ def test_modify_order_amo_yes_is_sent(api_client, requests_mock):
 # ---- isVerify: confirm the final outcome after an async modify --------------
 
 
-def test_modify_quick_verify_detects_exchange_rejection(api_client, requests_mock):
+def test_modify_quick_verify_detects_exchange_rejection(api_client, requests_mock, monkeypatch):
     """With is_verify, a modify that the exchange later rejects (ordSt=rejected
     on the order book) is surfaced as a failure, not the raw 'Ok' ack."""
+    # Bypass the pre-check (this test is specifically about *post*-modify
+    # verification): the order was open when the modify was submitted, and
+    # the exchange's rejection only surfaces on the order book afterwards.
+    monkeypatch.setattr(
+        "neo_api_client.services.modify_order.check_order_not_terminal",
+        lambda api_client, order_id: (None, None),
+    )
+
     modify_url = api_client.configuration.get_url_details("modify_order")
     order_book_url = api_client.configuration.get_url_details("order_book")
 

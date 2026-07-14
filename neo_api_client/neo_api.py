@@ -192,6 +192,12 @@ class NeoAPI:
                 exchange_segment = settings.exchange_segment[exchange_segment]
                 product = settings.product[product]
                 order_type = settings.order_type[order_type]
+                # trigger_price ("tp") is required by the REST API even for
+                # order types that ignore it (L/MKT) — it just doesn't matter
+                # what the value is. Default it to "0" so callers don't have
+                # to pass it for these order types.
+                if order_type in settings.NO_TRIGGER_ORDER_TYPES and trigger_price is None:
+                    trigger_price = "0"
                 place_order = OrderAPI(self.api_client).order_placing(
                     exchange_segment=exchange_segment,
                     product=product,
@@ -227,19 +233,28 @@ class NeoAPI:
         """
         Cancels an order with the given `order_id` using the NEO API.
 
+        Before sending the cancel request, the SDK always checks the order's
+        current status on the order book. If the order is already complete,
+        traded, rejected, or cancelled, the cancel is rejected client-side
+        with a structured error (``status_code: 409``) instead of being sent
+        to the exchange. This check is unconditional; if the order-book
+        lookup itself fails, the SDK falls back to sending the cancel anyway
+        (fail open) rather than blocking on a lookup failure.
+
         Args: order_id (str): The ID of the order to cancel.
         amo (str, optional): Default is "NO" for no amount specified.
-        isVerify (bool, optional): Whether to verify the cancellation. Default is False.
-        "If isVerify is True, we will first check the status of the given order. If the order status is not
-         'rejected', 'cancelled', 'traded', or 'completed', we will proceed to cancel the order using the
-         cancel_order function. Otherwise, we will display the order status to the user instead."
+        isVerify (bool, optional): Default is False. Retained for backward
+            compatibility; no longer changes this method's behavior, since
+            the terminal-status check above is now always performed.
 
         Raises:
             ValueError: If the `order_id` is not a valid input.
             Exception: If there was an error cancelling the order.
 
         Returns:
-            The Status of given order id.
+            The Status of given order id. If the order is already terminal,
+            a dict with ``status_code: 409``, ``Error``, ``ordSt``, and
+            ``Reason`` instead.
         """
         if self.configuration.edit_token and self.configuration.edit_sid:
             try:
@@ -379,8 +394,18 @@ class NeoAPI:
                 acknowledgement; confirm the final state via the order feed or
                 order history.
 
+        Before sending the modify request (either path), the SDK always
+        checks the order's current status on the order book. If the order is
+        already complete, traded, rejected, or cancelled, the modify is
+        rejected client-side with a structured error (``status_code: 409``)
+        instead of being sent to the exchange. If the order-book lookup
+        itself fails, the SDK falls back to sending the modify anyway (fail
+        open) rather than blocking on a lookup failure.
+
         Returns:
-            The Status of the Given Order ID modification
+            The Status of the Given Order ID modification. If the order is
+            already terminal, a dict with ``status_code: 409``, ``Error``,
+            ``ordSt``, and ``Reason`` instead.
         """
         if self.configuration.edit_token and self.configuration.edit_sid:
             # Validate mandatory inputs up-front (before any value mapping) so
@@ -401,10 +426,17 @@ class NeoAPI:
             except Exception as e:
                 return {"Error": e}
 
+            # order_type is mandatory and already validated above, so it's safe
+            # to canonicalize here for both branches below. trigger_price ("tp")
+            # is required by the REST API even for order types that ignore it
+            # (L/MKT) — default it to "0" so callers don't have to pass it.
+            order_type = settings.order_type[order_type]
+            if order_type in settings.NO_TRIGGER_ORDER_TYPES and trigger_price is None:
+                trigger_price = "0"
+
             if order_id and instrument_token and exchange_segment and product and trading_symbol:
                 exchange_segment = settings.exchange_segment[exchange_segment]
                 product = settings.product[product]
-                order_type = settings.order_type[order_type]
                 try:
                     quick_modify = ModifyOrder(self.api_client).quick_modification(
                         order_id=order_id,

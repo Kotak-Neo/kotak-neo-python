@@ -1,16 +1,21 @@
 # **Cancel_Order**
 Cancel an order
 
-## Method 1 - Quick Method
 ```python
 client.cancel_order(order_id = "")
 ```
 
-## Method 2 - Delayed Method
-This method checks the order status first and then cancels the order if it is open.<br/>
-```python
-client.cancel_order(order_id = "", isVerify=True)
-```
+> **Note:** Before sending the cancel request, the SDK always checks the order's current status on the order book. If the order is already `complete`, `traded`, `rejected`, or `cancelled`, the cancel is rejected client-side with a structured error (`status_code: 409`) instead of being sent to the exchange:
+> ```json
+> {
+>     "status_code": 409,
+>     "Error": "Order 230120000017243 is already 'complete' and can no longer be modified or cancelled.",
+>     "ordSt": "complete",
+>     "Reason": null,
+>     "nOrdNo": "230120000017243"
+> }
+> ```
+> If the order-book lookup itself fails (e.g. a transient network error), the SDK falls back to sending the cancel anyway rather than blocking on a lookup failure. `isVerify` is retained for backward compatibility but no longer changes this behavior, since the check is now always performed.
 
 ### Example
 
@@ -35,7 +40,7 @@ except Exception as e:
 | Name        | Description         | Type      |
 |-------------|---------------------|-----------|
 | *order_id*  | Order ID to cancel | str       |
-| *isVerify*  | Flag to check the status of order (Delayed method) | boolean   |
+| *isVerify*  | Deprecated/no-op — kept for backward compatibility. The terminal-status check is now always performed regardless of this flag. | boolean   |
 | *amo*       | After market order - YES, NO (optional, Default Value - NO) | str   |
 
 ### Return type
@@ -62,6 +67,7 @@ except Exception as e:
 | *200*       | Order cancelled successfully                 |
 | *400*       | Invalid or missing input parameters          |
 | *403*       | Invalid session, please re-login to continue |
+| *409*       | Order is already complete/traded/rejected/cancelled — rejected client-side by the SDK, never sent to the exchange |
 | *429*       | Too many requests to the API                 |
 | *500*       | Unexpected error                             |
 | *502*       | Not able to communicate with OMS             |

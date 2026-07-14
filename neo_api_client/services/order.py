@@ -1,6 +1,6 @@
-import neo_api_client
 from neo_api_client.exceptions import ApiException
 from neo_api_client.settings import ORDER_SOURCE
+from neo_api_client.utils.order_status import check_order_not_terminal
 
 
 class OrderAPI:
@@ -86,22 +86,20 @@ class OrderAPI:
             return {"error": ex}
 
     def order_cancelling(self, order_id, isVerify, amo=None):
-        if isVerify:
-            order_book_resp = neo_api_client.OrderReportAPI(self.api_client).ordered_books()
-            if "data" in order_book_resp:
-                for item in order_book_resp["data"]:
-                    if item["nOrdNo"] == order_id.strip() and item["ordSt"] in [
-                        "rejected",
-                        "cancelled",
-                        "complete",
-                        "traded",
-                    ]:
-                        if item["ordSt"] == "complete":
-                            item["ordSt"] = "Traded"
-                        return {
-                            "Error": "The Given Order Status is " + str(item["ordSt"]),
-                            "Reason": item["rejRsn"],
-                        }
+        # An order that's already complete/traded/rejected/cancelled can't be
+        # cancelled again — reject it client-side rather than sending a
+        # cancel the exchange would just reject. This check is unconditional
+        # (not gated by isVerify); isVerify is retained for backward
+        # compatibility but no longer changes cancel_order()'s behavior. If
+        # the order-book lookup itself fails, fail open and let the exchange
+        # be the final arbiter (all fields needed for the cancel are already
+        # in hand either way).
+        try:
+            _, terminal_error = check_order_not_terminal(self.api_client, order_id)
+        except Exception:
+            terminal_error = None
+        if terminal_error:
+            return terminal_error
 
         header_params = {
             "Authorization": self.api_client.configuration.consumer_key,
