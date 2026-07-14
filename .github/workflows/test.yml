@@ -128,9 +128,9 @@ jobs:
   checkmarx:
     name: Checkmarx One Scan
     runs-on: ubuntu-24.04
-    # Only run when the Checkmarx credentials are configured (skips on forks/PRs
-    # from contributors without access to the org secrets).
-    if: ${{ github.event_name == 'push' || github.repository == 'Kotak-Neo/kotak-neo-python' }}
+    # Only run when the Checkmarx credentials are available (skips PRs from
+    # forks, which don't have access to the org secrets).
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
 
     steps:
       - name: Checkout Repository
@@ -139,7 +139,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Checkmarx One (SAST + SCA + secret detection)
+      - name: Checkmarx One (SAST + SCA)
         uses: checkmarx/ast-github-action@main
         with:
           base_uri: ${{ secrets.CX_BASE_URI }}
@@ -149,8 +149,11 @@ jobs:
           project_name: kotak-neo-python
           branch: ${{ github.ref_name }}
           # Scan the SDK source; exclude built artifacts, the large scrip-master
-          # CSV data files (not code), and caches to reduce noise.
+          # CSV data files (not code), caches, and tests/unit (fixture data
+          # there uses hardcoded dummy credentials like "test_key", which SAST
+          # flags as medium-severity findings even though they're not real
+          # secrets).
           # scan_params replaces the deprecated additional_params.
           scan_params: >-
             --scan-types sast,sca
-            --file-filter "!**/dist/**,!**/*.csv,!**/__pycache__/**,!**/*.egg-info/**"
+            --file-filter "!**/dist/**,!**/*.csv,!**/__pycache__/**,!**/*.egg-info/**,!**/tests/unit/**"
