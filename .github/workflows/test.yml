@@ -153,7 +153,17 @@ jobs:
           # there uses hardcoded dummy credentials like "test_key", which SAST
           # flags as medium-severity findings even though they're not real
           # secrets).
+          #
+          # NOTE: the CLI's --file-filter matches each path segment's bare
+          # basename only (via file.Name() / filepath.Base(), see
+          # github.com/Checkmarx/ast-cli internal/commands/scan.go) — it does
+          # NOT support "/" or recursive "**" in patterns. Any slash-
+          # containing pattern (e.g. "!**/dist/**") silently never matches.
+          # Use bare, slash-free names instead; they're matched recursively
+          # at every directory depth automatically. "unit" is unambiguous
+          # here — it's the only directory named "unit" in this repo
+          # (tests/unit).
           # scan_params replaces the deprecated additional_params.
           scan_params: >-
             --scan-types sast,sca
-            --file-filter "!**/dist/**,!**/*.csv,!**/__pycache__/**,!**/*.egg-info/**,!**/tests/unit/**"
+            --file-filter "!dist,!*.csv,!__pycache__,!*.egg-info,!unit"
