@@ -279,6 +279,11 @@ See **[Order Feed](../functions/websocket/order_feed.md)**.
   stdout; the new SDK uses structured logging.
 - **Structured logging.** Configure via `NEO_LOG_LEVEL` / `NEO_LOG_JSON`
   environment variables.
+- **`limits()` takes no parameters.** It always requests limits across all
+  segments, exchanges, and products. If you called `limits(segment=..., exchange=..., product=...)`,
+  drop those arguments — `client.limits()` now covers everything in one call.
+- **`place_order()`/`modify_order()` no longer accept `market_protection`.**
+  It's always sent as `"0"`. Drop the argument if you were passing it.
 
 ---
 
@@ -293,6 +298,7 @@ See **[Order Feed](../functions/websocket/order_feed.md)**.
 - [ ] Rewrite WebSocket code to the async `create_websocket()` / `create_order_feed()` model.
 - [ ] Replace `subscribe_to_orderfeed` and any cover/bracket cancel calls.
 - [ ] (Optional) Add `isVerify=True` to `modify_order` where you need confirmed outcomes.
+- [ ] Drop `segment`/`exchange`/`product` from `limits()` and `market_protection` from `place_order`/`modify_order` calls.
 
 ---
 

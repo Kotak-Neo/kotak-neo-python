@@ -5,7 +5,6 @@ import pytest
 from neo_api_client.exceptions import ApiValueError
 from neo_api_client.req_data_validation import (
     cancel_order_validation,
-    limits_validation,
     margin_validation,
     modify_order_validation,
     order_history_validation,
@@ -74,7 +73,6 @@ def test_place_order_validation_optional_fields_ok():
         **_valid_place_kwargs(),
         amo="NO",
         disclosed_quantity="0",
-        market_protection="0",
         pf="N",
         trigger_price="0",
         tag="my-tag",
@@ -116,7 +114,7 @@ def test_place_order_validation_value_errors(field, value):
 
 @pytest.mark.parametrize(
     "field",
-    ["amo", "disclosed_quantity", "market_protection", "pf", "trigger_price", "tag"],
+    ["amo", "disclosed_quantity", "pf", "trigger_price", "tag"],
 )
 def test_place_order_validation_optional_type_errors(field):
     with pytest.raises(ApiValueError):
@@ -146,9 +144,9 @@ def test_place_order_validation_blank_mandatory_fields(field, blank):
         place_order_validation(**_valid_place_kwargs(**{field: blank}))
 
 
-@pytest.mark.parametrize("field", ["amo", "disclosed_quantity", "market_protection", "pf"])
+@pytest.mark.parametrize("field", ["amo", "disclosed_quantity", "pf"])
 def test_place_order_validation_blank_optional_mandatory_fields(field):
-    """am/dq/mp/pf carry defaults but must not be blank when explicitly passed."""
+    """am/dq/pf carry defaults but must not be blank when explicitly passed."""
     with pytest.raises(ApiValueError, match="cannot be blank|mandatory"):
         place_order_validation(**_valid_place_kwargs(), **{field: ""})
 
@@ -248,7 +246,6 @@ def test_modify_order_validation_optional_fields_ok():
         **_valid_modify_kwargs(),
         trigger_price="0",
         disclosed_quantity="0",
-        market_protection="0",
         amo="NO",
     )
 
@@ -413,41 +410,6 @@ def test_margin_validation_missing_broker_name():
 def test_margin_validation_missing_branch_id():
     with pytest.raises(TypeError):
         margin_validation(**{k: v for k, v in _valid_margin_kwargs().items() if k != "branch_id"})
-
-
-# ---- limits_validation ------------------------------------------------------
-
-
-def test_limits_validation_ok():
-    limits_validation(segment="ALL", exchange="ALL", product="ALL")
-
-
-@pytest.mark.parametrize(
-    "segment,exchange,product",
-    [
-        ("INVALID", "ALL", "ALL"),
-        # "CUR" is no longer an allowed segment for limits.
-        ("CUR", "ALL", "ALL"),
-        ("ALL", "INVALID", "ALL"),
-        ("ALL", "ALL", "INVALID"),
-    ],
-)
-def test_limits_validation_value_errors(segment, exchange, product):
-    with pytest.raises(ApiValueError):
-        limits_validation(segment=segment, exchange=exchange, product=product)
-
-
-@pytest.mark.parametrize(
-    "segment,exchange,product",
-    [
-        (1, "ALL", "ALL"),
-        ("ALL", 1, "ALL"),
-        ("ALL", "ALL", 1),
-    ],
-)
-def test_limits_validation_type_errors(segment, exchange, product):
-    with pytest.raises(ApiValueError):
-        limits_validation(segment=segment, exchange=exchange, product=product)
 
 
 # ---- per-exchange-segment order validity ------------------------------------

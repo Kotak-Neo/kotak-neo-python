@@ -11,6 +11,7 @@ def test_order_history(api_client, requests_mock):
     response = OrderHistoryAPI(api_client).ordered_history("123")
 
     assert response["data"]["stat"] == "Ok"
+    assert "neo-fin-key" not in requests_mock.last_request.headers
 
 
 def test_order_history_exception(api_client, monkeypatch):

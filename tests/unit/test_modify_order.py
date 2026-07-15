@@ -31,7 +31,6 @@ def test_quick_modification_success(api_client, requests_mock):
         transaction_type="B",
         trigger_price="104.00",
         dd="NA",
-        market_protection="0",
         disclosed_quantity="5",
         filled_quantity="0",
         amo="NO",
@@ -69,7 +68,6 @@ def test_quick_modification_flags_already_complete_as_409(api_client, requests_m
         transaction_type="B",
         trigger_price="104.00",
         dd="NA",
-        market_protection="0",
         disclosed_quantity="5",
         filled_quantity="0",
         amo="NO",
@@ -105,7 +103,6 @@ def test_quick_modification_api_exception(api_client, monkeypatch):
         transaction_type="B",
         trigger_price="104.00",
         dd="NA",
-        market_protection="0",
         disclosed_quantity="5",
         filled_quantity="0",
         amo="NO",
@@ -137,7 +134,6 @@ def test_modification_with_orderid_forwards_directly(api_client, requests_mock):
         transaction_type=None,
         trigger_price="0",
         dd="NA",
-        market_protection="0",
         disclosed_quantity="5",
         filled_quantity="0",
         amo="NO",
@@ -169,7 +165,6 @@ def test_modification_with_provided_values(api_client, requests_mock):
         transaction_type="B",
         trigger_price="104.00",
         dd="NA",
-        market_protection="0",
         disclosed_quantity="5",
         filled_quantity="0",
         amo="NO",
@@ -179,6 +174,37 @@ def test_modification_with_provided_values(api_client, requests_mock):
     body = _sent_body(requests_mock)
     assert body["es"] == "nse_cm"
     assert body["tk"] == "11536"
+
+
+# ---- "mp" (market protection) is always "0", not caller-configurable -------
+
+
+def test_modify_order_always_sends_mp_zero(api_client, requests_mock):
+    """market_protection ("mp") is hardcoded to "0" and cannot be overridden."""
+    requests_mock.post(
+        api_client.configuration.get_url_details("modify_order"),
+        json={"stat": "Ok", "nOrdNo": "12345"},
+    )
+
+    ModifyOrder(api_client).quick_modification(
+        order_id="12345",
+        price="105.00",
+        order_type="L",
+        quantity="15",
+        validity="DAY",
+        instrument_token="11536",
+        exchange_segment="nse_cm",
+        product="CNC",
+        trading_symbol="RELIANCE-EQ",
+        transaction_type="B",
+        trigger_price="0",
+        dd="NA",
+        disclosed_quantity="0",
+        filled_quantity="0",
+        amo="NO",
+    )
+
+    assert _sent_body(requests_mock)["mp"] == "0"
 
 
 # ---- trigger_price is always sent exactly as provided ------------------------
@@ -205,7 +231,6 @@ def test_modify_trigger_price_sent_as_provided_for_limit(api_client, requests_mo
         transaction_type=None,
         trigger_price="0",
         dd="NA",
-        market_protection="0",
         disclosed_quantity="0",
         filled_quantity="0",
         amo="NO",
@@ -239,7 +264,6 @@ def test_modify_explicit_trigger_always_used(api_client, requests_mock):
         transaction_type=None,
         trigger_price="2480.00",  # explicit
         dd="NA",
-        market_protection="0",
         disclosed_quantity="0",
         filled_quantity="0",
         amo="NO",
@@ -267,7 +291,6 @@ def test_modify_order_amo_none_coerced_to_no(api_client, requests_mock):
         transaction_type=None,
         trigger_price="0",
         dd="NA",
-        market_protection="0",
         disclosed_quantity="0",
         filled_quantity="0",
         amo=None,
@@ -294,7 +317,6 @@ def test_modify_order_amo_yes_is_sent(api_client, requests_mock):
         transaction_type=None,
         trigger_price="0",
         dd="NA",
-        market_protection="0",
         disclosed_quantity="0",
         filled_quantity="0",
         amo="YES",
@@ -340,7 +362,6 @@ def test_modify_quick_verify_detects_exchange_rejection(api_client, requests_moc
         transaction_type="B",
         trigger_price="0",
         dd="NA",
-        market_protection="0",
         disclosed_quantity="0",
         filled_quantity="0",
         amo="NO",
@@ -377,7 +398,6 @@ def test_modify_quick_verify_passthrough_on_success(api_client, requests_mock):
         transaction_type="B",
         trigger_price="0",
         dd="NA",
-        market_protection="0",
         disclosed_quantity="0",
         filled_quantity="0",
         amo="NO",
@@ -416,7 +436,6 @@ def test_modify_quick_verify_orderbook_read_failure_returns_ack(
         transaction_type="B",
         trigger_price="0",
         dd="NA",
-        market_protection="0",
         disclosed_quantity="0",
         filled_quantity="0",
         amo="NO",
@@ -446,7 +465,6 @@ def test_modify_quick_verify_orderbook_without_data_returns_ack(api_client, requ
         transaction_type="B",
         trigger_price="0",
         dd="NA",
-        market_protection="0",
         disclosed_quantity="0",
         filled_quantity="0",
         amo="NO",

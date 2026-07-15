@@ -13,7 +13,6 @@ client.place_order(
     transaction_type="",
     amo="NO",
     disclosed_quantity="0",
-    market_protection="0",
     pf="N",
     trigger_price="0",
     tag=None,
@@ -27,6 +26,8 @@ client.place_order(
     trailing_sl_value=None,
 )
 ```
+
+> **Note:** Market protection (`mp`) is always sent as `"0"` — it is not caller-configurable.
 
 ### Example
 
@@ -52,7 +53,6 @@ try:
         transaction_type="",
         amo="NO",
         disclosed_quantity="0",
-        market_protection="0",
         pf="N",
         trigger_price="0",
         tag=None,
@@ -83,7 +83,6 @@ except Exception as e:
 | *transaction_type*   | B(Buy), S(Sell)                                                                                                                                                                                                                                                                                                                                                   | Str            |
 | *amo*                | YES/NO - (Default Value - NO)                                                                                                                                                                                                                                                                                                                                     | Str [optional] |
 | *disclosed_quantity* | (Default Value - 0)                                                                                                                                                                                                                                                                                                                                               | Str [optional] |
-| *market_protection*  | (Default Value - 0)                                                                                                                                                                                                                                                                                                                                               | Str [optional] |
 | *pf*                 | Default Value - “N”                                                                                                                                                                                                                                                                                                                                               | Str [optional] |
 | *trigger_price*      | Required for SL/SL-M stop-loss orders. Optional for L/MKT — if omitted (or passed as `None`), the SDK sends `"0"` to the API automatically, since the REST field is mandatory even though its value doesn't matter for those order types.                                                                                                                          | Str [optional] |
 | *tag*                | Your own tag to track the order                                                                                                                                                                                                                                                                                                                                   | Str [optional] |

@@ -24,6 +24,8 @@ client.modify_order(order_id = "", price = "", quantity = "", trigger_price = ""
 >     "status_code": 409
 > }
 > ```
+>
+> Market protection (`mp`) is always sent as `"0"` — it is not caller-configurable.
 
 ### Example
 
@@ -63,7 +65,6 @@ except Exception as e:
 | *transaction_type*   | B(Buy), S(sell)                                                                                                          | Str            |
 | *order_id*           | order id of the order you want to modify                                                                                       | Str            |
 | *amo*                | YES/NO - (Default Value - NO)                                                                         | Str [optional] |
-| *market_protection*  | String - (Default Value - 0)                                                                                             | Str [optional] |
 | *dd*                 | Default Value - “NA”                                                                                                     | Str [optional] |
 | *filled_quantity*    | (Default Value - 0)                                                                                                      | Str [optional] |
 | *trigger_price*      | Required for SL/SL-M stop-loss orders. Optional for L/MKT — if omitted (or passed as `None`), the SDK sends `"0"` to the API automatically, since the REST field is mandatory even though its value doesn't matter for those order types.                                                          | Str [optional] |

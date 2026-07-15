@@ -236,7 +236,6 @@
             "header": [
               { "key": "Sid", "value": "{{edit_sid}}" },
               { "key": "Auth", "value": "{{edit_token}}" },
-              { "key": "neo-fin-key", "value": "{{neo_fin_key}}" },
               { "key": "accept", "value": "application/json" }
             ],
             "url": {
@@ -253,7 +252,6 @@
             "header": [
               { "key": "Sid", "value": "{{edit_sid}}" },
               { "key": "Auth", "value": "{{edit_token}}" },
-              { "key": "neo-fin-key", "value": "{{neo_fin_key}}" },
               { "key": "accept", "value": "application/json" }
             ],
             "url": {
@@ -270,7 +268,6 @@
             "header": [
               { "key": "Sid", "value": "{{edit_sid}}" },
               { "key": "Auth", "value": "{{edit_token}}" },
-              { "key": "neo-fin-key", "value": "{{neo_fin_key}}" },
               { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
             ],
             "body": {
@@ -293,7 +290,6 @@
             "header": [
               { "key": "Sid", "value": "{{edit_sid}}" },
               { "key": "Auth", "value": "{{edit_token}}" },
-              { "key": "neo-fin-key", "value": "{{neo_fin_key}}" },
               { "key": "accept", "value": "application/json" }
             ],
             "url": {

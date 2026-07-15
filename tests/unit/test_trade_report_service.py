@@ -20,6 +20,7 @@ def test_trade_report_with_order_id(api_client, requests_mock):
 
     assert response["stat"] == "Ok"
     assert response["data"]["nOrdNo"] == "123456"
+    assert "neo-fin-key" not in requests_mock.last_request.headers
 
 
 def test_trade_report_no_order_id(api_client, requests_mock):

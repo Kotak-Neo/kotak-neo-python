@@ -139,7 +139,6 @@ class NeoAPI:
         transaction_type,
         amo="NO",
         disclosed_quantity="0",
-        market_protection="0",
         pf="N",
         trigger_price="0",
         tag=None,
@@ -167,10 +166,12 @@ class NeoAPI:
         transaction_type (str): The transaction type (e.g. "BUY", "SELL", etc.)
         amo (str, optional): Flag to indicate whether it is an AMO order. Defaults to "NO".
         disclosed_quantity (str, optional): Disclosed quantity for the order. Defaults to "0".
-        market_protection (str, optional): Flag to indicate whether market protection is enabled. Defaults to "0".
         pf (str, optional): Flag to indicate whether the order is a Portfolio order. Defaults to "N".
         trigger_price (str, optional): Trigger price for Stop Loss orders. Defaults to "0".
         tag (str, optional): Optional tag to be added to the order. Defaults to None.
+
+        Note:
+        Market protection ("mp") is always sent as "0" — it is not caller-configurable.
 
         Returns:
         Success/Failure Response from the API
@@ -209,7 +210,6 @@ class NeoAPI:
                     transaction_type=transaction_type,
                     amo=amo,
                     disclosed_quantity=disclosed_quantity,
-                    market_protection=market_protection,
                     pf=pf,
                     trigger_price=trigger_price,
                     tag=tag,
@@ -347,7 +347,6 @@ class NeoAPI:
         transaction_type=None,
         trigger_price="0",
         dd="NA",
-        market_protection="0",
         disclosed_quantity="0",
         filled_quantity="0",
         amo="NO",
@@ -373,7 +372,6 @@ class NeoAPI:
             transaction_type (str, optional): The transaction type for the order. Defaults to None.
             trigger_price (float, optional): The new trigger price for the order. Defaults to "0".
             dd (str, optional): The new disclosed quantity for the order. Defaults to "NA".
-            market_protection (str, optional): The new market protection for the order. Defaults to "0".
             disclosed_quantity (str, optional): The new disclosed quantity for the order. Defaults to "0".
             filled_quantity (str, optional): The new filled quantity for the order. Defaults to "0".
             isVerify (bool, optional): Defaults to False. A modify request is
@@ -392,6 +390,9 @@ class NeoAPI:
         (e.g. one that's already complete/traded/rejected/cancelled) can
         still be modified.
 
+        Note:
+        Market protection ("mp") is always sent as "0" — it is not caller-configurable.
+
         Returns:
             The Status of the Given Order ID modification
         """
@@ -407,7 +408,6 @@ class NeoAPI:
                     validity=validity,
                     trigger_price=trigger_price,
                     disclosed_quantity=disclosed_quantity,
-                    market_protection=market_protection,
                     amo=amo,
                     exchange_segment=exchange_segment,
                 )
@@ -439,7 +439,6 @@ class NeoAPI:
                         transaction_type=transaction_type,
                         trigger_price=trigger_price,
                         dd=dd,
-                        market_protection=market_protection,
                         disclosed_quantity=disclosed_quantity,
                         filled_quantity=filled_quantity,
                         amo=amo,
@@ -463,7 +462,6 @@ class NeoAPI:
                         transaction_type=transaction_type,
                         trigger_price=trigger_price,
                         dd=dd,
-                        market_protection=market_protection,
                         disclosed_quantity=disclosed_quantity,
                         filled_quantity=filled_quantity,
                         amo=amo,
@@ -632,28 +630,20 @@ class NeoAPI:
         except Exception:
             return {"Error": "Exchange Segment is not available"}
 
-    def limits(self, segment="ALL", exchange="ALL", product="ALL"):
+    def limits(self):
         """
-        Retrieves the limits available for the given segment, exchange and product using the NEO API.
-
-        Args:
-            segment (str): A string representing the segment for which limits are to be retrieved. Default value is "ALL".
-            exchange (str): A string representing the exchange for which limits are to be retrieved. Default value is "ALL".
-            product (str): A string representing the product for which limits are to be retrieved. Default value is "ALL".
+        Retrieves the limits across all segments, exchanges, and products
+        using the NEO API.
 
         Raises:
             Exception: If there was an error retrieving the limits.
 
         Returns:
-            A list of limits available for the given segment, exchange and product.
+            A list of limits across all segments, exchanges, and products.
         """
         if self.configuration.edit_token and self.configuration.edit_sid:
             try:
-                req_data_validation.limits_validation(segment, exchange, product)
-
-                limits_list = LimitsAPI(self.api_client).limit_init(
-                    segment=segment, exchange=exchange, product=product
-                )
+                limits_list = LimitsAPI(self.api_client).limit_init()
                 return limits_list
             except Exception as e:
                 return {"Error": e, "message": "Exchange Segment is not available"}

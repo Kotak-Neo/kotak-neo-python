@@ -6,7 +6,7 @@ class LimitsAPI:
         self.api_client = api_client
         self.rest_client = api_client.rest_client
 
-    def limit_init(self, segment=None, exchange=None, product=None):
+    def limit_init(self):
         header_params = {
             "Sid": self.api_client.configuration.edit_sid,
             "Auth": self.api_client.configuration.edit_token,
@@ -15,7 +15,8 @@ class LimitsAPI:
 
         query_params = {}
 
-        body_params = {"seg": segment, "exch": exchange, "prod": product}
+        # Always request limits across all segments/exchanges/products.
+        body_params = {"seg": "ALL", "exch": "ALL", "prod": "ALL"}
 
         URL = self.api_client.configuration.get_url_details("limits")
         try:

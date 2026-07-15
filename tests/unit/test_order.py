@@ -49,7 +49,6 @@ def test_order_placing_with_optional_params(api_client, requests_mock):
         transaction_type="B",
         amo="YES",
         disclosed_quantity="5",
-        market_protection="0",
         pf="N",
         trigger_price="100",
         tag="test_tag",
@@ -179,6 +178,25 @@ def test_order_cancelling_with_whitespace(api_client, requests_mock):
     result = order_api_instance.order_cancelling(order_id=" 12345 ", isVerify=True)
 
     assert result["stat"] == "Ok"
+
+
+# ---- "mp" (market protection) is always "0", not caller-configurable -------
+
+
+def test_place_order_always_sends_mp_zero(api_client, requests_mock):
+    """market_protection ("mp") is hardcoded to "0" and cannot be overridden."""
+    requests_mock.post(api_client.configuration.get_url_details("place_order"), json={"stat": "Ok"})
+    OrderAPI(api_client).order_placing(
+        exchange_segment="bse_cm",
+        product="NRML",
+        price="3000",
+        order_type="L",
+        quantity="1",
+        validity="DAY",
+        trading_symbol="TCS",
+        transaction_type="B",
+    )
+    assert _sent_body(requests_mock)["mp"] == "0"
 
 
 # ---- "am" (AMO flag) is mandatory on every order request --------------------

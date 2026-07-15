@@ -1,4 +1,4 @@
-import httpx
+from json import JSONDecodeError
 
 
 class PortfolioAPI:
@@ -16,15 +16,22 @@ class PortfolioAPI:
 
         URL = self.api_client.configuration.get_url_details("holdings")
 
-        try:
-            portfolio_report = self.rest_client.request(
-                url=URL,
-                method="GET",
-                headers=header_params,
-            )
+        portfolio_report = self.rest_client.request(
+            url=URL,
+            method="GET",
+            headers=header_params,
+        )
 
+        try:
             return portfolio_report.json()
 
-        except httpx.HTTPError as e:
-            print(f"Error occurred: {e}")
-            raise
+        except JSONDecodeError as e:
+            # e.g. a 5xx with an empty/non-JSON body.
+            return {
+                "Error": "Unexpected response format",
+                "Exception": str(e),
+                "StatusCode": getattr(portfolio_report, "status_code", None),
+                "ContentType": portfolio_report.headers.get("Content-Type"),
+                "ResponseText": portfolio_report.text[:5000],
+                "RequestURL": URL,
+            }

@@ -20,7 +20,6 @@ class OrderAPI:
         transaction_type,
         amo=None,
         disclosed_quantity=None,
-        market_protection=None,
         pf=None,
         trigger_price=None,
         tag=None,
@@ -49,7 +48,7 @@ class OrderAPI:
                 "am": amo,
                 "dq": disclosed_quantity,
                 "es": exchange_segment,
-                "mp": market_protection,
+                "mp": "0",  # Market protection is always disabled.
                 "pc": product,
                 "pf": pf,
                 "pr": price,

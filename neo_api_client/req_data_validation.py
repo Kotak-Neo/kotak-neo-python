@@ -1,18 +1,15 @@
 from neo_api_client.exceptions import ApiValueError
+from neo_api_client.settings import exchange_segment as _exchange_segment_map
 from neo_api_client.settings import (
-    exchange_limits,
     exchange_segment_allowed_values,
     margin_exchange_segment_allowed_values,
     margin_order_type_allowed_values,
     order_type_allowed_values,
     place_order_product_allowed_values,
     price_required_order_types,
-    product_limits,
-    segment_limits,
     validity_allowed_by_segment,
     validity_allowed_default,
 )
-from neo_api_client.settings import exchange_segment as _exchange_segment_map
 from neo_api_client.settings import order_type as _order_type_map
 from neo_api_client.settings import product as _product_map
 
@@ -111,7 +108,6 @@ def place_order_validation(
     transaction_type,
     amo=None,
     disclosed_quantity=None,
-    market_protection=None,
     pf=None,
     trigger_price=None,
     tag=None,
@@ -171,10 +167,6 @@ def place_order_validation(
         _require_non_blank(disclosed_quantity, "disclosed_quantity")
         _require_non_negative_int(disclosed_quantity, "disclosed_quantity")
 
-    # Market_protection validation (must be non-blank if given)
-    if market_protection is not None:
-        _require_non_blank(market_protection, "market_protection")
-
     # pf validation (must be non-blank if given)
     if pf is not None:
         _require_non_blank(pf, "pf")
@@ -206,7 +198,6 @@ def modify_order_validation(
     validity,
     trigger_price=None,
     disclosed_quantity=None,
-    market_protection=None,
     amo=None,
     exchange_segment=None,
 ):
@@ -256,10 +247,6 @@ def modify_order_validation(
     if disclosed_quantity is not None:
         _require_non_blank(disclosed_quantity, "disclosed_quantity")
         _require_non_negative_int(disclosed_quantity, "disclosed_quantity")
-
-    # market_protection (optional; must be non-blank when supplied)
-    if market_protection is not None:
-        _require_non_blank(market_protection, "market_protection")
 
     # amo (optional; must be non-blank when supplied)
     if amo is not None:
@@ -332,20 +319,3 @@ def margin_validation(
     # trigger_price validation
     if trigger_price is not None and not isinstance(trigger_price, str):
         raise ApiValueError("trigger_price must be a string.")
-
-
-def limits_validation(segment, exchange, product):
-    #  Segment validation (mandatory). Allowed values are CASH, FO, ALL.
-    _require_non_blank(segment, "segment")
-    if segment not in segment_limits:
-        raise ApiValueError("Invalid segment. Allowed values are CASH, FO, ALL.")
-
-    #  Exchange validation (mandatory). Allowed values are NSE, BSE, ALL.
-    _require_non_blank(exchange, "exchange")
-    if exchange not in exchange_limits:
-        raise ApiValueError("Invalid Exchange. Allowed values are NSE, BSE, ALL.")
-
-    #  Product validation (mandatory). Allowed values are CNC, NRML, MIS, ALL.
-    _require_non_blank(product, "product")
-    if product not in product_limits:
-        raise ApiValueError("Invalid Product. Allowed values are CNC, NRML, MIS, ALL.")

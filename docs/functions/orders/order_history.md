@@ -338,7 +338,6 @@ except Exception as e:
 
  - **Accept**: application/json
  - **Content-Type**: application/x-www-form-urlencoded
- - **neo-fin-key**: neotradeapi
 
 ### HTTP response details
 | Status Code | Description                                  |

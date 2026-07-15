@@ -160,11 +160,7 @@ runner.run_test(
 
 runner.run_test(
     "LIMITS",
-    lambda: runner.client.limits(
-        segment="ALL",
-        exchange="ALL",
-        product="ALL",
-    ),
+    lambda: runner.client.limits(),
 )
 
 # ---------------------------

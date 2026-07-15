@@ -30,13 +30,13 @@ def test_order_report_request_exception(api_client, monkeypatch, capsys):
     assert "Error occurred" in capsys.readouterr().out
 
 
-def test_order_report_sends_neo_fin_key(api_client, requests_mock):
+def test_order_report_does_not_send_neo_fin_key(api_client, requests_mock):
     url = api_client.configuration.get_url_details("order_book")
     requests_mock.get(url, json={"data": []}, status_code=200)
 
     OrderReportAPI(api_client).ordered_books()
 
-    assert requests_mock.last_request.headers["neo-fin-key"] == "neotradeapi"
+    assert "neo-fin-key" not in requests_mock.last_request.headers
 
 
 def test_order_report_by_id(api_client, requests_mock):
@@ -53,7 +53,7 @@ def test_order_report_by_id(api_client, requests_mock):
 
     assert response["data"][0]["nOrdNo"] == order_id
     assert requests_mock.last_request.url.endswith(f"/orders/{order_id}")
-    assert requests_mock.last_request.headers["neo-fin-key"] == "neotradeapi"
+    assert "neo-fin-key" not in requests_mock.last_request.headers
 
 
 def test_order_report_by_id_request_exception(api_client, monkeypatch, capsys):

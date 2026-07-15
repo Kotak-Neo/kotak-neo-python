@@ -370,15 +370,27 @@ def test_positions_exception_handling(authenticated_client, requests_mock):
 
 
 def test_holdings_exception_handling(authenticated_client, requests_mock):
-    """Test holdings exception handling."""
+    """A non-JSON error body (e.g. a plaintext 500) returns a structured
+    error dict with the real status code, not a raw JSONDecodeError."""
     url = authenticated_client.configuration.get_url_details("holdings")
 
     requests_mock.get(url, status_code=500, text="Server Error")
 
     result = authenticated_client.holdings()
 
-    # Should handle exception
-    assert "Error" in result or result is not None
+    assert result["StatusCode"] == 500
+    assert result["ResponseText"] == "Server Error"
+
+
+def test_holdings_wraps_unexpected_exception(authenticated_client, monkeypatch):
+    """An unexpected exception from the service layer is still caught and
+    returned as an {"Error": ...} dict."""
+    from neo_api_client import neo_api as _mod
+
+    monkeypatch.setattr(_mod.PortfolioAPI, "portfolio_holdings", _make_raise())
+
+    result = authenticated_client.holdings()
+    assert "Error" in result
 
 
 def test_trade_report_exception_handling(authenticated_client, requests_mock):
@@ -465,17 +477,26 @@ def test_order_history_success(authenticated_client, requests_mock):
 
 
 def test_limits_success(authenticated_client, requests_mock):
-    """limits() success path."""
+    """limits() success path — takes no parameters; always requests ALL."""
     url = authenticated_client.configuration.get_url_details("limits")
     requests_mock.post(url, json={"stat": "Ok", "Net": "1000"}, status_code=200)
 
-    result = authenticated_client.limits(segment="ALL", exchange="ALL", product="ALL")
+    result = authenticated_client.limits()
     assert result["stat"] == "Ok"
 
 
-def test_limits_invalid_segment_returns_error(authenticated_client):
-    """limits() with an invalid segment is caught and returned as an error dict."""
-    result = authenticated_client.limits(segment="BOGUS", exchange="ALL", product="ALL")
+def test_limits_exception_handling(authenticated_client, monkeypatch):
+    """limits() wraps an unexpected service exception into an Error dict."""
+
+    def boom(self):
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(
+        "neo_api_client.services.limits.LimitsAPI.limit_init",
+        boom,
+    )
+
+    result = authenticated_client.limits()
     assert "Error" in result
 
 

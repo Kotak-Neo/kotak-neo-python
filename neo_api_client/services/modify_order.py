@@ -52,7 +52,6 @@ class ModifyOrder:
         transaction_type,
         trigger_price,
         dd,
-        market_protection,
         disclosed_quantity,
         filled_quantity,
         amo,
@@ -70,7 +69,7 @@ class ModifyOrder:
 
         body_params = {
             "tk": instrument_token,
-            "mp": market_protection,
+            "mp": "0",  # Market protection is always disabled.
             "pc": product,
             "dd": dd,
             "dq": disclosed_quantity,
@@ -127,7 +126,6 @@ class ModifyOrder:
         transaction_type,
         trigger_price,
         dd,
-        market_protection,
         disclosed_quantity,
         filled_quantity,
         amo,
@@ -153,7 +151,6 @@ class ModifyOrder:
             transaction_type=transaction_type,
             trigger_price=trigger_price,
             dd=dd,
-            market_protection=market_protection,
             disclosed_quantity=disclosed_quantity,
             filled_quantity=filled_quantity,
             amo=amo,

@@ -209,10 +209,6 @@ validity_allowed_by_segment = {
 # Default validity set for any segment not explicitly listed above.
 validity_allowed_default = ["DAY", "IOC"]
 
-segment_limits = ["CASH", "FO", "ALL"]
-exchange_limits = ["NSE", "BSE", "ALL"]
-product_limits = ["CNC", "MIS", "NRML", "ALL"]
-
 stock_key_mapping = {
     "ltt": "last_traded_time",
     "v": "volume",

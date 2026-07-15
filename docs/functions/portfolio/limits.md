@@ -17,17 +17,14 @@ client.totp_login(mobilenumber="", ucc="", totp='')
 client.totp_validate(mpin="")
 
 try:
-    client.limits(segment="ALL", exchange="ALL",product="ALL")
+    client.limits()
 except Exception as e:
     print("Exception when calling Limits->limits: %s\n" % e)
 ```
 
 ### Parameters
-| Name        | Description                                 | Type           |
-|-------------|---------------------------------------------|----------------|
-| *segment*   | CASH, FO, ALL (Default value - ALL)         | str [Optional] |
-| *exchange*  | NSE, BSE, ALL (Default value - ALL)         | str [Optional] |
-| *product*   | CNC, NRML, MIS, ALL (Default value - ALL)   | str [Optional] |
+
+None. `limits()` always requests limits across all segments, exchanges, and products (`{"seg": "ALL", "exch": "ALL", "prod": "ALL"}`) — these are no longer caller-configurable.
 
 
 ### Return type
