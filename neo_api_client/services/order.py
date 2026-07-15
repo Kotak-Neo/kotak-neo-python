@@ -1,6 +1,5 @@
 from neo_api_client.exceptions import ApiException
-from neo_api_client.settings import ORDER_SOURCE
-from neo_api_client.utils.order_status import check_order_not_terminal
+from neo_api_client.settings import ORDER_ALREADY_COMPLETE_ST_CODE, ORDER_SOURCE
 
 
 class OrderAPI:
@@ -86,21 +85,9 @@ class OrderAPI:
             return {"error": ex}
 
     def order_cancelling(self, order_id, isVerify, amo=None):
-        # An order that's already complete/traded/rejected/cancelled can't be
-        # cancelled again — reject it client-side rather than sending a
-        # cancel the exchange would just reject. This check is unconditional
-        # (not gated by isVerify); isVerify is retained for backward
-        # compatibility but no longer changes cancel_order()'s behavior. If
-        # the order-book lookup itself fails, fail open and let the exchange
-        # be the final arbiter (all fields needed for the cancel are already
-        # in hand either way).
-        try:
-            _, terminal_error = check_order_not_terminal(self.api_client, order_id)
-        except Exception:
-            terminal_error = None
-        if terminal_error:
-            return terminal_error
-
+        # The cancel request always goes to the backend; the exchange is the
+        # source of truth on whether an order can still be cancelled.
+        # isVerify is retained for backward compatibility but has no effect.
         header_params = {
             "Authorization": self.api_client.configuration.consumer_key,
             "Sid": self.api_client.configuration.edit_sid,
@@ -121,6 +108,9 @@ class OrderAPI:
                 headers=header_params,
                 body=body_params,
             )
-            return cancel_resp.json()
+            result = cancel_resp.json()
+            if isinstance(result, dict) and result.get("stCode") == ORDER_ALREADY_COMPLETE_ST_CODE:
+                result["status_code"] = 409
+            return result
         except ApiException as ex:
             return {"error": ex}

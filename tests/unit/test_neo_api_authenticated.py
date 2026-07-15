@@ -530,66 +530,6 @@ def test_modify_order_quick_path_success(authenticated_client, requests_mock):
     assert result["stat"] == "Ok"
 
 
-def test_modify_order_quick_path_rejects_already_completed_order(
-    authenticated_client, requests_mock
-):
-    """modify_order() quick path must reject (409) an already-terminal order,
-    without ever sending the actual modify request."""
-    order_book_url = authenticated_client.configuration.get_url_details("order_book")
-    modify_url = authenticated_client.configuration.get_url_details("modify_order")
-
-    requests_mock.get(
-        order_book_url,
-        json={"data": [{"nOrdNo": "12345", "ordSt": "traded", "rejRsn": ""}]},
-    )
-    modify_route = requests_mock.post(modify_url, json={"stat": "Ok"})
-
-    result = authenticated_client.modify_order(
-        order_id="12345",
-        price="105",
-        order_type="L",
-        quantity="2",
-        validity="DAY",
-        instrument_token="11536",
-        exchange_segment="nse_cm",
-        product="CNC",
-        trading_symbol="RELIANCE-EQ",
-        transaction_type="B",
-    )
-
-    assert result["status_code"] == 409
-    assert result["ordSt"] == "traded"
-    assert modify_route.call_count == 0
-
-
-def test_modify_order_by_orderid_path_rejects_already_completed_order(
-    authenticated_client, requests_mock
-):
-    """modify_order() order-id-only path must reject (409) an already-terminal
-    order, without ever sending the actual modify request."""
-    order_book_url = authenticated_client.configuration.get_url_details("order_book")
-    modify_url = authenticated_client.configuration.get_url_details("modify_order")
-
-    requests_mock.get(
-        order_book_url,
-        json={"data": [{"nOrdNo": "12345", "ordSt": "rejected", "rejRsn": "Insufficient funds"}]},
-    )
-    modify_route = requests_mock.post(modify_url, json={"stat": "Ok"})
-
-    result = authenticated_client.modify_order(
-        order_id="12345",
-        price="105",
-        order_type="L",
-        quantity="2",
-        validity="DAY",
-    )
-
-    assert result["status_code"] == 409
-    assert result["ordSt"] == "rejected"
-    assert result["Reason"] == "Insufficient funds"
-    assert modify_route.call_count == 0
-
-
 def test_modify_order_quick_path_defaults_trigger_price_for_limit(
     authenticated_client, monkeypatch
 ):

@@ -1,7 +1,6 @@
 import neo_api_client
 from neo_api_client.exceptions import ApiException
-from neo_api_client.settings import NO_TRIGGER_ORDER_TYPES, ORDER_SOURCE
-from neo_api_client.utils.order_status import check_order_not_terminal
+from neo_api_client.settings import ORDER_ALREADY_COMPLETE_ST_CODE, ORDER_SOURCE
 
 
 class ModifyOrder:
@@ -59,18 +58,6 @@ class ModifyOrder:
         amo,
         is_verify=False,
     ):
-        # An order that's already complete/traded/rejected/cancelled can't be
-        # modified — reject it client-side rather than sending a modify the
-        # exchange would just reject. If the order-book lookup itself fails,
-        # fail open and let the exchange be the final arbiter (all fields
-        # needed for the modify are already in hand either way).
-        try:
-            _, terminal_error = check_order_not_terminal(self.api_client, order_id)
-        except Exception:
-            terminal_error = None
-        if terminal_error:
-            return terminal_error
-
         header_params = {
             "Authorization": self.api_client.configuration.consumer_key,
             "Sid": self.api_client.configuration.edit_sid,
@@ -113,6 +100,12 @@ class ModifyOrder:
             )
 
             modify_resp = orders_resp.json()
+            if (
+                isinstance(modify_resp, dict)
+                and modify_resp.get("stCode") == ORDER_ALREADY_COMPLETE_ST_CODE
+            ):
+                modify_resp["status_code"] = 409
+                return modify_resp
             if is_verify:
                 return self._verify_modification(order_id, modify_resp)
             return modify_resp
@@ -140,73 +133,29 @@ class ModifyOrder:
         amo,
         is_verify=False,
     ):
-        header_params = {
-            "Authorization": self.api_client.configuration.consumer_key,
-            "Sid": self.api_client.configuration.edit_sid,
-            "Auth": self.api_client.configuration.edit_token,
-            "Content-Type": "application/x-www-form-urlencoded",
-        }
+        """Order-id-only modify path.
 
-        # "am" is mandatory; default to "NO" (regular order). Pass "YES" for AMO.
-        amo = amo or "NO"
-
-        # An order that's already complete/traded/rejected/cancelled can't be
-        # modified — reject it client-side rather than sending a modify the
-        # exchange would just reject.
-        item, terminal_error = check_order_not_terminal(self.api_client, order_id)
-        if terminal_error:
-            return terminal_error
-        if item is None:
-            return {
-                "Message": f"The Given Order Number is {order_id} and it is not matching with any Order "
-                f"of the orders"
-            }
-
-        trading_symbol = trading_symbol or item["trdSym"]
-        instrument_token = instrument_token or item["tok"]
-        product = product or item["prod"]
-        transaction_type = transaction_type or item["trnsTp"]
-        exchange_segment = exchange_segment or item["exSeg"]
-        # Only inherit the existing order's trigger price when the caller
-        # didn't supply one AND the target order type still uses a trigger.
-        # Converting to a Limit/Market order must not carry over a
-        # stop-loss order's stale trigger price.
-        if trigger_price == "0" and order_type not in NO_TRIGGER_ORDER_TYPES:
-            trigger_price = item["trgPrc"]
-
-        body_params = {
-            "tk": instrument_token,
-            "mp": market_protection,
-            "pc": product,
-            "dd": dd,
-            "dq": disclosed_quantity,
-            "vd": validity,
-            "ts": trading_symbol,
-            "tt": transaction_type,
-            "pr": price,
-            "pt": order_type,
-            "fq": filled_quantity,
-            "tp": trigger_price,
-            "qt": quantity,
-            "no": order_id,
-            "es": exchange_segment,
-            "am": amo,
-            "os": self.order_source,
-        }
-        query_params = {}
-        try:
-            URL = self.api_client.configuration.get_url_details("modify_order")
-            orders_resp = self.rest_client.request(
-                url=URL,
-                method="POST",
-                query_params=query_params,
-                headers=header_params,
-                body=body_params,
-            )
-            modify_resp = orders_resp.json()
-            if is_verify:
-                return self._verify_modification(order_id, modify_resp)
-            return modify_resp
-
-        except ApiException as ex:
-            return {"error": ex}
+        The request is sent to the backend as-is, with whatever fields were
+        supplied (missing ones are sent as None/blank) — the exchange is the
+        source of truth on what's required and on whether the order can
+        still be modified, not a client-side order-book lookup.
+        """
+        return self.quick_modification(
+            order_id=order_id,
+            price=price,
+            order_type=order_type,
+            quantity=quantity,
+            validity=validity,
+            instrument_token=instrument_token,
+            exchange_segment=exchange_segment,
+            product=product,
+            trading_symbol=trading_symbol,
+            transaction_type=transaction_type,
+            trigger_price=trigger_price,
+            dd=dd,
+            market_protection=market_protection,
+            disclosed_quantity=disclosed_quantity,
+            filled_quantity=filled_quantity,
+            amo=amo,
+            is_verify=is_verify,
+        )

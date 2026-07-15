@@ -5,17 +5,17 @@ Cancel an order
 client.cancel_order(order_id = "")
 ```
 
-> **Note:** Before sending the cancel request, the SDK always checks the order's current status on the order book. If the order is already `complete`, `traded`, `rejected`, or `cancelled`, the cancel is rejected client-side with a structured error (`status_code: 409`) instead of being sent to the exchange:
+> **Note:** The cancel request is always sent straight to the backend — the exchange is the source of truth on whether an order (e.g. one that's already `complete`/`traded`/`rejected`/`cancelled`) can still be cancelled. The SDK does not pre-check the order book before sending. `isVerify` is retained for backward compatibility but has no effect on this behavior.
+>
+> If the order is already complete, the backend rejects the cancel with `{"stCode": 1021, "errMsg": "order is completed", ...}`. The SDK annotates this response with `status_code: 409` so you can detect it without depending on the backend's internal `stCode`:
 > ```json
 > {
->     "status_code": 409,
->     "Error": "Order 230120000017243 is already 'complete' and can no longer be modified or cancelled.",
->     "ordSt": "complete",
->     "Reason": null,
->     "nOrdNo": "230120000017243"
+>     "stCode": 1021,
+>     "errMsg": "order is completed",
+>     "stat": "please provide valid order number",
+>     "status_code": 409
 > }
 > ```
-> If the order-book lookup itself fails (e.g. a transient network error), the SDK falls back to sending the cancel anyway rather than blocking on a lookup failure. `isVerify` is retained for backward compatibility but no longer changes this behavior, since the check is now always performed.
 
 ### Example
 
@@ -40,7 +40,7 @@ except Exception as e:
 | Name        | Description         | Type      |
 |-------------|---------------------|-----------|
 | *order_id*  | Order ID to cancel | str       |
-| *isVerify*  | Deprecated/no-op — kept for backward compatibility. The terminal-status check is now always performed regardless of this flag. | boolean   |
+| *isVerify*  | Deprecated/no-op — kept for backward compatibility only. | boolean   |
 | *amo*       | After market order - YES, NO (optional, Default Value - NO) | str   |
 
 ### Return type
@@ -67,7 +67,7 @@ except Exception as e:
 | *200*       | Order cancelled successfully                 |
 | *400*       | Invalid or missing input parameters          |
 | *403*       | Invalid session, please re-login to continue |
-| *409*       | Order is already complete/traded/rejected/cancelled — rejected client-side by the SDK, never sent to the exchange |
+| *409*       | Order is already complete — SDK-added `status_code` on the backend's `stCode: 1021` rejection |
 | *429*       | Too many requests to the API                 |
 | *500*       | Unexpected error                             |
 | *502*       | Not able to communicate with OMS             |

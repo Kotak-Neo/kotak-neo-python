@@ -183,9 +183,9 @@ order_type = {
 # so the SDK sends "0" and doesn't require the caller to supply it.
 NO_TRIGGER_ORDER_TYPES = {"L", "MKT"}
 
-# Order book statuses ("ordSt") that mean an order is finished and can no
-# longer be modified or cancelled.
-TERMINAL_ORDER_STATUSES = {"complete", "traded", "rejected", "cancelled"}
+# Response "stCode" for a modify/cancel request rejected because the order is
+# already complete, e.g. {"stCode": 1021, "errMsg": "order is completed", ...}.
+ORDER_ALREADY_COMPLETE_ST_CODE = 1021
 
 # Order types (canonical codes) that need a real, strictly-positive limit
 # price. MKT and SL-M orders execute at the prevailing market price, so

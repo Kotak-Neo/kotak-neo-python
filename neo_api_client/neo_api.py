@@ -233,28 +233,21 @@ class NeoAPI:
         """
         Cancels an order with the given `order_id` using the NEO API.
 
-        Before sending the cancel request, the SDK always checks the order's
-        current status on the order book. If the order is already complete,
-        traded, rejected, or cancelled, the cancel is rejected client-side
-        with a structured error (``status_code: 409``) instead of being sent
-        to the exchange. This check is unconditional; if the order-book
-        lookup itself fails, the SDK falls back to sending the cancel anyway
-        (fail open) rather than blocking on a lookup failure.
+        The cancel request is always sent straight to the backend — the
+        exchange is the source of truth on whether an order (e.g. one that's
+        already complete/traded/rejected/cancelled) can still be cancelled.
 
         Args: order_id (str): The ID of the order to cancel.
         amo (str, optional): Default is "NO" for no amount specified.
         isVerify (bool, optional): Default is False. Retained for backward
-            compatibility; no longer changes this method's behavior, since
-            the terminal-status check above is now always performed.
+            compatibility; has no effect on this method's behavior.
 
         Raises:
             ValueError: If the `order_id` is not a valid input.
             Exception: If there was an error cancelling the order.
 
         Returns:
-            The Status of given order id. If the order is already terminal,
-            a dict with ``status_code: 409``, ``Error``, ``ordSt``, and
-            ``Reason`` instead.
+            The Status of given order id.
         """
         if self.configuration.edit_token and self.configuration.edit_sid:
             try:
@@ -394,18 +387,13 @@ class NeoAPI:
                 acknowledgement; confirm the final state via the order feed or
                 order history.
 
-        Before sending the modify request (either path), the SDK always
-        checks the order's current status on the order book. If the order is
-        already complete, traded, rejected, or cancelled, the modify is
-        rejected client-side with a structured error (``status_code: 409``)
-        instead of being sent to the exchange. If the order-book lookup
-        itself fails, the SDK falls back to sending the modify anyway (fail
-        open) rather than blocking on a lookup failure.
+        The modify request (either path) is always sent straight to the
+        backend — the exchange is the source of truth on whether an order
+        (e.g. one that's already complete/traded/rejected/cancelled) can
+        still be modified.
 
         Returns:
-            The Status of the Given Order ID modification. If the order is
-            already terminal, a dict with ``status_code: 409``, ``Error``,
-            ``ordSt``, and ``Reason`` instead.
+            The Status of the Given Order ID modification
         """
         if self.configuration.edit_token and self.configuration.edit_sid:
             # Validate mandatory inputs up-front (before any value mapping) so

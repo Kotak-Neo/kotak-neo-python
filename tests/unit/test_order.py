@@ -105,83 +105,40 @@ def test_order_cancelling_success(api_client, requests_mock):
     assert result["result"] == "cancelled"
 
 
-def test_order_cancelling_with_verification_pending(api_client, requests_mock):
-    """Test order cancellation with verification - order is pending"""
+def test_order_cancelling_isverify_true_still_sends_directly(api_client, requests_mock):
+    """isVerify no longer changes behavior — the cancel is always sent
+    straight to the backend, regardless of the order's order-book status."""
     order_api_instance = OrderAPI(api_client)
-    order_book_url = api_client.configuration.get_url_details("order_book")
     cancel_url = api_client.configuration.get_url_details("cancel_order")
 
-    order_book_response = {
-        "data": [
-            {"nOrdNo": "12345", "ordSt": "pending", "rejRsn": ""},
-        ]
-    }
-    cancel_response = {"stat": "Ok", "result": "cancelled"}
-
-    requests_mock.get(order_book_url, json=order_book_response)
-    requests_mock.post(cancel_url, json=cancel_response)
+    cancel_route = requests_mock.post(cancel_url, json={"stat": "Ok", "result": "cancelled"})
 
     result = order_api_instance.order_cancelling(order_id="12345", isVerify=True)
 
     assert result["stat"] == "Ok"
+    assert cancel_route.call_count == 1
 
 
-def test_order_cancelling_with_verification_rejected(api_client, requests_mock):
-    """Test order cancellation with verification - order is rejected"""
+def test_order_cancelling_flags_already_complete_as_409(api_client, requests_mock):
+    """The backend's 'order already complete' rejection (stCode 1021) is
+    annotated with status_code 409 so callers can detect it without knowing
+    the backend's internal stCode."""
     order_api_instance = OrderAPI(api_client)
-    url = api_client.configuration.get_url_details("order_book")
+    url = api_client.configuration.get_url_details("cancel_order")
+    requests_mock.post(
+        url,
+        json={
+            "stCode": 1021,
+            "errMsg": "order is completed",
+            "stat": "please provide valid order number",
+        },
+    )
 
-    order_book_response = {
-        "data": [
-            {"nOrdNo": "12345", "ordSt": "rejected", "rejRsn": "Insufficient funds"},
-        ]
-    }
-
-    requests_mock.get(url, json=order_book_response)
-
-    result = order_api_instance.order_cancelling(order_id="12345", isVerify=True)
+    result = order_api_instance.order_cancelling(order_id="12345", isVerify=False)
 
     assert result["status_code"] == 409
-    assert result["ordSt"] == "rejected"
-    assert result["Reason"] == "Insufficient funds"
-
-
-def test_order_cancelling_with_verification_complete(api_client, requests_mock):
-    """Test order cancellation with verification - order is complete"""
-    order_api_instance = OrderAPI(api_client)
-    url = api_client.configuration.get_url_details("order_book")
-
-    order_book_response = {
-        "data": [
-            {"nOrdNo": "12345", "ordSt": "complete", "rejRsn": ""},
-        ]
-    }
-
-    requests_mock.get(url, json=order_book_response)
-
-    result = order_api_instance.order_cancelling(order_id="12345", isVerify=True)
-
-    assert result["status_code"] == 409
-    assert result["ordSt"] == "complete"
-
-
-def test_order_cancelling_with_verification_cancelled(api_client, requests_mock):
-    """Test order cancellation with verification - order is already cancelled"""
-    order_api_instance = OrderAPI(api_client)
-    url = api_client.configuration.get_url_details("order_book")
-
-    order_book_response = {
-        "data": [
-            {"nOrdNo": "12345", "ordSt": "cancelled", "rejRsn": "User cancelled"},
-        ]
-    }
-
-    requests_mock.get(url, json=order_book_response)
-
-    result = order_api_instance.order_cancelling(order_id="12345", isVerify=True)
-
-    assert result["status_code"] == 409
-    assert result["ordSt"] == "cancelled"
+    assert result["stCode"] == 1021
+    assert result["errMsg"] == "order is completed"
 
 
 def test_order_cancelling_with_amo(api_client, requests_mock):
@@ -192,22 +149,6 @@ def test_order_cancelling_with_amo(api_client, requests_mock):
     requests_mock.post(url, json=mock_response)
 
     result = order_api_instance.order_cancelling(order_id="12345", isVerify=False, amo="YES")
-
-    assert result["stat"] == "Ok"
-
-
-def test_order_cancelling_verify_order_book_without_data(api_client, requests_mock):
-    """Verify path where the order book has no 'data' key -> falls through to
-    the actual cancel (order.py 87->102 branch)."""
-    order_api_instance = OrderAPI(api_client)
-    order_book_url = api_client.configuration.get_url_details("order_book")
-    cancel_url = api_client.configuration.get_url_details("cancel_order")
-
-    # No "data" key at all -> the verification block is skipped.
-    requests_mock.get(order_book_url, json={"stat": "Not_Ok", "emsg": "no orders"})
-    requests_mock.post(cancel_url, json={"stat": "Ok", "result": "cancelled"})
-
-    result = order_api_instance.order_cancelling(order_id="12345", isVerify=True)
 
     assert result["stat"] == "Ok"
 
@@ -231,19 +172,13 @@ def test_order_cancelling_api_exception(api_client, monkeypatch):
 def test_order_cancelling_with_whitespace(api_client, requests_mock):
     """Test order cancellation with order_id containing whitespace"""
     order_api_instance = OrderAPI(api_client)
-    url = api_client.configuration.get_url_details("order_book")
+    url = api_client.configuration.get_url_details("cancel_order")
 
-    order_book_response = {
-        "data": [
-            {"nOrdNo": "12345", "ordSt": "cancelled", "rejRsn": ""},
-        ]
-    }
-
-    requests_mock.get(url, json=order_book_response)
+    requests_mock.post(url, json={"stat": "Ok", "result": "cancelled"})
 
     result = order_api_instance.order_cancelling(order_id=" 12345 ", isVerify=True)
 
-    assert "Error" in result
+    assert result["stat"] == "Ok"
 
 
 # ---- "am" (AMO flag) is mandatory on every order request --------------------

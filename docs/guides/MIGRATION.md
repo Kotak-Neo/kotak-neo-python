@@ -133,33 +133,6 @@ result = client.modify_order(
 Pass `amo="YES"` to place/modify/cancel an After-Market Order. The `am` flag is
 always sent (defaults to `"NO"`).
 
-### 3.7 `modify_order`/`cancel_order` — terminal orders are rejected client-side
-
-Before sending a modify or cancel request, the SDK now always checks the
-order's current status on the order book. If the order is already `complete`,
-`traded`, `rejected`, or `cancelled`, the request is rejected client-side
-instead of being sent to the exchange:
-
-```json
-{
-    "status_code": 409,
-    "Error": "Order 220621000000097 is already 'rejected' and can no longer be modified or cancelled.",
-    "ordSt": "rejected",
-    "Reason": "Price is out of the current price range",
-    "nOrdNo": "220621000000097"
-}
-```
-
-This check is unconditional and applies to every `modify_order`/`cancel_order`
-call, including the "quick" path that supplies all identifying fields
-directly (which previously skipped any order-book lookup). If the order-book
-lookup itself fails (e.g. a transient network error), the SDK falls back to
-sending the request anyway rather than blocking on a lookup failure.
-
-`cancel_order`'s `isVerify` flag is retained for backward compatibility but no
-longer changes its behavior, since this check is now always performed
-regardless of that flag.
-
 ---
 
 ## 4. Error handling — exceptions instead of silent dicts
@@ -320,7 +293,6 @@ See **[Order Feed](../functions/websocket/order_feed.md)**.
 - [ ] Rewrite WebSocket code to the async `create_websocket()` / `create_order_feed()` model.
 - [ ] Replace `subscribe_to_orderfeed` and any cover/bracket cancel calls.
 - [ ] (Optional) Add `isVerify=True` to `modify_order` where you need confirmed outcomes.
-- [ ] Handle the new `status_code: 409` response from `modify_order`/`cancel_order` on already-terminal orders.
 
 ---
 
