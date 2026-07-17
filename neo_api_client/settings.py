@@ -49,15 +49,12 @@ exchange_segment_allowed_values = [
     "nfo",
     "BFO",
     "bfo",
-    "CDS",
-    "cds",
     "BCD",
     "bcd",
     "nse_cm",
     "bse_cm",
     "nse_fo",
     "bse_fo",
-    "cde_fo",
     "bcs-fo",
     "mcx_fo",
 ]
@@ -76,20 +73,20 @@ product_allowed_values = [
     "MTF",
 ]
 
-# Product types accepted by the place-order (and margin) API (canonical codes
-# only). Aliases (e.g. "Normal", "Cash and Carry") are resolved to these via
-# the `product` map before the check.
+# Product types accepted by the place-order (and margin) API. Only these
+# exact canonical codes are accepted — aliases (e.g. "Normal", "Cash and
+# Carry") are rejected, not resolved.
 place_order_product_allowed_values = ["CNC", "NRML", "MIS", "MTF"]
 
-# Exchange segments accepted by the check-margin API (canonical codes only).
-# Aliases (e.g. "NSE", "MCX") are resolved to these via the `exchange_segment`
-# map before the check. Margin does not support the currency (cde_fo) or
-# BCD (bcs-fo) segments that place/modify order allow.
+# Exchange segments accepted by the check-margin API. Only these exact
+# canonical codes are accepted — aliases (e.g. "NSE", "MCX") are rejected, not
+# resolved. Margin does not support the currency (cde_fo) or BCD (bcs-fo)
+# segments that modify order allows.
 margin_exchange_segment_allowed_values = ["bse_cm", "nse_cm", "nse_fo", "bse_fo", "mcx_fo"]
 
-# Order types accepted by the check-margin API (canonical codes only). Aliases
-# (e.g. "Limit", "Market") are resolved to these via the `order_type` map
-# before the check.
+# Order types accepted by the check-margin API. Only these exact canonical
+# codes are accepted — aliases (e.g. "Limit", "Market") are rejected, not
+# resolved.
 margin_order_type_allowed_values = ["L", "MKT", "SL", "SL-M"]
 
 order_type_allowed_values = [

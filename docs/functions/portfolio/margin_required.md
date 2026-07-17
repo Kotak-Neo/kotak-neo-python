@@ -29,16 +29,15 @@ All parameters below are mandatory unless noted otherwise, and are validated cli
 
 | Name               | Description                                                                | Type           |
 |--------------------|-----------------------------------------------------------------------------|----------------|
-| *exchange_segment* | Allowed values: `nse_cm`, `bse_cm`, `nse_fo`, `bse_fo`, `mcx_fo` (or their aliases, e.g. NSE, BSE, NFO, BFO, MCX) | Str |
+| *exchange_segment* | Allowed values (exact match only, aliases are not accepted): `nse_cm`, `bse_cm`, `nse_fo`, `bse_fo`, `mcx_fo` | Str |
 | *price*            | Zero or a positive value                                                    | Str            |
-| *order_type*       | Allowed values: `L`, `MKT`, `SL`, `SL-M` (or their aliases)                 | Str            |
+| *order_type*       | Allowed values (exact match only, aliases are not accepted): `L`, `MKT`, `SL`, `SL-M` | Str            |
 | *product*          | Allowed values: `CNC`, `NRML`, `MIS`, `MTF`                                 | Str            |
 | *quantity*         | Non-zero positive value                                                     | Str            |
 | *instrument_token* | pSymbol in ScripMaster files. Must be a valid (positive integer) token      | Str            |
 | *transaction_type* | Allowed values: `B` (Buy), `S` (Sell)                                       | Str            |
 | *broker_name*      | Optional, defaults to "KOTAK". If provided, cannot be blank                 | Str            |
 | *branch_id*        | Optional, defaults to "ONLINE". If provided, cannot be blank                | Str            |
-| *trigger_price*    | Optional, required for stop loss and cover order                            | Str            |
 
 
 ### Return type

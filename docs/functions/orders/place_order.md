@@ -13,17 +13,7 @@ client.place_order(
     transaction_type="",
     amo="NO",
     disclosed_quantity="0",
-    pf="N",
     trigger_price="0",
-    tag=None,
-    scrip_token=None,
-    square_off_type=None,
-    stop_loss_type=None,
-    stop_loss_value=None,
-    square_off_value=None,
-    last_traded_price=None,
-    trailing_stop_loss=None,
-    trailing_sl_value=None,
 )
 ```
 
@@ -53,17 +43,7 @@ try:
         transaction_type="",
         amo="NO",
         disclosed_quantity="0",
-        pf="N",
         trigger_price="0",
-        tag=None,
-        scrip_token=None,
-        square_off_type=None,
-        stop_loss_type=None,
-        stop_loss_value=None,
-        square_off_value=None,
-        last_traded_price=None,
-        trailing_stop_loss=None,
-        trailing_sl_value=None,
     )
 except Exception as e:
     print("Exception when calling OrderApi->place_order: %s\n" % e)
@@ -73,8 +53,8 @@ except Exception as e:
 
 | Name                 | Description                                                                                                                                                                                                                                                                                                                                                       | Type           |
 |----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------|
-| *exchange_segment*   | nse_cm - NSE<br/>bse_cm - BSE<br/>nse_fo - NFO<br/>bse_fo - BFO<br/>cde_fo - CDS<br/>mcx_fo - MCX                                                                                                                                                                                                                                                               | Str            |
-| *product*            | Allowed values: CNC, NRML, MIS, MTF (or their aliases, e.g. "Normal", "Cash and Carry")                                                                                                                                                                                                                           | Str            |
+| *exchange_segment*   | nse_cm - NSE<br/>bse_cm - BSE<br/>nse_fo - NFO<br/>bse_fo - BFO<br/>mcx_fo - MCX                                                                                                                                                                                                                                                               | Str            |
+| *product*            | Allowed values (exact match only, aliases are not accepted): CNC, NRML, MIS, MTF                                                                                                                                                                                                                           | Str            |
 | *price*              | Mandatory. Zero or a positive value for MKT/SL-M orders; must be greater than zero for L/SL orders (a real limit price is required — price=0 is rejected client-side to prevent the exchange substituting a default price)                                                                                                                                                                                                                                                | Str            |
 | *order_type*         | L - Limit<br/>MKT - Market<br/>SL - Stop loss limit<br/>SL-M - Stop loss market                                                                                                                                                                                                                                                                                   | Str            |
 | *quantity*           | quantity of the order                                                                                                                                                                                                                                                                                                                                             | Str            |
@@ -83,17 +63,7 @@ except Exception as e:
 | *transaction_type*   | B(Buy), S(Sell)                                                                                                                                                                                                                                                                                                                                                   | Str            |
 | *amo*                | YES/NO - (Default Value - NO)                                                                                                                                                                                                                                                                                                                                     | Str [optional] |
 | *disclosed_quantity* | (Default Value - 0)                                                                                                                                                                                                                                                                                                                                               | Str [optional] |
-| *pf*                 | Default Value - “N”                                                                                                                                                                                                                                                                                                                                               | Str [optional] |
 | *trigger_price*      | Required for SL/SL-M stop-loss orders. Optional for L/MKT — if omitted (or passed as `None`), the SDK sends `"0"` to the API automatically, since the REST field is mandatory even though its value doesn't matter for those order types.                                                                                                                          | Str [optional] |
-| *tag*                | Your own tag to track the order                                                                                                                                                                                                                                                                                                                                   | Str [optional] |
-| *scrip_token*        | Applicable only for Bracket Order                                                                                                                                                                                                                                                                                                                                 | Str [optional] |
-| *square_off_type*    | Applicable only for Bracket Order. Expected Values are 'Absolute' and 'Ticks'.                                                                                                                                                                                                                                                                                    | Str [optional] |
-| *stop_loss_type*     | Applicable only for bracket Order. Expected Values are 'Absolute' and 'Ticks'.                                                                                                                                                                                                                                                                                    | Str [optional] |
-| *stop_loss_value*    | Applicable only for Bracket Order                                                                                                                                                                                                                                                                                                                                 | Str [optional] |
-| *square_off_value*   | Applicable only for Bracket Order                                                                                                                                                                                                                                                                                                                                 | Str [optional] |
-| *last_traded_price*  | Applicable only for Bracket Order                                                                                                                                                                                                                                                                                                                                 | Str [optional] |
-| *trailing_stop_loss* | Applicable only for Bracket Order. Expected Values are 'Y' and 'N'.                                                                                                                                                                                                                                                                                               | Str [optional] |
-| *trailing_sl_value*  | Applicable only for Bracket Order. Expected Values are 'Y' and 'N'.                                                                                                                                                                                                                                                                                               | Str [optional] |
 
 
 ### Return type

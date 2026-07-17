@@ -833,7 +833,13 @@ def _order_feed_test():
             raise RuntimeError("Order feed did not connect")
 
         for message in order_messages:
-            print(json.dumps(message.model_dump(), indent=2, default=str))
+            # Most frames parse into a typed OrderUpdate/PositionUpdate, but
+            # _parse_message() falls back to the raw dict/string for an
+            # unrecognized type or a payload that doesn't fit the model.
+            if hasattr(message, "model_dump"):
+                print(json.dumps(message.model_dump(), indent=2, default=str))
+            else:
+                print(json.dumps(message, indent=2, default=str))
 
         return {
             "connected": connected,

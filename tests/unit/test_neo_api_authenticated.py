@@ -66,7 +66,6 @@ def test_place_order_with_optional_params(authenticated_client, requests_mock):
         transaction_type="B",
         disclosed_quantity="5",
         trigger_price="1490",
-        tag="test_order",
     )
 
     assert result["stat"] == "Ok"
@@ -531,8 +530,8 @@ def test_margin_required_invalid_returns_error(authenticated_client):
     assert "Error" in result
 
 
-def test_modify_order_quick_path_success(authenticated_client, requests_mock):
-    """modify_order() quick path (all identifying fields provided)."""
+def test_modify_order_success(authenticated_client, requests_mock):
+    """modify_order() with product supplied."""
     url = authenticated_client.configuration.get_url_details("modify_order")
     requests_mock.post(url, json={"stat": "Ok", "nOrdNo": "12345"}, status_code=200)
 
@@ -542,19 +541,15 @@ def test_modify_order_quick_path_success(authenticated_client, requests_mock):
         order_type="L",
         quantity="2",
         validity="DAY",
-        instrument_token="11536",
-        exchange_segment="nse_cm",
         product="CNC",
-        trading_symbol="RELIANCE-EQ",
-        transaction_type="B",
     )
     assert result["stat"] == "Ok"
 
 
-def test_modify_order_quick_path_defaults_trigger_price_for_limit(
+def test_modify_order_defaults_trigger_price_for_limit_with_product(
     authenticated_client, monkeypatch
 ):
-    """Quick-modify path: trigger_price=None is coerced to '0' for L/MKT."""
+    """trigger_price=None is coerced to '0' for L/MKT, with product supplied."""
     captured = {}
 
     def fake_quick_modification(self, **kwargs):
@@ -571,30 +566,26 @@ def test_modify_order_quick_path_defaults_trigger_price_for_limit(
         order_type="L",
         quantity="2",
         validity="DAY",
-        instrument_token="11536",
-        exchange_segment="nse_cm",
         product="CNC",
-        trading_symbol="RELIANCE-EQ",
-        transaction_type="B",
         trigger_price=None,
     )
 
     assert captured["trigger_price"] == "0"
 
 
-def test_modify_order_by_orderid_path_defaults_trigger_price_for_limit(
+def test_modify_order_defaults_trigger_price_for_limit_mandatory_only(
     authenticated_client, monkeypatch
 ):
-    """Order-id-only path: trigger_price=None is coerced to '0' for L/MKT."""
+    """trigger_price=None is coerced to '0' for L/MKT, with only the
+    mandatory fields supplied (no product)."""
     captured = {}
 
-    def fake_modification_with_orderid(self, **kwargs):
+    def fake_quick_modification(self, **kwargs):
         captured.update(kwargs)
         return {"stat": "Ok"}
 
     monkeypatch.setattr(
-        "neo_api_client.neo_api.ModifyOrder.modification_with_orderid",
-        fake_modification_with_orderid,
+        "neo_api_client.neo_api.ModifyOrder.quick_modification", fake_quick_modification
     )
 
     authenticated_client.modify_order(
@@ -658,21 +649,6 @@ def test_cancel_order_blank_order_id_returns_error(authenticated_client):
     assert "Error" in result
 
 
-def test_modify_order_partial_params_raises(authenticated_client):
-    """A valid order_id with only some of the quick-path params (e.g.
-    instrument_token but no exchange_segment/trading_symbol) matches neither
-    modify branch and raises the 'Order ID is Mandate' guard."""
-    with pytest.raises(ValueError, match="Order ID is Mandate"):
-        authenticated_client.modify_order(
-            order_id="260709000000058",
-            price="1400",
-            order_type="L",
-            quantity="3",
-            validity="DAY",
-            instrument_token="11536",  # partial: no exchange_segment/trading_symbol
-        )
-
-
 def test_search_scrip_missing_exchange_segment(authenticated_client):
     """search_scrip() with empty exchange_segment returns a validation error."""
     result = authenticated_client.search_scrip(exchange_segment="", symbol="RELIANCE")
@@ -692,16 +668,47 @@ def test_scrip_master_success(authenticated_client, requests_mock):
     assert result is not None
 
 
-def test_totp_login_missing_args_returns_error(authenticated_client):
-    """totp_login() with missing args returns an error dict (no network call)."""
-    result = authenticated_client.totp_login(mobile_number=None, ucc=None, totp=None)
-    assert "error" in result
+@pytest.mark.parametrize(
+    "kwargs,expected_field",
+    [
+        ({"mobile_number": None, "ucc": "ABC123", "totp": "123456"}, "MobileNumber"),
+        ({"mobile_number": "+919999999999", "ucc": None, "totp": "123456"}, "Ucc"),
+        ({"mobile_number": "+919999999999", "ucc": "ABC123", "totp": None}, "Totp"),
+        ({"mobile_number": "", "ucc": "ABC123", "totp": "123456"}, "MobileNumber"),
+    ],
+)
+def test_totp_login_blank_field_rejected_client_side(
+    authenticated_client, requests_mock, kwargs, expected_field
+):
+    """totp_login() rejects a blank/missing field client-side (no network
+    call), using the same error shape the backend returns for this case."""
+    login_url = (
+        authenticated_client.configuration.get_domain(session_init=True)
+        + "/login/1.0/tradeApiLogin"
+    )
+    login_route = requests_mock.post(login_url, json={"data": {}}, status_code=200)
+
+    result = authenticated_client.totp_login(**kwargs)
+
+    assert result == {
+        "error": [{"code": "400", "message": f"Missing required field '{expected_field}'"}]
+    }
+    assert login_route.call_count == 0
 
 
-def test_totp_validate_missing_mpin_returns_error(authenticated_client):
-    """totp_validate() with missing mpin returns an error dict."""
+def test_totp_validate_blank_mpin_rejected_client_side(authenticated_client, requests_mock):
+    """totp_validate() rejects a blank/missing mpin client-side (no network
+    call), using the same error shape the backend returns for this case."""
+    validate_url = (
+        authenticated_client.configuration.get_domain(session_init=True)
+        + "/login/1.0/tradeApiValidate"
+    )
+    validate_route = requests_mock.post(validate_url, json={"data": {}}, status_code=200)
+
     result = authenticated_client.totp_validate(mpin=None)
-    assert "error" in result
+
+    assert result == {"error": [{"code": "400", "message": "Missing required field 'Mpin'"}]}
+    assert validate_route.call_count == 0
 
 
 def test_quotes_missing_tokens_returns_error(authenticated_client):
@@ -722,31 +729,10 @@ def test_order_report_success(authenticated_client, requests_mock):
     assert result["stat"] == "Ok"
 
 
-def test_modify_order_by_order_id_path(authenticated_client, requests_mock):
-    """modify_order() with only order_id uses the modification_with_orderid path.
-
-    That path first fetches the order book to resolve the order's details, then
-    posts the modification.
-    """
-    order_book_url = authenticated_client.configuration.get_url_details("order_book")
+def test_modify_order_with_only_mandatory_fields(authenticated_client, requests_mock):
+    """modify_order() with only the mandatory fields (no product) sends the
+    modification straight to the backend."""
     modify_url = authenticated_client.configuration.get_url_details("modify_order")
-
-    order_book = {
-        "data": [
-            {
-                "nOrdNo": "12345",
-                "ordSt": "open",
-                "rejRsn": "",
-                "trdSym": "RELIANCE-EQ",
-                "tok": "11536",
-                "prod": "CNC",
-                "trnsTp": "B",
-                "exSeg": "nse_cm",
-                "trgPrc": "0",
-            }
-        ]
-    }
-    requests_mock.get(order_book_url, json=order_book, status_code=200)
     requests_mock.post(modify_url, json={"stat": "Ok", "nOrdNo": "12345"}, status_code=200)
 
     result = authenticated_client.modify_order(
@@ -836,8 +822,8 @@ def test_help_socket_keyword_maps_to_create_websocket(authenticated_client):
     authenticated_client.help("socket")
 
 
-def test_modify_order_quick_path_exception(authenticated_client, requests_mock):
-    """modify_order() quick path returns an Error dict when the API call fails."""
+def test_modify_order_exception(authenticated_client, requests_mock):
+    """modify_order() returns an Error dict when the API call fails."""
     modify_url = authenticated_client.configuration.get_url_details("modify_order")
     requests_mock.post(modify_url, status_code=500, text="boom")
 
@@ -847,19 +833,16 @@ def test_modify_order_quick_path_exception(authenticated_client, requests_mock):
         order_type="L",
         quantity="2",
         validity="DAY",
-        instrument_token="11536",
-        exchange_segment="nse_cm",
         product="CNC",
-        trading_symbol="RELIANCE-EQ",
-        transaction_type="B",
     )
     assert "Error" in result
 
 
-def test_modify_order_by_order_id_exception(authenticated_client, requests_mock):
-    """modify_order() by-order-id path returns an Error dict when the API fails."""
-    order_book_url = authenticated_client.configuration.get_url_details("order_book")
-    requests_mock.get(order_book_url, status_code=500, text="boom")
+def test_modify_order_exception_with_mandatory_only(authenticated_client, requests_mock):
+    """modify_order() with only the mandatory fields returns an Error dict
+    when the API call fails."""
+    modify_url = authenticated_client.configuration.get_url_details("modify_order")
+    requests_mock.post(modify_url, status_code=500, text="boom")
 
     result = authenticated_client.modify_order(
         order_id="12345",

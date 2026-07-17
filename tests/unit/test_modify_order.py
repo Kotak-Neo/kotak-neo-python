@@ -12,7 +12,7 @@ def _sent_body(requests_mock):
 
 
 def test_quick_modification_success(api_client, requests_mock):
-    """Test successful quick order modification"""
+    """Test successful order modification"""
     modify_order_api = ModifyOrder(api_client)
     url = api_client.configuration.get_url_details("modify_order")
     mock_response = {"stat": "Ok", "nOrdNo": "12345"}
@@ -24,11 +24,7 @@ def test_quick_modification_success(api_client, requests_mock):
         order_type="L",
         quantity="15",
         validity="DAY",
-        instrument_token="11536",
-        exchange_segment="nse_cm",
         product="CNC",
-        trading_symbol="RELIANCE-EQ",
-        transaction_type="B",
         trigger_price="104.00",
         dd="NA",
         disclosed_quantity="5",
@@ -61,11 +57,7 @@ def test_quick_modification_flags_already_complete_as_409(api_client, requests_m
         order_type="L",
         quantity="15",
         validity="DAY",
-        instrument_token="11536",
-        exchange_segment="nse_cm",
         product="CNC",
-        trading_symbol="RELIANCE-EQ",
-        transaction_type="B",
         trigger_price="104.00",
         dd="NA",
         disclosed_quantity="5",
@@ -80,7 +72,7 @@ def test_quick_modification_flags_already_complete_as_409(api_client, requests_m
 
 
 def test_quick_modification_api_exception(api_client, monkeypatch):
-    """Test quick modification with API exception"""
+    """Test order modification with API exception"""
     from neo_api_client.exceptions import ApiException
 
     modify_order_api = ModifyOrder(api_client)
@@ -96,11 +88,7 @@ def test_quick_modification_api_exception(api_client, monkeypatch):
         order_type="L",
         quantity="15",
         validity="DAY",
-        instrument_token="11536",
-        exchange_segment="nse_cm",
         product="CNC",
-        trading_symbol="RELIANCE-EQ",
-        transaction_type="B",
         trigger_price="104.00",
         dd="NA",
         disclosed_quantity="5",
@@ -111,27 +99,22 @@ def test_quick_modification_api_exception(api_client, monkeypatch):
     assert "error" in result
 
 
-def test_modification_with_orderid_forwards_directly(api_client, requests_mock):
-    """modification_with_orderid() sends the request straight to the backend
-    with whatever fields were supplied — no order-book lookup, no field
-    inheritance, no status check. Missing fields (None) are sent as-is; the
-    backend is the source of truth on what's required and on whether the
-    order can still be modified."""
+def test_modification_with_only_mandatory_fields(api_client, requests_mock):
+    """Only mandatory fields (order_id/price/order_type/quantity/validity)
+    are supplied; missing optionals are sent as None — the backend is the
+    source of truth on what's required and on whether the order can still be
+    modified, not a client-side order-book lookup."""
     modify_order_api = ModifyOrder(api_client)
     modify_url = api_client.configuration.get_url_details("modify_order")
     modify_route = requests_mock.post(modify_url, json={"stat": "Ok", "nOrdNo": "12345"})
 
-    result = modify_order_api.modification_with_orderid(
+    result = modify_order_api.quick_modification(
         order_id="12345",
         price="105.00",
         order_type="L",
         quantity="15",
         validity="DAY",
-        instrument_token=None,
-        exchange_segment=None,
         product=None,
-        trading_symbol=None,
-        transaction_type=None,
         trigger_price="0",
         dd="NA",
         disclosed_quantity="5",
@@ -142,38 +125,11 @@ def test_modification_with_orderid_forwards_directly(api_client, requests_mock):
     assert result["stat"] == "Ok"
     assert modify_route.call_count == 1
     body = _sent_body(requests_mock)
-    assert body["tk"] is None
-    assert body["es"] is None
-
-
-def test_modification_with_provided_values(api_client, requests_mock):
-    """Explicitly provided fields are sent as-is."""
-    modify_order_api = ModifyOrder(api_client)
-    modify_url = api_client.configuration.get_url_details("modify_order")
-    requests_mock.post(modify_url, json={"stat": "Ok", "nOrdNo": "12345"})
-
-    result = modify_order_api.modification_with_orderid(
-        order_id="12345",
-        price="105.00",
-        order_type="L",
-        quantity="15",
-        validity="DAY",
-        instrument_token="11536",
-        exchange_segment="nse_cm",
-        product="CNC",
-        trading_symbol="RELIANCE-EQ",
-        transaction_type="B",
-        trigger_price="104.00",
-        dd="NA",
-        disclosed_quantity="5",
-        filled_quantity="0",
-        amo="NO",
-    )
-
-    assert result["stat"] == "Ok"
-    body = _sent_body(requests_mock)
-    assert body["es"] == "nse_cm"
-    assert body["tk"] == "11536"
+    assert body["pc"] is None
+    assert "tk" not in body
+    assert "es" not in body
+    assert "ts" not in body
+    assert "tt" not in body
 
 
 # ---- "mp" (market protection) is always "0", not caller-configurable -------
@@ -192,11 +148,7 @@ def test_modify_order_always_sends_mp_zero(api_client, requests_mock):
         order_type="L",
         quantity="15",
         validity="DAY",
-        instrument_token="11536",
-        exchange_segment="nse_cm",
         product="CNC",
-        trading_symbol="RELIANCE-EQ",
-        transaction_type="B",
         trigger_price="0",
         dd="NA",
         disclosed_quantity="0",
@@ -218,17 +170,13 @@ def test_modify_trigger_price_sent_as_provided_for_limit(api_client, requests_mo
         json={"stat": "Ok", "nOrdNo": "12345"},
     )
 
-    result = modify_order_api.modification_with_orderid(
+    result = modify_order_api.quick_modification(
         order_id="12345",
         price="2450.00",
         order_type="L",
         quantity="1",
         validity="DAY",
-        instrument_token=None,
-        exchange_segment=None,
         product=None,
-        trading_symbol=None,
-        transaction_type=None,
         trigger_price="0",
         dd="NA",
         disclosed_quantity="0",
@@ -251,17 +199,13 @@ def test_modify_explicit_trigger_always_used(api_client, requests_mock):
         json={"stat": "Ok", "nOrdNo": "12345"},
     )
 
-    modify_order_api.modification_with_orderid(
+    modify_order_api.quick_modification(
         order_id="12345",
         price="2450.00",
         order_type="SL",
         quantity="1",
         validity="DAY",
-        instrument_token=None,
-        exchange_segment=None,
         product=None,
-        trading_symbol=None,
-        transaction_type=None,
         trigger_price="2480.00",  # explicit
         dd="NA",
         disclosed_quantity="0",
@@ -278,17 +222,13 @@ def test_modify_order_amo_none_coerced_to_no(api_client, requests_mock):
         api_client.configuration.get_url_details("modify_order"),
         json={"stat": "Ok", "nOrdNo": "12345"},
     )
-    ModifyOrder(api_client).modification_with_orderid(
+    ModifyOrder(api_client).quick_modification(
         order_id="12345",
         price="1400",
         order_type="L",
         quantity="3",
         validity="DAY",
-        instrument_token=None,
-        exchange_segment=None,
         product=None,
-        trading_symbol=None,
-        transaction_type=None,
         trigger_price="0",
         dd="NA",
         disclosed_quantity="0",
@@ -304,17 +244,13 @@ def test_modify_order_amo_yes_is_sent(api_client, requests_mock):
         api_client.configuration.get_url_details("modify_order"),
         json={"stat": "Ok", "nOrdNo": "12345"},
     )
-    ModifyOrder(api_client).modification_with_orderid(
+    ModifyOrder(api_client).quick_modification(
         order_id="12345",
         price="1400",
         order_type="L",
         quantity="3",
         validity="DAY",
-        instrument_token=None,
-        exchange_segment=None,
         product=None,
-        trading_symbol=None,
-        transaction_type=None,
         trigger_price="0",
         dd="NA",
         disclosed_quantity="0",
@@ -355,11 +291,7 @@ def test_modify_quick_verify_detects_exchange_rejection(api_client, requests_moc
         order_type="L",
         quantity="1",
         validity="DAY",
-        instrument_token="11536",
-        exchange_segment="nse_cm",
         product="CNC",
-        trading_symbol="RELIANCE-EQ",
-        transaction_type="B",
         trigger_price="0",
         dd="NA",
         disclosed_quantity="0",
@@ -391,11 +323,7 @@ def test_modify_quick_verify_passthrough_on_success(api_client, requests_mock):
         order_type="L",
         quantity="1",
         validity="DAY",
-        instrument_token="11536",
-        exchange_segment="nse_cm",
         product="CNC",
-        trading_symbol="RELIANCE-EQ",
-        transaction_type="B",
         trigger_price="0",
         dd="NA",
         disclosed_quantity="0",
@@ -429,11 +357,7 @@ def test_modify_quick_verify_orderbook_read_failure_returns_ack(
         order_type="L",
         quantity="1",
         validity="DAY",
-        instrument_token="11536",
-        exchange_segment="nse_cm",
         product="CNC",
-        trading_symbol="RELIANCE-EQ",
-        transaction_type="B",
         trigger_price="0",
         dd="NA",
         disclosed_quantity="0",
@@ -458,11 +382,7 @@ def test_modify_quick_verify_orderbook_without_data_returns_ack(api_client, requ
         order_type="L",
         quantity="1",
         validity="DAY",
-        instrument_token="11536",
-        exchange_segment="nse_cm",
         product="CNC",
-        trading_symbol="RELIANCE-EQ",
-        transaction_type="B",
         trigger_price="0",
         dd="NA",
         disclosed_quantity="0",

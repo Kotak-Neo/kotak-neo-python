@@ -49,17 +49,7 @@ def test_order_placing_with_optional_params(api_client, requests_mock):
         transaction_type="B",
         amo="YES",
         disclosed_quantity="5",
-        pf="N",
         trigger_price="100",
-        tag="test_tag",
-        scrip_token="11536",
-        square_off_type="Absolute",
-        stop_loss_type="Absolute",
-        stop_loss_value="95",
-        square_off_value="105",
-        last_traded_price="100.50",
-        trailing_stop_loss="YES",
-        trailing_sl_value="2",
     )
 
     assert result["stat"] == "Ok"

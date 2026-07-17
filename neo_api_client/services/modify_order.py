@@ -45,11 +45,7 @@ class ModifyOrder:
         order_type,
         quantity,
         validity,
-        instrument_token,
-        exchange_segment,
         product,
-        trading_symbol,
-        transaction_type,
         trigger_price,
         dd,
         disclosed_quantity,
@@ -68,14 +64,11 @@ class ModifyOrder:
         amo = amo or "NO"
 
         body_params = {
-            "tk": instrument_token,
             "mp": "0",  # Market protection is always disabled.
             "pc": product,
             "dd": dd,
             "dq": disclosed_quantity,
             "vd": validity,
-            "ts": trading_symbol,
-            "tt": transaction_type,
             "pr": price,
             "pt": order_type,
             "fq": filled_quantity,
@@ -83,7 +76,6 @@ class ModifyOrder:
             "tp": trigger_price,
             "qt": quantity,
             "no": order_id,
-            "es": exchange_segment,
             "os": self.order_source,
         }
 
@@ -111,48 +103,3 @@ class ModifyOrder:
 
         except ApiException as ex:
             return {"error": ex}
-
-    def modification_with_orderid(
-        self,
-        order_id,
-        price,
-        order_type,
-        quantity,
-        validity,
-        instrument_token,
-        exchange_segment,
-        product,
-        trading_symbol,
-        transaction_type,
-        trigger_price,
-        dd,
-        disclosed_quantity,
-        filled_quantity,
-        amo,
-        is_verify=False,
-    ):
-        """Order-id-only modify path.
-
-        The request is sent to the backend as-is, with whatever fields were
-        supplied (missing ones are sent as None/blank) — the exchange is the
-        source of truth on what's required and on whether the order can
-        still be modified, not a client-side order-book lookup.
-        """
-        return self.quick_modification(
-            order_id=order_id,
-            price=price,
-            order_type=order_type,
-            quantity=quantity,
-            validity=validity,
-            instrument_token=instrument_token,
-            exchange_segment=exchange_segment,
-            product=product,
-            trading_symbol=trading_symbol,
-            transaction_type=transaction_type,
-            trigger_price=trigger_price,
-            dd=dd,
-            disclosed_quantity=disclosed_quantity,
-            filled_quantity=filled_quantity,
-            amo=amo,
-            is_verify=is_verify,
-        )

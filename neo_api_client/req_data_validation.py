@@ -11,7 +11,6 @@ from neo_api_client.settings import (
     validity_allowed_default,
 )
 from neo_api_client.settings import order_type as _order_type_map
-from neo_api_client.settings import product as _product_map
 
 
 def _require_non_blank(value, name):
@@ -108,24 +107,21 @@ def place_order_validation(
     transaction_type,
     amo=None,
     disclosed_quantity=None,
-    pf=None,
     trigger_price=None,
-    tag=None,
 ):
     # Exchange Segment validation (mandatory, non-blank)
     _require_non_blank(exchange_segment, "exchange_segment")
     if exchange_segment not in exchange_segment_allowed_values:
         raise ApiValueError(
             "Invalid exchange segment. Allowed values are NSE or nse_cm, BSE or bse_cm, NFO or nse_fo, "
-            "BFO or bse_fo, CDS or cde_fo, BCD or bcs_fo."
+            "BFO or bse_fo, BCD or bcs_fo."
         )
 
     # Product validation (mandatory, non-blank). Place order accepts only
-    # CNC, NRML, MIS and MTF. Resolve any known alias (e.g. "Normal", "Cash
-    # and Carry", "cnc") to its canonical code before checking.
+    # the exact canonical codes CNC, NRML, MIS, MTF — aliases (e.g. "Normal",
+    # "Cash and Carry", "cnc", "Intraday") are rejected, not resolved.
     _require_non_blank(product, "product")
-    canonical_product = _product_map.get(product, product)
-    if canonical_product not in place_order_product_allowed_values:
+    if product not in place_order_product_allowed_values:
         raise ApiValueError("Invalid product. Allowed values are CNC, NRML, MIS, MTF.")
 
     # Price validation (mandatory, non-blank numeric string)
@@ -167,18 +163,10 @@ def place_order_validation(
         _require_non_blank(disclosed_quantity, "disclosed_quantity")
         _require_non_negative_int(disclosed_quantity, "disclosed_quantity")
 
-    # pf validation (must be non-blank if given)
-    if pf is not None:
-        _require_non_blank(pf, "pf")
-
     # trigger_price validation (optional; must be numeric if given)
     if trigger_price is not None:
         _require_non_blank(trigger_price, "trigger_price")
         _require_numeric(trigger_price, "trigger_price")
-
-    # Tag validation (optional; only a type constraint)
-    if tag is not None and not isinstance(tag, str):
-        raise ApiValueError("tag must be a string.")
 
 
 def cancel_order_validation(order_id, amo=None):
@@ -199,7 +187,7 @@ def modify_order_validation(
     trigger_price=None,
     disclosed_quantity=None,
     amo=None,
-    exchange_segment=None,
+    product=None,
 ):
     """Validate mandatory modify-order inputs before the request is built.
 
@@ -207,13 +195,21 @@ def modify_order_validation(
     order_id (no), price (pr), order_type (pt), quantity (qt), validity (vd),
     and the numeric optionals when supplied.
 
-    ``exchange_segment`` is optional: when provided (quick-modify path), the
-    validity is checked against that segment's allowed set; when omitted (the
-    order-id-only path resolves the segment from the order book later), the
-    default validity set (DAY, IOC) is used.
+    modify_order has no exchange_segment parameter, so validity is always
+    checked against the default allowed set (DAY, IOC).
+
+    ``product`` is optional; when given, only the exact canonical codes CNC,
+    NRML, MIS, MTF are accepted — aliases (e.g. "Normal", "Cash and Carry")
+    are rejected, not resolved.
     """
     # order_id (mandatory, non-blank)
     _require_non_blank(order_id, "order_id")
+
+    # Product (optional; when supplied, must be one of the exact canonical codes)
+    if product is not None:
+        _require_non_blank(product, "product")
+        if product not in place_order_product_allowed_values:
+            raise ApiValueError("Invalid product. Allowed values are CNC, NRML, MIS, MTF.")
 
     # Price (mandatory, non-blank numeric string)
     _require_non_blank(price, "price")
@@ -234,9 +230,9 @@ def modify_order_validation(
     _require_non_blank(quantity, "quantity")
     _require_positive_int(quantity, "quantity")
 
-    # Validity (mandatory, non-blank, per-exchange-segment allowed set). When
-    # the segment is unknown here, the default set (DAY, IOC) applies.
-    _require_valid_validity(validity, exchange_segment)
+    # Validity (mandatory, non-blank). modify_order has no exchange_segment,
+    # so the default allowed set (DAY, IOC) always applies.
+    _require_valid_validity(validity, None)
 
     # trigger_price (optional; must be a non-negative number when supplied)
     if trigger_price is not None:
@@ -270,30 +266,30 @@ def margin_validation(
     branch_id,
     trigger_price=None,
 ):
-    # Exchange Segment validation (mandatory). Margin ("exSeg") supports a
-    # narrower segment set than place/modify order: nse_cm, bse_cm, nse_fo,
-    # bse_fo, mcx_fo only.
+    # Exchange Segment validation (mandatory). Margin ("exSeg") accepts only
+    # the exact canonical codes nse_cm, bse_cm, nse_fo, bse_fo, mcx_fo —
+    # aliases (e.g. "NSE", "MCX") are rejected, not resolved.
     _require_non_blank(exchange_segment, "exchange_segment")
-    canonical_segment = _exchange_segment_map.get(exchange_segment, exchange_segment)
-    if canonical_segment not in margin_exchange_segment_allowed_values:
+    if exchange_segment not in margin_exchange_segment_allowed_values:
         raise ApiValueError(
             "Invalid exchange segment. Allowed values are nse_cm, bse_cm, nse_fo, bse_fo, mcx_fo."
         )
 
-    # Product validation (mandatory). Margin ("prod") accepts only CNC, NRML, MIS, MTF.
+    # Product validation (mandatory). Margin ("prod") accepts only the exact
+    # canonical codes CNC, NRML, MIS, MTF — aliases are rejected, not resolved.
     _require_non_blank(product, "product")
-    canonical_product = _product_map.get(product, product)
-    if canonical_product not in place_order_product_allowed_values:
+    if product not in place_order_product_allowed_values:
         raise ApiValueError("Invalid product. Allowed values are CNC, NRML, MIS, MTF.")
 
     # Price validation (mandatory). Margin ("prc") may be zero or a positive number.
     _require_non_blank(price, "price")
     _require_numeric(price, "price")
 
-    # Order type validation (mandatory). Margin ("prcTp") accepts only L, MKT, SL, SL-M.
+    # Order type validation (mandatory). Margin ("prcTp") accepts only the
+    # exact canonical codes L, MKT, SL, SL-M — aliases (e.g. "Limit", "Market")
+    # are rejected, not resolved.
     _require_non_blank(order_type, "order_type")
-    canonical_order_type = _order_type_map.get(order_type, order_type)
-    if canonical_order_type not in margin_order_type_allowed_values:
+    if order_type not in margin_order_type_allowed_values:
         raise ApiValueError("Invalid order type. Allowed values are L, MKT, SL, SL-M.")
 
     # Quantity validation (mandatory). Margin ("qty") must be a non-zero positive value.

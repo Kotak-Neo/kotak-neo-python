@@ -72,4 +72,14 @@ print("My IP:", response["data"][0]["ip"])
 | API/network error | `{"error": <ApiException>}` |
 | Non-JSON response | `{"Error": "Unexpected response format. Expected JSON but received something else."}` |
 
+## HTTP request headers
+
+| Header | Value | Notes |
+|--------|-------|-------|
+| **Authorization** | `<consumer_key>` | The app-level key from `NeoAPI(consumer_key=...)`; sent as-is, no `Bearer` prefix |
+| **Sid** | `<edit_sid>` | Trade session ID from `totp_validate` (post-2FA) |
+| **Auth** | `<edit_token>` | Trade token from `totp_validate` (post-2FA) |
+| **Accept** | application/json | |
+| **Content-Type** | application/json | |
+
 [[Back to top]](#) [[Back to API list]](../README.md) [[Back to README]](../../../README.md)

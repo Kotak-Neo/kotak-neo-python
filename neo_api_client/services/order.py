@@ -20,17 +20,7 @@ class OrderAPI:
         transaction_type,
         amo=None,
         disclosed_quantity=None,
-        pf=None,
         trigger_price=None,
-        tag=None,
-        scrip_token=None,
-        square_off_type=None,
-        stop_loss_type=None,
-        stop_loss_value=None,
-        square_off_value=None,
-        last_traded_price=None,
-        trailing_stop_loss=None,
-        trailing_sl_value=None,
     ):
         try:
             header_params = {
@@ -50,7 +40,6 @@ class OrderAPI:
                 "es": exchange_segment,
                 "mp": "0",  # Market protection is always disabled.
                 "pc": product,
-                "pf": pf,
                 "pr": price,
                 "pt": order_type,
                 "qt": quantity,
@@ -58,15 +47,6 @@ class OrderAPI:
                 "tp": trigger_price,
                 "ts": trading_symbol,
                 "tt": transaction_type,
-                "ig": tag,
-                "tk": scrip_token,
-                "sot": square_off_type,
-                "slt": stop_loss_type,
-                "slv": stop_loss_value,
-                "sov": square_off_value,
-                "lat": last_traded_price,
-                "tlt": trailing_stop_loss,
-                "tsv": trailing_sl_value,
                 "os": self.order_source,
             }
 

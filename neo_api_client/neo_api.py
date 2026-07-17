@@ -139,17 +139,7 @@ class NeoAPI:
         transaction_type,
         amo="NO",
         disclosed_quantity="0",
-        pf="N",
         trigger_price="0",
-        tag=None,
-        scrip_token=None,
-        square_off_type=None,
-        stop_loss_type=None,
-        stop_loss_value=None,
-        square_off_value=None,
-        last_traded_price=None,
-        trailing_stop_loss=None,
-        trailing_sl_value=None,
     ):
         """
         Places an order on the specified exchange segment and product, for a given trading symbol, transaction type,
@@ -166,9 +156,7 @@ class NeoAPI:
         transaction_type (str): The transaction type (e.g. "BUY", "SELL", etc.)
         amo (str, optional): Flag to indicate whether it is an AMO order. Defaults to "NO".
         disclosed_quantity (str, optional): Disclosed quantity for the order. Defaults to "0".
-        pf (str, optional): Flag to indicate whether the order is a Portfolio order. Defaults to "N".
         trigger_price (str, optional): Trigger price for Stop Loss orders. Defaults to "0".
-        tag (str, optional): Optional tag to be added to the order. Defaults to None.
 
         Note:
         Market protection ("mp") is always sent as "0" — it is not caller-configurable.
@@ -210,17 +198,7 @@ class NeoAPI:
                     transaction_type=transaction_type,
                     amo=amo,
                     disclosed_quantity=disclosed_quantity,
-                    pf=pf,
                     trigger_price=trigger_price,
-                    tag=tag,
-                    scrip_token=scrip_token,
-                    square_off_type=square_off_type,
-                    stop_loss_type=stop_loss_type,
-                    stop_loss_value=stop_loss_value,
-                    square_off_value=square_off_value,
-                    last_traded_price=last_traded_price,
-                    trailing_stop_loss=trailing_stop_loss,
-                    trailing_sl_value=trailing_sl_value,
                 )
 
                 return place_order
@@ -310,24 +288,19 @@ class NeoAPI:
         else:
             return {"Error Message": "Complete the 2fa process before accessing this application"}
 
-    def trade_report(self, order_id=None):
+    def trade_report(self):
         """
-        Retrieves a filtered list of trades using the NEO API.
-
-        Args:
-            order_id (str): An optional string representing the order ID to filter trades by. If not provided,
-                all trades will be returned.
+        Retrieves the full list of trades using the NEO API.
 
         Raises:
             Exception: If there was an error retrieving the trade report.
 
         Returns:
-            Json object of all trades/filtered items.
+            Json object of all trades.
         """
         if self.configuration.edit_token and self.configuration.edit_sid:
             try:
-                filtered_trades = TradeReportAPI(self.api_client).trading_report(order_id=order_id)
-                return filtered_trades
+                return TradeReportAPI(self.api_client).trading_report()
             except Exception as e:
                 return {"Error": e}
         else:
@@ -340,11 +313,7 @@ class NeoAPI:
         order_type,
         quantity,
         validity,
-        instrument_token=None,
-        exchange_segment=None,
         product=None,
-        trading_symbol=None,
-        transaction_type=None,
         trigger_price="0",
         dd="NA",
         disclosed_quantity="0",
@@ -353,9 +322,6 @@ class NeoAPI:
         isVerify=False,
     ):
         """
-        There are 2 ways to modify the order one is bypassing all the parameters and another one is
-        pass the order_id based on that we will take the values from order book and updated the latest details
-
         Modify an existing order with new values for its parameters.
 
         Args:
@@ -365,11 +331,7 @@ class NeoAPI:
             order_type (str): The new order type for the order.
             quantity (int): The new quantity of the order.
             validity (str): The new validity for the order.
-            instrument_token (int, optional): The unique identifier of the instrument. Defaults to None.
-            exchange_segment (str, optional): The exchange segment of the order. Defaults to None.
             product (str, optional): The product type for the order. Defaults to None.
-            trading_symbol (str, optional): The trading symbol of the order. Defaults to None.
-            transaction_type (str, optional): The transaction type for the order. Defaults to None.
             trigger_price (float, optional): The new trigger price for the order. Defaults to "0".
             dd (str, optional): The new disclosed quantity for the order. Defaults to "NA".
             disclosed_quantity (str, optional): The new disclosed quantity for the order. Defaults to "0".
@@ -385,10 +347,9 @@ class NeoAPI:
                 acknowledgement; confirm the final state via the order feed or
                 order history.
 
-        The modify request (either path) is always sent straight to the
-        backend — the exchange is the source of truth on whether an order
-        (e.g. one that's already complete/traded/rejected/cancelled) can
-        still be modified.
+        The modify request is always sent straight to the backend — the
+        exchange is the source of truth on whether an order (e.g. one that's
+        already complete/traded/rejected/cancelled) can still be modified.
 
         Note:
         Market protection ("mp") is always sent as "0" — it is not caller-configurable.
@@ -409,71 +370,39 @@ class NeoAPI:
                     trigger_price=trigger_price,
                     disclosed_quantity=disclosed_quantity,
                     amo=amo,
-                    exchange_segment=exchange_segment,
+                    product=product,
                 )
             except Exception as e:
                 return {"Error": e}
 
             # order_type is mandatory and already validated above, so it's safe
-            # to canonicalize here for both branches below. trigger_price ("tp")
-            # is required by the REST API even for order types that ignore it
-            # (L/MKT) — default it to "0" so callers don't have to pass it.
+            # to canonicalize here. trigger_price ("tp") is required by the
+            # REST API even for order types that ignore it (L/MKT) — default
+            # it to "0" so callers don't have to pass it.
             order_type = settings.order_type[order_type]
             if order_type in settings.NO_TRIGGER_ORDER_TYPES and trigger_price is None:
                 trigger_price = "0"
 
-            if order_id and instrument_token and exchange_segment and product and trading_symbol:
-                exchange_segment = settings.exchange_segment[exchange_segment]
+            if product is not None:
                 product = settings.product[product]
-                try:
-                    quick_modify = ModifyOrder(self.api_client).quick_modification(
-                        order_id=order_id,
-                        price=price,
-                        order_type=order_type,
-                        quantity=quantity,
-                        validity=validity,
-                        instrument_token=instrument_token,
-                        product=product,
-                        exchange_segment=exchange_segment,
-                        trading_symbol=trading_symbol,
-                        transaction_type=transaction_type,
-                        trigger_price=trigger_price,
-                        dd=dd,
-                        disclosed_quantity=disclosed_quantity,
-                        filled_quantity=filled_quantity,
-                        amo=amo,
-                        is_verify=isVerify,
-                    )
-                    return quick_modify
-                except Exception:
-                    return {"Error": "Exception has been occurred while connecting to API"}
-            elif order_id and not instrument_token and not exchange_segment and not trading_symbol:
-                try:
-                    modify_order = ModifyOrder(self.api_client).modification_with_orderid(
-                        order_id=order_id,
-                        price=price,
-                        order_type=order_type,
-                        quantity=quantity,
-                        validity=validity,
-                        instrument_token=instrument_token,
-                        product=product,
-                        exchange_segment=exchange_segment,
-                        trading_symbol=trading_symbol,
-                        transaction_type=transaction_type,
-                        trigger_price=trigger_price,
-                        dd=dd,
-                        disclosed_quantity=disclosed_quantity,
-                        filled_quantity=filled_quantity,
-                        amo=amo,
-                        is_verify=isVerify,
-                    )
-                    return modify_order
 
-                except Exception:
-                    return {"Error": "Exception has been occurred while connecting to API"}
-
-            else:
-                raise ValueError("Order ID is Mandate if we need to proceed further!")
+            try:
+                return ModifyOrder(self.api_client).quick_modification(
+                    order_id=order_id,
+                    price=price,
+                    order_type=order_type,
+                    quantity=quantity,
+                    validity=validity,
+                    product=product,
+                    trigger_price=trigger_price,
+                    dd=dd,
+                    disclosed_quantity=disclosed_quantity,
+                    filled_quantity=filled_quantity,
+                    amo=amo,
+                    is_verify=isVerify,
+                )
+            except Exception:
+                return {"Error": "Exception has been occurred while connecting to API"}
         else:
             return {"Error Message": "Complete the 2fa process before accessing this application"}
 
@@ -538,10 +467,10 @@ class NeoAPI:
         Calculates the margin required for a given trade using the NEO API.
 
         Args:
-            exchange_segment (str): Allowed values: nse_cm, bse_cm, nse_fo, bse_fo, mcx_fo (or their aliases).
+            exchange_segment (str): Allowed values (exact match only, aliases are not accepted): nse_cm, bse_cm, nse_fo, bse_fo, mcx_fo.
             price (float): The price at which to execute the trade. Zero or a positive value.
-            order_type (str): Allowed values: L, MKT, SL, SL-M (or their aliases).
-            product (str): Allowed values: CNC, NRML, MIS.
+            order_type (str): Allowed values (exact match only, aliases are not accepted): L, MKT, SL, SL-M.
+            product (str): Allowed values (exact match only, aliases are not accepted): CNC, NRML, MIS, MTF.
             quantity (float): The quantity to trade. Must be a non-zero positive value.
             instrument_token (int): The instrument token (pSymbol) of the stock to trade. Must be a valid positive integer token.
             transaction_type (str): Allowed values: B, S.
@@ -873,10 +802,18 @@ class NeoAPI:
 
         Note:
             After totp_login, you must call totp_validate(mpin) to get trading access.
+            Blank/missing input is rejected client-side (no network call),
+            using the same error shape the backend itself returns for this
+            case, e.g.:
+            {"error": [{"code": "400", "message": "Missing required field 'MobileNumber'"}]}
         """
-        if not mobile_number or not ucc or not totp:
-            error = {"error": [{"message": "Any of Mobile Number, UCC or totp is missing"}]}
-            return error
+        if not mobile_number:
+            return {"error": [{"code": "400", "message": "Missing required field 'MobileNumber'"}]}
+        if not ucc:
+            return {"error": [{"code": "400", "message": "Missing required field 'Ucc'"}]}
+        if not totp:
+            return {"error": [{"code": "400", "message": "Missing required field 'Totp'"}]}
+
         totp_login = TotpAPI(self.api_client).totp_login(
             mobile_number=mobile_number, ucc=ucc, totp=totp
         )
@@ -926,10 +863,13 @@ class NeoAPI:
         Note:
             Both totp_login() and totp_validate() must succeed before you can perform
             trading operations like placing orders.
+            Blank/missing mpin is rejected client-side (no network call),
+            using the same error shape the backend itself returns for this
+            case:
+            {"error": [{"code": "400", "message": "Missing required field 'Mpin'"}]}
         """
         if not mpin:
-            error = {"error": [{"message": "Mpin is missing"}]}
-            return error
+            return {"error": [{"code": "400", "message": "Missing required field 'Mpin'"}]}
 
         totp_validate = TotpAPI(self.api_client).totp_validate(mpin=mpin)
         return totp_validate

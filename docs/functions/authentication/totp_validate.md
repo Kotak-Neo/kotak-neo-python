@@ -83,14 +83,38 @@ except Exception as e:
 | `isNRI` | boolean | Whether user is NRI (Non-Resident Indian) |
 | `dormancyStatus` | string | Account dormancy status |
 
+### Error response
+
+A blank/missing `mpin` is rejected client-side (no network call), using the same error shape the backend itself returns for this case:
+
+```json
+{
+    "error": [
+        {
+            "code": "400",
+            "message": "Missing required field 'Mpin'"
+        }
+    ]
+}
+```
+
 ### Performance
 - **Average Latency**: 134 ms
 - **Typical Range**: 100-200 ms
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
- - **Accept**: application/json
+| Header | Value | Notes |
+|--------|-------|-------|
+| **Authorization** | `<consumer_key>` | The app-level key from `NeoAPI(consumer_key=...)`; sent as-is, no `Bearer` prefix |
+| **sid** | `<sid>` | Session ID returned by the preceding `totp_login` call |
+| **Auth** | `<view_token>` | View token returned by the preceding `totp_login` call |
+| **neo-fin-key** | `<neo_fin_key>` | Only present if `neo_fin_key` was passed to `NeoAPI(...)` |
+| **Content-Type** | application/json | |
+| **Accept** | application/json | |
+
+`totp_validate` must follow a successful `totp_login` — the `sid`/`Auth` headers
+carry the session ID and view token that call produced.
 
 ### HTTP response details
 

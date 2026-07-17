@@ -10,7 +10,7 @@ handling (now raises exceptions), and stricter order-parameter validation.
 
 > **TL;DR of what you must change**
 > 1. WebSocket code must move from callbacks to `async`/`await`.
-> 2. Order placement rejects `CO`/`BO`/`MTF` products and non-`DAY`/`IOC` validity.
+> 2. Order placement rejects `CO`/`BO` products, `CDS`/`cde_fo` exchange segment, and non-`DAY`/`IOC` validity.
 > 3. Errors are now raised as exceptions (wrap calls in `try/except`).
 > 4. A few methods were removed (`cancel_cover_order`, `cancel_bracket_order`).
 
@@ -55,6 +55,10 @@ Points to verify when upgrading:
   `customer_key` / `customer_secret` do **not** exist. Use `consumer_key` +
   `totp_login` + `totp_validate` only.
 - `environment="prod"` is the default and correct value for all customers.
+- **Blank/missing fields are rejected client-side.** `totp_login()`/`totp_validate()`
+  reject a blank/missing `mobile_number`/`ucc`/`totp`/`mpin` before sending anything,
+  using the same error shape the backend itself returns for this case, e.g.:
+  `{"error": [{"code": "400", "message": "Missing required field 'MobileNumber'"}]}`.
 
 ---
 
@@ -74,18 +78,40 @@ client.place_order(..., product="CNC")   # or "NRML", "MIS", or "MTF"
 `place_order` and now raise a validation error. If your v2.0.2 code placed
 cover/bracket orders, that path is removed (see §5).
 
-### 3.2 Validity — per exchange segment
+The bracket/cover-order-only parameters `pf`, `tag`, `scrip_token`,
+`square_off_type`, `stop_loss_type`, `stop_loss_value`, `square_off_value`,
+`last_traded_price`, `trailing_stop_loss`, and `trailing_sl_value` have been
+removed from `place_order()` along with that order type. Drop them from any
+call — passing them now raises `TypeError` (unexpected keyword argument)
+instead of being silently ignored.
 
-Validity is now validated against the exchange segment:
+### 3.2 Exchange segment — currency derivatives (`CDS`/`cde_fo`) no longer accepted
+
+`place_order` now rejects `CDS`/`cds`/`cde_fo`. The allowed values are
+`NSE`/`nse_cm`, `BSE`/`bse_cm`, `NFO`/`nse_fo`, `BFO`/`bse_fo`, `BCD`/`bcs-fo`,
+and `MCX`/`mcx_fo`. If your v2.0.2 code placed orders on the currency
+derivatives segment, that path is removed.
+
+`modify_order` no longer takes an `exchange_segment` parameter at all (see
+§3.6) — it always uses the default validity set (§3.3) and whichever segment
+the order was originally placed on at the exchange.
+
+### 3.3 Validity — per exchange segment (`place_order` only)
+
+`place_order` validates validity against the exchange segment:
 
 | Segment | Allowed validity |
 |---|---|
 | `nse_cm`, `bse_cm`, `nse_fo`, `bse_fo` | `DAY`, `IOC` |
 | `mcx_fo` | `DAY` only |
 
+`modify_order` has no `exchange_segment` parameter, so it always checks
+validity against the default set (`DAY`, `IOC`), regardless of which segment
+the order lives on.
+
 `GTC`, `EOS`, and `GTD` are **no longer accepted** and raise a validation error.
 
-### 3.3 Price — must be positive for `L`/`SL` orders
+### 3.4 Price — must be positive for `L`/`SL` orders
 
 ```python
 # v2.2.4: price=0 is now rejected for Limit and Stop-Loss-Limit orders
@@ -102,14 +128,39 @@ for `L`/`SL` order types. `MKT` and `SL-M` orders are unaffected — they
 legitimately execute at the prevailing market price, so `price=0` remains valid
 there. The same rule applies to `modify_order`.
 
-### 3.4 Blank / invalid inputs are rejected
+### 3.5 Blank / invalid inputs are rejected
 
 Mandatory fields (`exchange_segment`, `product`, `price`, `order_type`,
 `quantity`, `validity`, `trading_symbol`, `transaction_type`) must be non-blank
 and well-formed (numeric price, positive-integer quantity, …). Blank or malformed
 values now raise a validation error rather than being silently sent.
 
-### 3.5 `modify_order` — optional exchange-rejection check (`isVerify`)
+### 3.6 `modify_order` — `instrument_token`/`exchange_segment`/`trading_symbol`/`transaction_type` removed
+
+`modify_order()` no longer accepts `instrument_token`, `exchange_segment`,
+`trading_symbol`, or `transaction_type` — they were never mandatory (the
+backend only requires `order_id`, `price`, `order_type`, `quantity`, and
+`validity`), and the "quick-modify" vs. "order-id-only" distinction they
+existed for is gone. Drop them from any call:
+
+```python
+# Before (v2.2.4, "quick-modify" path)
+client.modify_order(
+    order_id="250101000000001", price="1450", order_type="L", quantity="1",
+    validity="DAY", instrument_token="11536", exchange_segment="nse_cm",
+    product="CNC", trading_symbol="RELIANCE-EQ", transaction_type="B",
+)
+
+# Now
+client.modify_order(
+    order_id="250101000000001", price="1450", order_type="L", quantity="1",
+    validity="DAY", product="CNC",
+)
+```
+
+`product` is still accepted (optional; exact canonical codes only — see §3.1).
+
+### 3.7 `modify_order` — optional exchange-rejection check (`isVerify`)
 
 Order modification is acknowledged asynchronously: the server returns
 `stat: "Ok"` when it *accepts* the request, but the exchange may reject it moments
@@ -128,7 +179,7 @@ result = client.modify_order(
 )
 ```
 
-### 3.6 AMO orders
+### 3.8 AMO orders
 
 Pass `amo="YES"` to place/modify/cancel an After-Market Order. The `am` flag is
 always sent (defaults to `"NO"`).
@@ -284,6 +335,15 @@ See **[Order Feed](../functions/websocket/order_feed.md)**.
   drop those arguments — `client.limits()` now covers everything in one call.
 - **`place_order()`/`modify_order()` no longer accept `market_protection`.**
   It's always sent as `"0"`. Drop the argument if you were passing it.
+- **`trade_report()` no longer accepts `order_id`.** Fetching the trade report
+  filtered by a single order ID isn't backend-supported — it always returns
+  the full trade list now. To look up a single order's status, use
+  `order_report(order_id=...)` instead.
+- **`margin_required()` — `exchange_segment`/`order_type` aliases no longer
+  accepted.** Only the exact canonical codes are accepted: `nse_cm`, `bse_cm`,
+  `nse_fo`, `bse_fo`, `mcx_fo` for `exchange_segment`, and `L`, `MKT`, `SL`,
+  `SL-M` for `order_type`. Aliases like `"NSE"`/`"MCX"` or `"Limit"`/`"Market"`
+  now raise a validation error instead of being silently resolved.
 
 ---
 
@@ -292,13 +352,17 @@ See **[Order Feed](../functions/websocket/order_feed.md)**.
 - [ ] Bump Python to 3.10+ and `pip install --upgrade kotakneoapi`.
 - [ ] Remove any exact transitive pins carried over from v2.0.2.
 - [ ] Confirm auth uses `consumer_key` + `totp_login(mobile_number=...)` + `totp_validate(mpin=...)`.
-- [ ] Replace `product="CO"/"BO"` and `validity="GTC"/"EOS"/"GTD"` usages.
+- [ ] Replace `product="CO"/"BO"`, `exchange_segment="CDS"/"cde_fo"`, and `validity="GTC"/"EOS"/"GTD"` usages.
 - [ ] Replace `price="0"`/blank on `L`/`SL` orders with a real limit price.
 - [ ] Wrap order/API calls in `try/except` for the new exception hierarchy.
 - [ ] Rewrite WebSocket code to the async `create_websocket()` / `create_order_feed()` model.
 - [ ] Replace `subscribe_to_orderfeed` and any cover/bracket cancel calls.
 - [ ] (Optional) Add `isVerify=True` to `modify_order` where you need confirmed outcomes.
 - [ ] Drop `segment`/`exchange`/`product` from `limits()` and `market_protection` from `place_order`/`modify_order` calls.
+- [ ] Drop the bracket/cover-order-only `place_order()` params (`pf`, `tag`, `scrip_token`, `square_off_type`, `stop_loss_type`, `stop_loss_value`, `square_off_value`, `last_traded_price`, `trailing_stop_loss`, `trailing_sl_value`).
+- [ ] Drop `instrument_token`, `exchange_segment`, `trading_symbol`, and `transaction_type` from `modify_order()` calls.
+- [ ] Replace `trade_report(order_id=...)` with `order_report(order_id=...)` for single-order lookups.
+- [ ] Replace `margin_required()` `exchange_segment`/`order_type` aliases (e.g. `"NSE"`, `"Limit"`) with their exact canonical codes.
 
 ---
 

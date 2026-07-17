@@ -1,16 +1,13 @@
 # **Trade_Report**
 
-## Method 1
 Get all traded order details
 ```python
 client.trade_report()
 ```
 
-## Method 2
-Get details of a particular order using order_id
-```python
-client.trade_report(order_id = "")
-```
+> **Note:** Fetching the trade report filtered by a single order ID is not
+> supported — `trade_report()` always returns the full list of trades. To
+> look up a single order's status, use [order_report(order_id=...)](./order_report.md).
 
 ### Example
 
@@ -26,16 +23,14 @@ client.totp_validate(mpin="")
 try:
     # Get all trade details
     client.trade_report()
-    # Get particular traded details using order_id
-    client.trade_report(order_id="")
 except Exception as e:
     print("Exception when trade report API->trade_report: %s\n" % e)
 ```
 
 ### Parameters
-| Name        | Description | Type  |
-|-------------|-------|-------------|
-| *order_id*  | Order ID.   | str   |
+
+None
+
 ### Return type
 
 **object**

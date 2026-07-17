@@ -9,7 +9,7 @@ Official Python SDK for Kotak Neo Trading APIs - a modern, well-tested trading c
 ## Features
 
 ✅ **Authentication** - TOTP-based secure login with 2FA  
-✅ **Order Management** - Place, modify, cancel orders (Regular/AMO/Bracket/Cover)  
+✅ **Order Management** - Place, modify, cancel orders (Regular/AMO)  
 ✅ **Portfolio & Positions** - Real-time holdings, positions, and limits  
 ✅ **Market Data** - Live quotes, scrip master, search functionality  
 ✅ **SFeed WebSocket Streaming** - Modern async/await live market feed with typed messages, enriched with `trading_symbol`  

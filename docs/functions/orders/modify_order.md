@@ -1,19 +1,11 @@
 # **Modify_Order**
 Modify an existing order
 
-## **Method 1 - Quick method**
 ```python
-client.modify_order(instrument_token = "", exchange_segment = "", product = "", price = "", order_type = "", quantity= "",
-                    validity = "", trading_symbol = "", transaction_type = "", order_id = "")
+client.modify_order(order_id = "", price = "", order_type = "", quantity= "", validity = "", product = "")
 ````
 
-## **Method 2 - Delayed method**
-Passing only `order_id` (no `instrument_token`/`exchange_segment`/`trading_symbol`) sends the request with just the fields you supply.
-```python
-client.modify_order(order_id = "", price = "", quantity = "", trigger_price = "", validity = "", order_type = "", amo = "")
-````
-
-> **Note:** The modify request (either method) is always sent straight to the backend — the exchange is the source of truth on whether an order (e.g. one that's already `complete`/`traded`/`rejected`/`cancelled`) can still be modified. The SDK does not pre-check the order book or fill in missing fields from it before sending.
+> **Note:** The modify request is always sent straight to the backend — the exchange is the source of truth on whether an order (e.g. one that's already `complete`/`traded`/`rejected`/`cancelled`) can still be modified. The SDK does not pre-check the order book or fill in missing fields from it before sending.
 >
 > If the order is already complete, the backend rejects the modify with `{"stCode": 1021, "errMsg": "order is completed", ...}`. The SDK annotates this response with `status_code: 409` so you can detect it without depending on the backend's internal `stCode`:
 > ```json
@@ -42,9 +34,8 @@ client.totp_validate(mpin="")
 
 try:
     # Modify an existing order
-    client.modify_order(instrument_token = "", exchange_segment = "", product = "", price = "",
-                        order_type = "", quantity= "", validity = "", trading_symbol = "",transaction_type = "",
-                        order_id = "", amo = "")
+    client.modify_order(order_id = "", price = "", order_type = "", quantity= "", validity = "",
+                        product = "", amo = "")
 
 except Exception as e:
     print("Exception when calling OrderApi->modify_order: %s\n" % e)
@@ -54,16 +45,12 @@ except Exception as e:
 
 | Name                 | Description                                                                                                              | Type           |
 |----------------------|--------------------------------------------------------------------------------------------------------------------------|----------------|
-| *instrument_token*   | pSymbol in ScripMaster file (first Column)                                                                               | Str [optional] |
-| *exchange_segment*   | nse_cm - NSE<br/>bse_cm - BSE<br/>nse_fo - NFO<br/>bse_fo - BFO<br/>cde_fo - CDS<br/>mcx_fo - MCX                        | Str [optional] |
-| *product*            | NRML - Normal<br/>CNC - Cash and Carry<br/>MIS - MIS<br/>INTRADAY - INTRADAY<br/>CO - Cover Order  | Str            |
+| *order_id*           | order id of the order you want to modify                                                                                       | Str            |
 | *price*              | Mandatory. Zero or a positive value for MKT/SL-M orders; must be greater than zero for L/SL orders (a real limit price is required — price=0 is rejected client-side to prevent the exchange substituting a default price)                                                                                    | Str            |
 | *order_type*         | L - Limit<br/>MKT - Market<br/>SL - Stop loss limit<br/>SL-M - Stop loss market                                          | Str            |
 | *quantity*           | quantity of the order                                                                                        | Str            |
-| *validity*           | Allowed values: DAY, IOC. mcx_fo supports DAY only. GTC/EOS/GTD are not accepted.                                                                                                                                                                                                                                                                                  | Str            |
-| *trading_symbol*     | pTrdSymbol in ScripMaster file                                                                                          | Str            |
-| *transaction_type*   | B(Buy), S(sell)                                                                                                          | Str            |
-| *order_id*           | order id of the order you want to modify                                                                                       | Str            |
+| *validity*           | Allowed values: DAY, IOC. GTC/EOS/GTD are not accepted.                                                                                                                                                                                                                                                                                  | Str            |
+| *product*            | Allowed values (exact match only, aliases are not accepted): CNC, NRML, MIS, MTF | Str [optional] |
 | *amo*                | YES/NO - (Default Value - NO)                                                                         | Str [optional] |
 | *dd*                 | Default Value - “NA”                                                                                                     | Str [optional] |
 | *filled_quantity*    | (Default Value - 0)                                                                                                      | Str [optional] |

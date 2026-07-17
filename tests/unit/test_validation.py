@@ -52,18 +52,31 @@ def test_place_order_validation_ok():
     place_order_validation(**_valid_place_kwargs())
 
 
-@pytest.mark.parametrize(
-    "product",
-    ["CNC", "NRML", "MIS", "MTF", "Normal", "Cash and Carry", "cnc", "mis", "mtf"],
-)
+@pytest.mark.parametrize("product", ["CNC", "NRML", "MIS", "MTF"])
 def test_place_order_allowed_products(product):
-    """Only CNC/NRML/MIS/MTF (and their aliases) are accepted for place order."""
+    """Only the exact canonical codes CNC/NRML/MIS/MTF are accepted."""
     place_order_validation(**_valid_place_kwargs(product=product))
 
 
-@pytest.mark.parametrize("product", ["CO", "BO", "INTRADAY", "XYZ"])
+@pytest.mark.parametrize(
+    "product",
+    [
+        "CO",
+        "BO",
+        "INTRADAY",
+        "XYZ",
+        # Aliases are rejected, not resolved — only the exact canonical
+        # codes above are accepted.
+        "Normal",
+        "Cash and Carry",
+        "cnc",
+        "mis",
+        "mtf",
+        "Intraday",
+    ],
+)
 def test_place_order_rejects_disallowed_products(product):
-    """CO/BO/INTRADAY (and unknown) are not valid place-order products."""
+    """CO/BO/INTRADAY/unknown values and product aliases are all rejected."""
     with pytest.raises(ApiValueError, match="Allowed values are CNC, NRML, MIS, MTF"):
         place_order_validation(**_valid_place_kwargs(product=product))
 
@@ -73,9 +86,7 @@ def test_place_order_validation_optional_fields_ok():
         **_valid_place_kwargs(),
         amo="NO",
         disclosed_quantity="0",
-        pf="N",
         trigger_price="0",
-        tag="my-tag",
     )
 
 
@@ -101,6 +112,10 @@ def test_place_order_validation_type_errors(field, value):
     "field,value",
     [
         ("exchange_segment", "INVALID"),
+        # Currency derivatives (CDS/cde_fo) are no longer accepted for place order.
+        ("exchange_segment", "CDS"),
+        ("exchange_segment", "cds"),
+        ("exchange_segment", "cde_fo"),
         ("product", "INVALID"),
         ("order_type", "INVALID"),
         ("validity", "GTC"),
@@ -114,7 +129,7 @@ def test_place_order_validation_value_errors(field, value):
 
 @pytest.mark.parametrize(
     "field",
-    ["amo", "disclosed_quantity", "pf", "trigger_price", "tag"],
+    ["amo", "disclosed_quantity", "trigger_price"],
 )
 def test_place_order_validation_optional_type_errors(field):
     with pytest.raises(ApiValueError):
@@ -144,9 +159,9 @@ def test_place_order_validation_blank_mandatory_fields(field, blank):
         place_order_validation(**_valid_place_kwargs(**{field: blank}))
 
 
-@pytest.mark.parametrize("field", ["amo", "disclosed_quantity", "pf"])
+@pytest.mark.parametrize("field", ["amo", "disclosed_quantity"])
 def test_place_order_validation_blank_optional_mandatory_fields(field):
-    """am/dq/pf carry defaults but must not be blank when explicitly passed."""
+    """am/dq carry defaults but must not be blank when explicitly passed."""
     with pytest.raises(ApiValueError, match="cannot be blank|mandatory"):
         place_order_validation(**_valid_place_kwargs(), **{field: ""})
 
@@ -307,6 +322,49 @@ def test_modify_order_validation_blank_amo():
         modify_order_validation(**_valid_modify_kwargs(), amo="")
 
 
+def test_modify_order_validation_product_not_supplied_ok():
+    """product is optional for modify_order."""
+    modify_order_validation(**_valid_modify_kwargs())
+
+
+@pytest.mark.parametrize("product", ["CNC", "NRML", "MIS", "MTF"])
+def test_modify_order_validation_allowed_products(product):
+    """Only the exact canonical codes CNC/NRML/MIS/MTF are accepted."""
+    modify_order_validation(**_valid_modify_kwargs(), product=product)
+
+
+@pytest.mark.parametrize(
+    "product",
+    [
+        "CO",
+        "BO",
+        "INTRADAY",
+        "XYZ",
+        # Aliases are rejected, not resolved.
+        "Normal",
+        "Cash and Carry",
+        "cnc",
+        "mis",
+        "mtf",
+        "Intraday",
+    ],
+)
+def test_modify_order_validation_rejects_disallowed_products(product):
+    with pytest.raises(ApiValueError, match="Allowed values are CNC, NRML, MIS, MTF"):
+        modify_order_validation(**_valid_modify_kwargs(), product=product)
+
+
+def test_modify_order_validation_blank_product():
+    with pytest.raises(ApiValueError, match="blank|mandatory"):
+        modify_order_validation(**_valid_modify_kwargs(), product="")
+
+
+def test_modify_order_validation_rejects_unexpected_exchange_segment_kwarg():
+    """exchange_segment is no longer a modify_order parameter."""
+    with pytest.raises(TypeError):
+        modify_order_validation(**_valid_modify_kwargs(), exchange_segment="nse_cm")
+
+
 # ---- order_history_validation -----------------------------------------------
 
 
@@ -346,10 +404,17 @@ def test_margin_validation_ok():
     "field,value",
     [
         ("exchange_segment", "INVALID"),
-        # Margin supports a narrower segment set than place/modify order.
+        # Margin supports a narrower segment set than place order (modify
+        # order has no exchange_segment parameter at all).
         ("exchange_segment", "cde_fo"),
         ("exchange_segment", "CDS"),
         ("exchange_segment", "BCD"),
+        # Aliases are rejected, not resolved — "NSE"/"MCX" would resolve to
+        # allowed canonical segments (nse_cm/mcx_fo), but only the exact
+        # canonical string is accepted.
+        ("exchange_segment", "NSE"),
+        ("exchange_segment", "MCX"),
+        ("exchange_segment", "nse"),
         ("product", "INVALID"),
         # Margin does not accept INTRADAY/CO/BO, unlike the general product list.
         ("product", "INTRADAY"),
@@ -357,6 +422,11 @@ def test_margin_validation_ok():
         # Margin does not accept SP/2L/3L, unlike the general order type list.
         ("order_type", "SP"),
         ("order_type", "2L"),
+        # Aliases are rejected, not resolved — "Limit"/"Market" would resolve
+        # to allowed canonical order types (L/MKT), but only the exact
+        # canonical string is accepted.
+        ("order_type", "Limit"),
+        ("order_type", "Market"),
         ("transaction_type", "X"),
         # Margin no longer accepts the "Buy"/"Sell" aliases, only B/S.
         ("transaction_type", "Buy"),
@@ -452,17 +522,9 @@ def test_place_order_validity_segment_alias_resolved():
     place_order_validation(**_valid_place_kwargs(exchange_segment="NFO", validity="IOC"))
 
 
-def test_modify_order_mcx_fo_rejects_ioc():
-    with pytest.raises(ApiValueError, match="Invalid validity 'IOC'.*mcx_fo"):
-        modify_order_validation(**_valid_modify_kwargs(validity="IOC"), exchange_segment="mcx_fo")
-
-
-def test_modify_order_mcx_fo_allows_day():
-    modify_order_validation(**_valid_modify_kwargs(validity="DAY"), exchange_segment="mcx_fo")
-
-
-def test_modify_order_validity_defaults_when_segment_unknown():
-    """Order-id-only path (no segment): IOC allowed via the default set, GTC not."""
+def test_modify_order_validity_uses_default_set():
+    """modify_order has no exchange_segment, so validity is always checked
+    against the default allowed set (DAY, IOC) — IOC is allowed, GTC isn't."""
     modify_order_validation(**_valid_modify_kwargs(validity="IOC"))  # OK
     with pytest.raises(ApiValueError, match="Invalid validity"):
         modify_order_validation(**_valid_modify_kwargs(validity="GTC"))
