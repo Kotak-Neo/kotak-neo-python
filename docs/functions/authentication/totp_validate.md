@@ -109,12 +109,11 @@ A blank/missing `mpin` is rejected client-side (no network call), using the same
 | **Authorization** | `<consumer_key>` | The app-level key from `NeoAPI(consumer_key=...)`; sent as-is, no `Bearer` prefix |
 | **sid** | `<sid>` | Session ID returned by the preceding `totp_login` call |
 | **Auth** | `<view_token>` | View token returned by the preceding `totp_login` call |
-| **neo-fin-key** | `<neo_fin_key>` | Only present if `neo_fin_key` was passed to `NeoAPI(...)` |
-| **Content-Type** | application/json | |
-| **Accept** | application/json | |
+| **neo-fin-key** | `<neo_fin_key>` | Always sent. Defaults to `"neotradeapi"` if `neo_fin_key` was not passed to `NeoAPI(...)` |
 
 `totp_validate` must follow a successful `totp_login` — the `sid`/`Auth` headers
-carry the session ID and view token that call produced.
+carry the session ID and view token that call produced. No `Content-Type` or `Accept`
+headers are sent by this call.
 
 ### HTTP response details
 

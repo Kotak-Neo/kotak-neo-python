@@ -89,7 +89,7 @@ class OrderAPI:
             )
             result = cancel_resp.json()
             if isinstance(result, dict) and result.get("stCode") == ORDER_ALREADY_COMPLETE_ST_CODE:
-                result["status_code"] = 409
+                result["status_code"] = 400
             return result
         except ApiException as ex:
             return {"error": ex}

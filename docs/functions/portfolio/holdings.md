@@ -2,7 +2,7 @@
 Get your current holdings
 
 ```python
-client.holdings("")
+client.holdings()
 ```
 
 ### Example
@@ -18,7 +18,7 @@ client.totp_login(mobilenumber="", ucc="", totp='')
 client.totp_validate(mpin="")
 
 try:
-    client.holdings("")
+    client.holdings()
 except Exception as e:
     print("Exception when calling Holdings->holdings: %s\n" % e)
 ```
@@ -52,9 +52,24 @@ except Exception as e:
 
 ```
 
+### Error handling
+
+If the response body cannot be parsed as JSON (e.g. a `5xx` response with an empty or non-JSON body), `holdings()` does not raise — it returns a structured error dict instead:
+
+```json
+{
+    "Error": "Unexpected response format",
+    "Exception": "<str(JSONDecodeError)>",
+    "StatusCode": 503,
+    "ContentType": "text/html",
+    "ResponseText": "<first 5000 characters of the raw response body>",
+    "RequestURL": "<the request URL that was called>"
+}
+```
+
 ### HTTP request headers
 
- - **Accept**: application/json
+ - **Accept**: */*
 
 
 ### HTTP response details

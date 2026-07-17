@@ -69,8 +69,9 @@ print("My IP:", response["data"][0]["ip"])
 | Condition | Response |
 |-----------|----------|
 | Called before 2FA is complete | `{"Error Message": "Complete the 2fa process before accessing this application"}` |
-| API/network error | `{"error": <ApiException>}` |
+| API/network error (`ApiException`, caught inside the service layer) | `{"error": <ApiException>}` |
 | Non-JSON response | `{"Error": "Unexpected response format. Expected JSON but received something else."}` |
+| Any other unexpected exception (caught by the `whatsmyip()` wrapper) | `{"Error": <exception>}` |
 
 ## HTTP request headers
 
@@ -79,7 +80,8 @@ print("My IP:", response["data"][0]["ip"])
 | **Authorization** | `<consumer_key>` | The app-level key from `NeoAPI(consumer_key=...)`; sent as-is, no `Bearer` prefix |
 | **Sid** | `<edit_sid>` | Trade session ID from `totp_validate` (post-2FA) |
 | **Auth** | `<edit_token>` | Trade token from `totp_validate` (post-2FA) |
-| **Accept** | application/json | |
-| **Content-Type** | application/json | |
+| **accept** | application/json | |
+
+This is a `GET` request with no body, so no `Content-Type` header is sent.
 
 [[Back to top]](#) [[Back to API list]](../README.md) [[Back to README]](../../../README.md)

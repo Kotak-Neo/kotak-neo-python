@@ -7,13 +7,13 @@ client.cancel_order(order_id = "")
 
 > **Note:** The cancel request is always sent straight to the backend — the exchange is the source of truth on whether an order (e.g. one that's already `complete`/`traded`/`rejected`/`cancelled`) can still be cancelled. The SDK does not pre-check the order book before sending. `isVerify` is retained for backward compatibility but has no effect on this behavior.
 >
-> If the order is already complete, the backend rejects the cancel with `{"stCode": 1021, "errMsg": "order is completed", ...}`. The SDK annotates this response with `status_code: 409` so you can detect it without depending on the backend's internal `stCode`:
+> If the order is already complete, the backend rejects the cancel with `{"stCode": 1021, "errMsg": "order is completed", ...}`. The SDK annotates this response with `status_code: 400` so you can detect it without depending on the backend's internal `stCode`:
 > ```json
 > {
 >     "stCode": 1021,
 >     "errMsg": "order is completed",
 >     "stat": "please provide valid order number",
->     "status_code": 409
+>     "status_code": 400
 > }
 > ```
 
@@ -65,9 +65,8 @@ except Exception as e:
 | Status Code | Description                                  |
 |-------------|----------------------------------------------|
 | *200*       | Order cancelled successfully                 |
-| *400*       | Invalid or missing input parameters          |
+| *400*       | Invalid or missing input parameters, or the order is already complete — SDK-added `status_code` on the backend's `stCode: 1021` rejection |
 | *403*       | Invalid session, please re-login to continue |
-| *409*       | Order is already complete — SDK-added `status_code` on the backend's `stCode: 1021` rejection |
 | *429*       | Too many requests to the API                 |
 | *500*       | Unexpected error                             |
 | *502*       | Not able to communicate with OMS             |

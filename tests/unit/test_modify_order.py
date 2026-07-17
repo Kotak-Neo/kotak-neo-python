@@ -36,9 +36,9 @@ def test_quick_modification_success(api_client, requests_mock):
     assert result["nOrdNo"] == "12345"
 
 
-def test_quick_modification_flags_already_complete_as_409(api_client, requests_mock):
+def test_quick_modification_flags_already_complete_as_400(api_client, requests_mock):
     """The backend's 'order already complete' rejection (stCode 1021) is
-    annotated with status_code 409, and skips the is_verify follow-up read
+    annotated with status_code 400, and skips the is_verify follow-up read
     (the rejection is already definitive)."""
     modify_order_api = ModifyOrder(api_client)
     modify_url = api_client.configuration.get_url_details("modify_order")
@@ -66,9 +66,46 @@ def test_quick_modification_flags_already_complete_as_409(api_client, requests_m
         is_verify=True,
     )
 
-    assert result["status_code"] == 409
+    assert result["status_code"] == 400
     assert result["stCode"] == 1021
     assert result["errMsg"] == "order is completed"
+
+
+def test_quick_modification_already_complete_over_real_http_400(api_client, requests_mock):
+    """The backend sends the 1021 rejection over an actual HTTP 400 response
+    (not 200) — confirm the body is still parsed and forwarded as-is (with
+    the SDK-added status_code 400), not swallowed as a transport error."""
+    modify_order_api = ModifyOrder(api_client)
+    modify_url = api_client.configuration.get_url_details("modify_order")
+    requests_mock.post(
+        modify_url,
+        status_code=400,
+        json={
+            "stCode": 1021,
+            "errMsg": "order is completed",
+            "stat": "please provide valid order number",
+        },
+    )
+
+    result = modify_order_api.quick_modification(
+        order_id="12345",
+        price="105.00",
+        order_type="L",
+        quantity="15",
+        validity="DAY",
+        product="CNC",
+        trigger_price="104.00",
+        dd="NA",
+        disclosed_quantity="5",
+        filled_quantity="0",
+        amo="NO",
+        is_verify=True,
+    )
+
+    assert result["status_code"] == 400
+    assert result["stCode"] == 1021
+    assert result["errMsg"] == "order is completed"
+    assert result["stat"] == "please provide valid order number"
 
 
 def test_quick_modification_api_exception(api_client, monkeypatch):

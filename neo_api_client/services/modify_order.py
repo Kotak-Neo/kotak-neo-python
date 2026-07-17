@@ -95,7 +95,7 @@ class ModifyOrder:
                 isinstance(modify_resp, dict)
                 and modify_resp.get("stCode") == ORDER_ALREADY_COMPLETE_ST_CODE
             ):
-                modify_resp["status_code"] = 409
+                modify_resp["status_code"] = 400
                 return modify_resp
             if is_verify:
                 return self._verify_modification(order_id, modify_resp)

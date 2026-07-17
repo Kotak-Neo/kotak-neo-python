@@ -79,13 +79,35 @@ Frames are decoded into typed Pydantic models based on the top-level `type`
 discriminator. Every field is optional and unknown fields are preserved
 (`extra="allow"`), so partial or evolving payloads never fail to parse.
 
-| `type`     | Model            | Meaning                          |
-|------------|------------------|----------------------------------|
-| `order`    | `OrderUpdate`    | Order-lifecycle state change     |
-| `position` | `PositionUpdate` | Live position update             |
-| `cn`       | *(dropped)*      | Connection ack (control frame)   |
+| `type`              | Model            | Meaning                                                                 |
+|---------------------|------------------|--------------------------------------------------------------------------|
+| `order`             | `OrderUpdate`    | Order-lifecycle state change                                            |
+| `position`          | `PositionUpdate` | Live position update                                                    |
+| `cn`                | *(dropped)*      | Connection ack (control frame)                                          |
+| anything else       | raw `dict`       | Unrecognized `type` — surfaced as-is                                    |
+| unparseable payload | raw `dict`/`str` | Payload didn't fit `OrderUpdate`/`PositionUpdate`, or wasn't valid JSON  |
 
-Call `message.model_dump()` on any message for a plain dict.
+**Not every message is a typed model.** If `type` isn't `"order"` or
+`"position"`, or a payload with one of those types doesn't fit the
+corresponding Pydantic model, `_parse_message()` falls back to returning the
+raw `dict` (or, if the frame wasn't valid JSON, the raw `str`) instead of
+raising. This is intentional — a single malformed or unexpected frame must
+never tear down the receive loop. In the "doesn't fit the model" case,
+`on_error` (if set) is invoked with the parse exception, but the raw payload
+is still delivered through `async for` / `on_message`.
+
+Practical implication: **don't call `message.model_dump()` (or access
+`message.data`) unconditionally** — check the type first:
+
+```python
+async for message in feed:
+    if isinstance(message, (OrderUpdate, PositionUpdate)):
+        print(message.model_dump())
+    else:
+        # Unrecognized type, or a payload that didn't fit the model:
+        # a plain dict (occasionally a raw string).
+        print("unhandled frame:", message)
+```
 
 ### Order lifecycle (observed)
 

@@ -32,12 +32,18 @@ All parameters below are mandatory unless noted otherwise, and are validated cli
 | *exchange_segment* | Allowed values (exact match only, aliases are not accepted): `nse_cm`, `bse_cm`, `nse_fo`, `bse_fo`, `mcx_fo` | Str |
 | *price*            | Zero or a positive value                                                    | Str            |
 | *order_type*       | Allowed values (exact match only, aliases are not accepted): `L`, `MKT`, `SL`, `SL-M` | Str            |
-| *product*          | Allowed values: `CNC`, `NRML`, `MIS`, `MTF`                                 | Str            |
+| *product*          | Allowed values (exact match only, aliases are not accepted): `CNC`, `NRML`, `MIS`, `MTF` | Str |
 | *quantity*         | Non-zero positive value                                                     | Str            |
 | *instrument_token* | pSymbol in ScripMaster files. Must be a valid (positive integer) token      | Str            |
 | *transaction_type* | Allowed values: `B` (Buy), `S` (Sell)                                       | Str            |
 | *broker_name*      | Optional, defaults to "KOTAK". If provided, cannot be blank                 | Str            |
 | *branch_id*        | Optional, defaults to "ONLINE". If provided, cannot be blank                | Str            |
+| *stop_loss_type*   | Optional. The type of stop loss to use. Not validated client-side.          | Str            |
+| *stop_loss_value*  | Optional. The value for the stop loss. Not validated client-side.           | Str            |
+| *square_off_type*  | Optional. The type of square off to use. Not validated client-side.         | Str            |
+| *square_off_value* | Optional. The value for the square off. Not validated client-side.          | Str            |
+| *trailing_stop_loss* | Optional. The type of trailing stop loss to use. Not validated client-side. | Str          |
+| *trailing_sl_value* | Optional. The value for the trailing stop loss. Not validated client-side.  | Str            |
 
 
 ### Return type

@@ -2,10 +2,12 @@
 Get the scrip details
 
 ```python
-client.search_scrip(exchange_segment = "", symbol = "",  expiry = "", option_type = "", strike_price = "")
+client.search_scrip(exchange_segment = "", symbol = "",  expiry = "", option_type = "", strike_price = "", ignore_50multiple = True)
 ```
 
 > **Note:** Unlike most trading/portfolio methods, `search_scrip()` does not require a completed 2FA (TOTP) session — only `consumer_key` is required, since the underlying API authenticates via the `Authorization` header alone.
+
+> **Note:** The scrip-master CSV for the requested `exchange_segment` is cached on disk for the rest of the calendar day it was downloaded (TTL expires at midnight local time, default location `~/.kotak_neo/scrip_cache`, overridable via the `NEO_SCRIP_CACHE_DIR` environment variable). Repeat searches on the same day for the same segment reuse the cached file instead of re-downloading it.
 
 ### Example
 
@@ -32,6 +34,7 @@ except Exception as e:
 | *expiry*            | User can search multiple expiry - DDMMMYYYY, ex. 28JUN2023 | Str [optional] |
 | *option_type*       | User can search option_type - CE/PE     | Str [optional] |
 | *strike_price*      | User can search strike_price - For ex. 45000, 40000-45000, >40000, <45000   | Str [optional] |
+| *ignore_50multiple* | Whether to ignore strike prices that are not multiples of 50.               | bool [optional, default `True`] |
 
 
 ### Return type
@@ -208,8 +211,7 @@ except Exception as e:
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
- - **Accept**: application/json
+ - **Content-Type**: application/x-www-form-urlencoded
 
 ### HTTP response details
 | Status Code | Description                                  |

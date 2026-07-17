@@ -1,4 +1,17 @@
 # **Session_Init**
+
+> **DEPRECATED / REMOVED:** The OAuth2 `session_init()` call (`LoginAPI.session_init()` in
+> `neo_api_client/services/login.py`) is dead code. It is only referenced inside a commented-out
+> line in the `NeoAPI.__init__` constructor (`neo_api_client/neo_api.py`) and is never invoked.
+> Constructing `NeoAPI(...)` today performs **no HTTP request** — it only sets local
+> configuration attributes (`consumer_key`, `environment`, `access_token`, `neo_fin_key`). The
+> `consumer_key`/`consumer_secret` OAuth2 client-credentials flow and the sample OAuth token
+> response shown below do not occur in the current SDK. The supported authentication flow is
+> TOTP-based: initialize `NeoAPI(consumer_key=...)` then call
+> [TOTP Login](./totp_login.md) followed by [TOTP Validate](./totp_validate.md). Everything
+> below this notice is retained only as historical reference and does **not** reflect the
+> current SDK — do not rely on it.
+
 Initiate trading session for a User
 
 ```python

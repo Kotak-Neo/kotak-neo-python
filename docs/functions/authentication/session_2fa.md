@@ -1,4 +1,14 @@
 # **Session_2fa**
+
+> **DEPRECATED / REMOVED:** Neither `login()` nor `session_2fa()` exists anywhere in the
+> current SDK. A grep of `neo_api_client/neo_api.py` for `def login(` and `def session_2fa`
+> returns no matches — this is not a deprecated-but-still-working method, it has been
+> removed entirely. The password-based login flow (`login()` / `session_2fa()` /
+> `customer_key` / `customer_secret`) documented below no longer exists. The only supported
+> authentication flow is TOTP-based: [TOTP Login](./totp_login.md) followed by
+> [TOTP Validate](./totp_validate.md). Everything below this notice is retained only as
+> historical reference and does **not** reflect the current SDK — do not rely on it.
+
 Generate final Session Token for the user
 
 ```python

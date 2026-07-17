@@ -108,9 +108,9 @@ def test_order_cancelling_isverify_true_still_sends_directly(api_client, request
     assert cancel_route.call_count == 1
 
 
-def test_order_cancelling_flags_already_complete_as_409(api_client, requests_mock):
+def test_order_cancelling_flags_already_complete_as_400(api_client, requests_mock):
     """The backend's 'order already complete' rejection (stCode 1021) is
-    annotated with status_code 409 so callers can detect it without knowing
+    annotated with status_code 400 so callers can detect it without knowing
     the backend's internal stCode."""
     order_api_instance = OrderAPI(api_client)
     url = api_client.configuration.get_url_details("cancel_order")
@@ -125,9 +125,33 @@ def test_order_cancelling_flags_already_complete_as_409(api_client, requests_moc
 
     result = order_api_instance.order_cancelling(order_id="12345", isVerify=False)
 
-    assert result["status_code"] == 409
+    assert result["status_code"] == 400
     assert result["stCode"] == 1021
     assert result["errMsg"] == "order is completed"
+
+
+def test_order_cancelling_already_complete_over_real_http_400(api_client, requests_mock):
+    """The backend sends the 1021 rejection over an actual HTTP 400 response
+    (not 200) — confirm the body is still parsed and forwarded as-is (with
+    the SDK-added status_code 400), not swallowed as a transport error."""
+    order_api_instance = OrderAPI(api_client)
+    url = api_client.configuration.get_url_details("cancel_order")
+    requests_mock.post(
+        url,
+        status_code=400,
+        json={
+            "stCode": 1021,
+            "errMsg": "order is completed",
+            "stat": "please provide valid order number",
+        },
+    )
+
+    result = order_api_instance.order_cancelling(order_id="12345", isVerify=False)
+
+    assert result["status_code"] == 400
+    assert result["stCode"] == 1021
+    assert result["errMsg"] == "order is completed"
+    assert result["stat"] == "please provide valid order number"
 
 
 def test_order_cancelling_with_amo(api_client, requests_mock):

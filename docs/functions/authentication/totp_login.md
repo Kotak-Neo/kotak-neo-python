@@ -141,12 +141,12 @@ The `message` names whichever field is missing (`'MobileNumber'`, `'Ucc'`, or `'
 | Header | Value | Notes |
 |--------|-------|-------|
 | **Authorization** | `<consumer_key>` | The app-level key from `NeoAPI(consumer_key=...)`; sent as-is, no `Bearer` prefix |
-| **neo-fin-key** | `<neo_fin_key>` | Only present if `neo_fin_key` was passed to `NeoAPI(...)` |
+| **neo-fin-key** | `<neo_fin_key>` | Always sent. Defaults to `"neotradeapi"` if `neo_fin_key` was not passed to `NeoAPI(...)` |
 | **Content-Type** | application/json | |
-| **Accept** | application/json | |
 
 `totp_login` is the very first call in the auth flow — no `sid`/`Auth` (session/token)
-headers are sent yet, since neither exists until this call returns.
+headers are sent yet, since neither exists until this call returns. No `Accept` header is
+sent by this call.
 
 ### HTTP response details
 

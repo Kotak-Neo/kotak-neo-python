@@ -2,18 +2,31 @@
 Modify an existing order
 
 ```python
-client.modify_order(order_id = "", price = "", order_type = "", quantity= "", validity = "", product = "")
+client.modify_order(
+    order_id="",
+    price="",
+    order_type="",
+    quantity="",
+    validity="",
+    product="",
+    trigger_price="0",
+    dd="NA",
+    disclosed_quantity="0",
+    filled_quantity="0",
+    amo="NO",
+    isVerify=False,
+)
 ````
 
 > **Note:** The modify request is always sent straight to the backend — the exchange is the source of truth on whether an order (e.g. one that's already `complete`/`traded`/`rejected`/`cancelled`) can still be modified. The SDK does not pre-check the order book or fill in missing fields from it before sending.
 >
-> If the order is already complete, the backend rejects the modify with `{"stCode": 1021, "errMsg": "order is completed", ...}`. The SDK annotates this response with `status_code: 409` so you can detect it without depending on the backend's internal `stCode`:
+> If the order is already complete, the backend rejects the modify with `{"stCode": 1021, "errMsg": "order is completed", ...}`. The SDK annotates this response with `status_code: 400` so you can detect it without depending on the backend's internal `stCode`:
 > ```json
 > {
 >     "stCode": 1021,
 >     "errMsg": "order is completed",
 >     "stat": "please provide valid order number",
->     "status_code": 409
+>     "status_code": 400
 > }
 > ```
 >
@@ -53,8 +66,10 @@ except Exception as e:
 | *product*            | Allowed values (exact match only, aliases are not accepted): CNC, NRML, MIS, MTF | Str [optional] |
 | *amo*                | YES/NO - (Default Value - NO)                                                                         | Str [optional] |
 | *dd*                 | Default Value - “NA”                                                                                                     | Str [optional] |
+| *disclosed_quantity* | (Default Value - 0)                                                                                                      | Str [optional] |
 | *filled_quantity*    | (Default Value - 0)                                                                                                      | Str [optional] |
 | *trigger_price*      | Required for SL/SL-M stop-loss orders. Optional for L/MKT — if omitted (or passed as `None`), the SDK sends `"0"` to the API automatically, since the REST field is mandatory even though its value doesn't matter for those order types.                                                          | Str [optional] |
+| *isVerify*           | Default Value - False. A modify request is acknowledged asynchronously — the OMS returns `stat: "Ok"` when it accepts the request, but the exchange may reject it moments later (e.g. price outside the allowed band), which only shows up afterwards on the order book. When `True`, the SDK re-reads the order book after the modify and returns a failure dict (`stat: "Not_Ok"` with the rejection reason) if the order ended up rejected/cancelled. Leaving it `False` returns the raw OMS acknowledgement. | boolean [optional] |
 
 ### Return type
 
@@ -80,9 +95,8 @@ except Exception as e:
 | Status Code | Description                                  |
 |-------------|----------------------------------------------|
 | *200*       | Order modified successfully                  |
-| *400*       | Invalid or missing input parameters          |
+| *400*       | Invalid or missing input parameters, or the order is already complete — SDK-added `status_code` on the backend's `stCode: 1021` rejection |
 | *403*       | Invalid session, please re-login to continue |
-| *409*       | Order is already complete — SDK-added `status_code` on the backend's `stCode: 1021` rejection |
 | *429*       | Too many requests to the API                 |
 | *500*       | Unexpected error                             |
 | *502*       | Not able to communicate with OMS             |

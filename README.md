@@ -294,6 +294,10 @@ Average API response times (production environment):
 - `CNC` - Cash & Carry (Delivery)
 - `MIS` - Margin Intraday Square-off
 - `NRML` - Normal (Carry Forward)
+- `MTF` - Margin Trading Facility
+
+Note: `place_order`/`modify_order` only accept these four exact codes (Bracket
+and Cover orders are no longer supported).
 
 ### Order Types
 - `L` - Limit Order

@@ -39,7 +39,7 @@ client.totp_validate(mpin='123456')
 - [Logout](./authentication/logout.md) - End trading session
 
 ### 2. Order Management
-- [Place Order](./orders/place_order.md) - Place new orders (Regular/AMO/Bracket/Cover)
+- [Place Order](./orders/place_order.md) - Place new orders (Regular/AMO)
 - [Modify Order](./orders/modify_order.md) - Modify existing orders
 - [Cancel Order](./orders/cancel_order.md) - Cancel regular orders
 - [Order Report](./orders/order_report.md) - Get order book
@@ -119,6 +119,10 @@ All API responses follow consistent patterns:
 - `CNC` - Cash & Carry (Delivery)
 - `MIS` - Margin Intraday Square-off
 - `NRML` - Normal (Carry Forward)
+- `MTF` - Margin Trading Facility
+
+Note: `place_order`/`modify_order` only accept these four exact codes (Bracket
+and Cover orders are no longer supported).
 
 ### Order Types
 - `L` - Limit Order
