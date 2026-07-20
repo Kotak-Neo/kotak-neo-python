@@ -358,6 +358,17 @@ See **[Order Feed](../functions/websocket/order_feed.md)**.
   `nse_fo`, `bse_fo`, `mcx_fo` for `exchange_segment`, and `L`, `MKT`, `SL`,
   `SL-M` for `order_type`. Aliases like `"NSE"`/`"MCX"` or `"Limit"`/`"Market"`
   now raise a validation error instead of being silently resolved.
+- **WebSocket clients now retry the initial `connect()` on failure.**
+  `SFeedWebSocket`/`OrderFeedWebSocket` (and `create_websocket()`/
+  `create_order_feed()`) previously raised `ConnectionError` immediately if
+  the very first attempt to open the socket failed. They now retry up to
+  `max_connect_retries` times (default `3`), waiting `reconnect_delay`
+  seconds between attempts, before raising. This is separate from the
+  existing post-connect auto-reconnect (`max_reconnect_attempts`), which
+  only applies after a connection has already succeeded once. If your code
+  depended on an immediate failure (e.g. a test that mocks a single
+  connect failure), pass `max_connect_retries=0` to restore the old
+  fail-fast behavior.
 
 ---
 

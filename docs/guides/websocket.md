@@ -15,7 +15,8 @@ callback-based WebSocket.
 - **Type-safe** Pydantic messages (`SFeedScrip`, `SFeedScripLite`, `SFeedIndex`, `SFeedMarketStatus`)
 - **Context manager** for automatic connect/close
 - **Batched subscriptions** — any number of instruments in a single frame
-- **Auto-reconnect** with re-authentication and re-subscription
+- **Retries on initial connect failure** (e.g. a transient network error) before raising
+- **Auto-reconnect** with re-authentication and re-subscription after a later drop
 - **Automatic price scaling** using the per-exchange dividers from the auth response
 
 ## Installation
@@ -268,8 +269,9 @@ Details:
 | `source` / `platform` / `version` | `"SFeed"` / `"Web"` / `"1.2.3"` | Client identification |
 | `sdk_version` / `sdk_date` | `2` / build date | SDK identifiers |
 | `session_validation` | `False` | `sessionValidation` auth field |
-| `reconnect_delay` | `5` | Seconds between reconnect attempts |
-| `max_reconnect_attempts` | `5` | Reconnect attempt cap |
+| `reconnect_delay` | `5` | Seconds between reconnect attempts (also used between initial connect retries) |
+| `max_reconnect_attempts` | `5` | Cap on reconnect attempts after a previously established connection later drops |
+| `max_connect_retries` | `3` | Cap on retries for the *initial* `connect()` call itself if opening the socket fails (e.g. a transient network error). Set to `0` to fail immediately with no retries |
 | `ping_interval` | `20` | WebSocket keep-alive ping interval (seconds) |
 | `max_subscriptions` | `3000` | Max total input tokens subscribed at once (across all requests) |
 

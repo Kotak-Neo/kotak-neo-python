@@ -175,8 +175,9 @@ Builds an `OrderFeedWebSocket` from the current session (`base_url`, `edit_token
 | Keyword                  | Default | Description                                   |
 |--------------------------|---------|-----------------------------------------------|
 | `source`                 | `"WEB"` | `src` value in the connection payload         |
-| `reconnect_delay`        | `5`     | Seconds between reconnect attempts            |
-| `max_reconnect_attempts` | `5`     | Maximum reconnect attempts                    |
+| `reconnect_delay`        | `5`     | Seconds between reconnect attempts (also used between initial connect retries) |
+| `max_reconnect_attempts` | `5`     | Cap on reconnect attempts after a previously established connection later drops |
+| `max_connect_retries`    | `3`     | Cap on retries for the *initial* `connect()` call itself if opening the socket fails. Set to `0` to fail immediately with no retries |
 | `ping_interval`          | `20`    | WebSocket-level keep-alive ping interval (s)  |
 
 **Raises `ValueError`** if not authenticated (missing `edit_token`/`edit_sid`) or
@@ -184,8 +185,15 @@ the base URL is unavailable (`totp_validate()` not completed).
 
 ## Reconnection & production handling
 
-- On an unexpected disconnect the client automatically reconnects, up to
-  `max_reconnect_attempts`, waiting `reconnect_delay` seconds between attempts.
+- If the **initial** `connect()` call fails to open the socket (e.g. a transient
+  network error), it's retried up to `max_connect_retries` times, waiting
+  `reconnect_delay` seconds between attempts, before raising `ConnectionError`.
+  This does not cover sending the connection payload afterward — an
+  `AuthenticationError` there usually isn't transient, so it's raised immediately.
+- On an unexpected disconnect **after** a connection has already succeeded once,
+  the client automatically reconnects, up to `max_reconnect_attempts`, waiting
+  `reconnect_delay` seconds between attempts. This is a separate cap from
+  `max_connect_retries`.
 - On reconnect the server pushes current state again, so no manual resubscription
   is needed.
 - The feed is **fire-and-hose**: it streams whatever the account produces; there

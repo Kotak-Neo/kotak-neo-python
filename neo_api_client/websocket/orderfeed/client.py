@@ -65,6 +65,7 @@ class OrderFeedWebSocket:
         source: str = "WEB",
         reconnect_delay: int = 5,
         max_reconnect_attempts: int = 5,
+        max_connect_retries: int = 3,
         ping_interval: int = 20,
         verify_ssl: bool = True,
     ):
@@ -77,8 +78,16 @@ class OrderFeedWebSocket:
             auth: Session token (``edit_token`` from tradeApiValidate).
             sid: Session id (``edit_sid`` from tradeApiValidate).
             source: ``src`` value in the connection payload (default 'WEB').
-            reconnect_delay: Seconds between reconnect attempts.
-            max_reconnect_attempts: Maximum reconnect attempts.
+            reconnect_delay: Seconds between reconnect attempts (also used
+                between initial connect retries, see ``max_connect_retries``).
+            max_reconnect_attempts: Maximum number of times to reconnect after
+                a previously established connection later drops.
+            max_connect_retries: Maximum number of retries for the *initial*
+                ``connect()`` call itself if opening the socket fails (e.g. a
+                transient network error) — separate from
+                ``max_reconnect_attempts``, which only applies after a
+                connection has already succeeded once. Default 3. Set to 0
+                to fail immediately on the first attempt, with no retries.
             ping_interval: WebSocket-level ping interval (keep-alive), seconds.
             verify_ssl: Verify the server's TLS certificate on ``wss://``
                 connections (default True). Only set to False for a trusted
@@ -92,6 +101,7 @@ class OrderFeedWebSocket:
         self.source = source
         self.reconnect_delay = reconnect_delay
         self.max_reconnect_attempts = max_reconnect_attempts
+        self.max_connect_retries = max_connect_retries
         self.ping_interval = ping_interval
         self.verify_ssl = verify_ssl
 
@@ -149,9 +159,18 @@ class OrderFeedWebSocket:
     async def connect(self) -> None:
         """Open the socket and send the connection payload.
 
+        Opening the socket itself is retried up to ``max_connect_retries``
+        times (waiting ``reconnect_delay`` seconds between attempts) if it
+        fails — e.g. a transient network error on the very first connect.
+        This is separate from the post-connect auto-reconnect handled by
+        ``max_reconnect_attempts``, and doesn't cover sending the connection
+        payload: an ``AuthenticationError`` there usually isn't transient,
+        so it's raised immediately without retrying.
+
         Raises:
             AlreadyConnectedError: If already connected.
-            ConnectionError: If the socket fails to open or is misconfigured.
+            ConnectionError: If the socket fails to open after all retries,
+                or is misconfigured.
             AuthenticationError: If sending the connection payload fails.
         """
         if self.is_connected:
@@ -162,32 +181,44 @@ class OrderFeedWebSocket:
                 "order-feed base URL is known."
             )
 
-        try:
-            ssl_context = None
-            if self.url.startswith("wss"):
-                ssl_context = ssl.create_default_context()
-                if not self.verify_ssl:
-                    # Insecure: only for a trusted dev endpoint with a
-                    # self-signed cert. Disables MITM protection.
-                    warnings.warn(
-                        "TLS certificate verification is disabled for the order "
-                        "feed WebSocket (verify_ssl=False); the connection is "
-                        "exposed to man-in-the-middle attacks. Do not use in "
-                        "production.",
-                        stacklevel=2,
-                    )
-                    ssl_context.check_hostname = False
-                    ssl_context.verify_mode = ssl.CERT_NONE
+        ssl_context = None
+        if self.url.startswith("wss"):
+            ssl_context = ssl.create_default_context()
+            if not self.verify_ssl:
+                # Insecure: only for a trusted dev endpoint with a
+                # self-signed cert. Disables MITM protection.
+                warnings.warn(
+                    "TLS certificate verification is disabled for the order "
+                    "feed WebSocket (verify_ssl=False); the connection is "
+                    "exposed to man-in-the-middle attacks. Do not use in "
+                    "production.",
+                    stacklevel=2,
+                )
+                ssl_context.check_hostname = False
+                ssl_context.verify_mode = ssl.CERT_NONE
 
-            self._ws = await websockets.connect(
-                self.url,
-                ssl=ssl_context,
-                ping_interval=self.ping_interval,
-            )
-            self._connected = True
-        except Exception as e:
-            self._connected = False
-            raise ConnectionError(f"Failed to connect: {e}") from e
+        connect_error = None
+        for attempt in range(self.max_connect_retries + 1):
+            try:
+                self._ws = await websockets.connect(
+                    self.url,
+                    ssl=ssl_context,
+                    ping_interval=self.ping_interval,
+                )
+                self._connected = True
+                connect_error = None
+                break
+            except Exception as e:
+                self._connected = False
+                connect_error = e
+                if attempt < self.max_connect_retries:
+                    await asyncio.sleep(self.reconnect_delay)
+
+        if connect_error is not None:
+            raise ConnectionError(
+                f"Failed to connect after {self.max_connect_retries + 1} attempt(s): "
+                f"{connect_error}"
+            ) from connect_error
 
         # Send the mandatory raw connection payload immediately after open.
         try:

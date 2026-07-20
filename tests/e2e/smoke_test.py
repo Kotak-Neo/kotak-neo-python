@@ -227,15 +227,20 @@ except Exception as e:
     print("=" * 80)
     exit(1)
 
-# Generate TOTP automatically if secret is provided
-if TOTP_SECRET:
+# Ask whether to auto-generate the TOTP from NEO_TOTP_SECRET (via pyotp) or
+# enter it manually. Automatic is the default; answer "y" to type it in by
+# hand instead (e.g. to test with a different authenticator/device).
+enter_totp_manually = input(
+    "\nEnter TOTP manually instead of auto-generating it? (y/N): "
+).strip().lower() in ("y", "yes")
+
+if enter_totp_manually:
+    totp_code = input("Enter TOTP code: ").strip()
+    print(f"\n[MANUAL TOTP]: {totp_code}")
+else:
     totp_generator = pyotp.TOTP(TOTP_SECRET)
     totp_code = totp_generator.now()
     print(f"\n[AUTO-GENERATED TOTP]: {totp_code}")
-else:
-    # Fallback to manual TOTP if secret not provided
-    totp_code = input("Enter TOTP code: ")
-    print(f"\n[MANUAL TOTP]: {totp_code}")
 
 totp_login_params = {
     "mobile_number": MOBILE_NUMBER,

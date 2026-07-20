@@ -283,10 +283,67 @@ def test_connect_socket_failure_wrapped(monkeypatch):
             raise OSError("dns fail")
 
         monkeypatch.setattr(_client_mod.websockets, "connect", boom)
-        ws = OrderFeedWebSocket(base_url="https://e21.x.com", auth="T", sid="S")
+        # max_connect_retries=0: fail immediately, no retry delay to wait out.
+        ws = OrderFeedWebSocket(
+            base_url="https://e21.x.com", auth="T", sid="S", max_connect_retries=0
+        )
         await ws.connect()
 
     with pytest.raises(Exception, match="Failed to connect"):
+        asyncio.run(run())
+
+
+def test_connect_retries_then_succeeds(monkeypatch):
+    """The first couple of failures are retried; a later success within
+    max_connect_retries is used, and no exception is raised."""
+
+    async def run():
+        attempts = []
+
+        async def flaky(url, **kwargs):
+            attempts.append(1)
+            if len(attempts) < 3:
+                raise OSError("transient")
+            return FakeAsyncWS()
+
+        monkeypatch.setattr(_client_mod.websockets, "connect", flaky)
+        ws = OrderFeedWebSocket(
+            base_url="https://e21.x.com",
+            auth="T",
+            sid="S",
+            max_connect_retries=3,
+            reconnect_delay=0,
+        )
+        await ws.connect()
+        assert ws.is_connected
+        assert len(attempts) == 3
+        await ws.close()
+
+    asyncio.run(run())
+
+
+def test_connect_exhausts_all_retries_then_raises(monkeypatch):
+    """After max_connect_retries+1 total failed attempts, the last error is
+    wrapped and raised."""
+
+    async def run():
+        attempts = []
+
+        async def always_boom(url, **kwargs):
+            attempts.append(1)
+            raise OSError(f"dns fail #{len(attempts)}")
+
+        monkeypatch.setattr(_client_mod.websockets, "connect", always_boom)
+        ws = OrderFeedWebSocket(
+            base_url="https://e21.x.com",
+            auth="T",
+            sid="S",
+            max_connect_retries=3,
+            reconnect_delay=0,
+        )
+        await ws.connect()
+
+    with pytest.raises(Exception, match="Failed to connect after 4 attempt"):
         asyncio.run(run())
 
 

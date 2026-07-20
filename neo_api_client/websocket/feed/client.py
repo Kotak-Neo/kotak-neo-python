@@ -92,6 +92,7 @@ class SFeedWebSocket:
         session_validation: bool = False,
         reconnect_delay: int = 5,
         max_reconnect_attempts: int = 5,
+        max_connect_retries: int = 3,
         ping_interval: int = 20,
         max_subscriptions: int = 3000,
         verify_ssl: bool = True,
@@ -111,8 +112,16 @@ class SFeedWebSocket:
             sdk_version: SDK/build version integer sent in the auth frame.
             sdk_date: SDK/build date string sent in the auth frame.
             session_validation: Value for the ``sessionValidation`` auth field.
-            reconnect_delay: Seconds between reconnect attempts.
-            max_reconnect_attempts: Maximum reconnect attempts.
+            reconnect_delay: Seconds between reconnect attempts (also used
+                between initial connect retries, see ``max_connect_retries``).
+            max_reconnect_attempts: Maximum number of times to reconnect after
+                a previously established connection later drops.
+            max_connect_retries: Maximum number of retries for the *initial*
+                ``connect()`` call itself if opening the socket fails (e.g. a
+                transient network error) — separate from
+                ``max_reconnect_attempts``, which only applies after a
+                connection has already succeeded once. Default 3. Set to 0
+                to fail immediately on the first attempt, with no retries.
             ping_interval: WebSocket-level ping interval (keep-alive) in seconds.
             max_subscriptions: Maximum total input tokens that may be subscribed
                 at once across all subscribe requests (LTP, option chain, etc.).
@@ -136,6 +145,7 @@ class SFeedWebSocket:
         self.session_validation = session_validation
         self.reconnect_delay = reconnect_delay
         self.max_reconnect_attempts = max_reconnect_attempts
+        self.max_connect_retries = max_connect_retries
         self.ping_interval = ping_interval
         self.max_subscriptions = max_subscriptions
         self.verify_ssl = verify_ssl
@@ -216,40 +226,60 @@ class SFeedWebSocket:
     async def connect(self) -> None:
         """Open the socket and authenticate.
 
+        Opening the socket itself is retried up to ``max_connect_retries``
+        times (waiting ``reconnect_delay`` seconds between attempts) if it
+        fails — e.g. a transient network error on the very first connect.
+        This is separate from the post-connect auto-reconnect handled by
+        ``max_reconnect_attempts``, and doesn't cover authentication: an
+        ``AuthenticationError`` usually isn't transient, so it's raised
+        immediately without retrying.
+
         Raises:
             AlreadyConnectedError: If already connected.
-            ConnectionError: If the socket fails to open.
+            ConnectionError: If the socket fails to open after all retries.
             AuthenticationError: If authentication fails.
         """
         if self.is_connected:
             raise AlreadyConnectedError("WebSocket is already connected")
 
-        try:
-            ssl_context = None
-            if self.url.startswith("wss"):
-                ssl_context = ssl.create_default_context()
-                if not self.verify_ssl:
-                    # Insecure: only for a trusted dev endpoint with a
-                    # self-signed cert. Disables MITM protection.
-                    warnings.warn(
-                        "TLS certificate verification is disabled for the SFeed "
-                        "WebSocket (verify_ssl=False); the connection is exposed "
-                        "to man-in-the-middle attacks. Do not use in production.",
-                        stacklevel=2,
-                    )
-                    ssl_context.check_hostname = False
-                    ssl_context.verify_mode = ssl.CERT_NONE
+        ssl_context = None
+        if self.url.startswith("wss"):
+            ssl_context = ssl.create_default_context()
+            if not self.verify_ssl:
+                # Insecure: only for a trusted dev endpoint with a
+                # self-signed cert. Disables MITM protection.
+                warnings.warn(
+                    "TLS certificate verification is disabled for the SFeed "
+                    "WebSocket (verify_ssl=False); the connection is exposed "
+                    "to man-in-the-middle attacks. Do not use in production.",
+                    stacklevel=2,
+                )
+                ssl_context.check_hostname = False
+                ssl_context.verify_mode = ssl.CERT_NONE
 
-            self._ws = await websockets.connect(
-                self.url,
-                ssl=ssl_context,
-                # Rely on the WebSocket layer's native ping/pong for keep-alive.
-                ping_interval=self.ping_interval,
-            )
-            self._connected = True
-        except Exception as e:
-            self._connected = False
-            raise ConnectionError(f"Failed to connect: {e}") from e
+        connect_error = None
+        for attempt in range(self.max_connect_retries + 1):
+            try:
+                self._ws = await websockets.connect(
+                    self.url,
+                    ssl=ssl_context,
+                    # Rely on the WebSocket layer's native ping/pong for keep-alive.
+                    ping_interval=self.ping_interval,
+                )
+                self._connected = True
+                connect_error = None
+                break
+            except Exception as e:
+                self._connected = False
+                connect_error = e
+                if attempt < self.max_connect_retries:
+                    await asyncio.sleep(self.reconnect_delay)
+
+        if connect_error is not None:
+            raise ConnectionError(
+                f"Failed to connect after {self.max_connect_retries + 1} attempt(s): "
+                f"{connect_error}"
+            ) from connect_error
 
         # Authenticate (may raise AuthenticationError).
         await self._authenticate()

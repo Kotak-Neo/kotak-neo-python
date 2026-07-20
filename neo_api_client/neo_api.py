@@ -890,7 +890,7 @@ class NeoAPI:
             url: Optional WebSocket URL override (defaults to production SFeed URL)
             **kwargs: Additional arguments passed to SFeedWebSocket constructor
                 (e.g., user, auth, source, sdk_version, sdk_date, reconnect_delay,
-                max_reconnect_attempts, ping_interval)
+                max_reconnect_attempts, max_connect_retries, ping_interval)
 
         Returns:
             SFeedWebSocket: Configured WebSocket client ready to connect
@@ -954,7 +954,8 @@ class NeoAPI:
 
         Args:
             **kwargs: Additional arguments passed to OrderFeedWebSocket
-                (e.g., source, reconnect_delay, max_reconnect_attempts, ping_interval).
+                (e.g., source, reconnect_delay, max_reconnect_attempts,
+                max_connect_retries, ping_interval).
 
         Returns:
             OrderFeedWebSocket: Configured client ready to connect.
