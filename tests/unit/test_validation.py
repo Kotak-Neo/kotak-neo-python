@@ -116,6 +116,24 @@ def test_place_order_validation_type_errors(field, value):
         ("exchange_segment", "CDS"),
         ("exchange_segment", "cds"),
         ("exchange_segment", "cde_fo"),
+        # Generic segment aliases are rejected, not resolved — they're
+        # ambiguous about which specific segment (cash vs. F&O) applies
+        # (e.g. "BSE" would always resolve to bse_cm even when bse_fo was
+        # meant), so only the exact canonical codes are accepted.
+        ("exchange_segment", "NSE"),
+        ("exchange_segment", "nse"),
+        ("exchange_segment", "BSE"),
+        ("exchange_segment", "bse"),
+        ("exchange_segment", "NFO"),
+        ("exchange_segment", "nfo"),
+        ("exchange_segment", "BFO"),
+        ("exchange_segment", "bfo"),
+        ("exchange_segment", "BCD"),
+        ("exchange_segment", "bcd"),
+        ("exchange_segment", "MCX"),
+        ("exchange_segment", "mcx"),
+        # BCD/bcs-fo (BSE currency derivatives) is not a supported segment at all.
+        ("exchange_segment", "bcs-fo"),
         ("product", "INVALID"),
         ("order_type", "INVALID"),
         ("validity", "GTC"),
@@ -517,9 +535,11 @@ def test_place_order_rejects_unsupported_validity(segment):
         place_order_validation(**_valid_place_kwargs(exchange_segment=segment, validity="GTC"))
 
 
-def test_place_order_validity_segment_alias_resolved():
-    """NFO alias resolves to nse_fo -> IOC is allowed."""
-    place_order_validation(**_valid_place_kwargs(exchange_segment="NFO", validity="IOC"))
+def test_place_order_validity_segment_alias_rejected():
+    """ "NFO" is a generic alias, not the exact canonical segment (nse_fo) —
+    it's rejected outright rather than being resolved and validity-checked."""
+    with pytest.raises(ApiValueError, match="Invalid exchange segment"):
+        place_order_validation(**_valid_place_kwargs(exchange_segment="NFO", validity="IOC"))
 
 
 def test_modify_order_validity_uses_default_set():

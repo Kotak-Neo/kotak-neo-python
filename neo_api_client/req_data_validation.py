@@ -109,12 +109,14 @@ def place_order_validation(
     disclosed_quantity=None,
     trigger_price=None,
 ):
-    # Exchange Segment validation (mandatory, non-blank)
+    # Exchange Segment validation (mandatory, non-blank). Only the exact
+    # canonical codes are accepted — generic aliases (e.g. "NSE", "BSE") are
+    # rejected, not resolved, since they're ambiguous about which specific
+    # segment (cash vs. F&O) the order applies to.
     _require_non_blank(exchange_segment, "exchange_segment")
     if exchange_segment not in exchange_segment_allowed_values:
         raise ApiValueError(
-            "Invalid exchange segment. Allowed values are NSE or nse_cm, BSE or bse_cm, NFO or nse_fo, "
-            "BFO or bse_fo, BCD or bcs_fo."
+            "Invalid exchange segment. Allowed values are nse_cm, bse_cm, nse_fo, bse_fo, mcx_fo."
         )
 
     # Product validation (mandatory, non-blank). Place order accepts only

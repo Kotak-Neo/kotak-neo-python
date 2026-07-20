@@ -3,7 +3,7 @@
 Complete reference for all Kotak Neo Python SDK functions with examples and real API responses.
 
 > **Upgrading from an older version?** See the
-> [Migration Guide (v2.0.2 → v2.2.5)](../guides/MIGRATION.md) for breaking changes
+> [Migration Guide (v2.0.2 → v2.2.6)](../guides/MIGRATION.md) for breaking changes
 > in order validation, error handling, and the WebSocket API.
 
 ## Getting Started
@@ -112,8 +112,8 @@ All API responses follow consistent patterns:
 - `bse_cm` - BSE Cash Market
 - `nse_fo` - NSE Futures & Options
 - `bse_fo` - BSE Futures & Options
-- `cde_fo` - Currency Derivatives
 - `mcx_fo` - MCX Commodities
+- `cde_fo` - Currency Derivatives (market data/quotes only — **not** accepted by `place_order`/`margin_required`, which don't support this segment)
 
 ### Product Types
 - `CNC` - Cash & Carry (Delivery)

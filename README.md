@@ -3,7 +3,7 @@
 Official Python SDK for Kotak Neo Trading APIs - a modern, well-tested trading client for the Kotak Neo platform.
 
 [![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
-[![PyPI Version](https://img.shields.io/badge/pypi-v2.2.5-green.svg)](https://pypi.org/project/kotakneoapi/)
+[![PyPI Version](https://img.shields.io/badge/pypi-v2.2.6-green.svg)](https://pypi.org/project/kotakneoapi/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/LICENSE)
 
 ## Features
@@ -127,7 +127,7 @@ Detailed documentation for all SDK functions with examples and real API response
 ### 📖 Guides & Documentation
 
 **Upgrading:**
-- **[Migration Guide (v2.0.2 → v2.2.5)](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/guides/MIGRATION.md)** - Upgrade existing code to the latest version
+- **[Migration Guide (v2.0.2 → v2.2.6)](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/guides/MIGRATION.md)** - Upgrade existing code to the latest version
 
 **Installation:**
 - **[Installation Overview](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/installation/README.md)** - All installation options
@@ -287,8 +287,8 @@ Average API response times (production environment):
 - `bse_cm` - BSE Cash Market
 - `nse_fo` - NSE Futures & Options
 - `bse_fo` - BSE Futures & Options
-- `cde_fo` - Currency Derivatives
 - `mcx_fo` - MCX Commodities
+- `cde_fo` - Currency Derivatives (market data/quotes only — **not** accepted by `place_order`/`margin_required`, which don't support this segment)
 
 ### Product Types
 - `CNC` - Cash & Carry (Delivery)
@@ -438,6 +438,6 @@ See [CHANGELOG.md](https://github.com/Kotak-Neo/kotak-neo-python/releases) for v
 
 ---
 
-**Version**: 2.2.5  
+**Version**: 2.2.6  
 **Status**: Production/Stable  
 **Built with ❤️ by Kotak Neo Team**

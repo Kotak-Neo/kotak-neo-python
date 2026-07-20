@@ -40,22 +40,17 @@ PROD_URL = {
     "quotes_neo_symbol": "/script-details/1.0/quotes/neosymbol/{neo_symbols}/{quote_type}",
 }
 
+# Exchange segments accepted by place order. Only these exact canonical
+# codes are accepted — generic aliases (e.g. "NSE", "BSE") are rejected, not
+# resolved, since they're ambiguous about which specific segment (cash vs.
+# F&O) the order applies to; resolving them silently could route an order to
+# the wrong segment (e.g. "BSE" always resolving to bse_cm even when the
+# caller meant bse_fo).
 exchange_segment_allowed_values = [
-    "NSE",
-    "nse",
-    "BSE",
-    "bse",
-    "NFO",
-    "nfo",
-    "BFO",
-    "bfo",
-    "BCD",
-    "bcd",
     "nse_cm",
     "bse_cm",
     "nse_fo",
     "bse_fo",
-    "bcs-fo",
     "mcx_fo",
 ]
 
@@ -80,8 +75,7 @@ place_order_product_allowed_values = ["CNC", "NRML", "MIS", "MTF"]
 
 # Exchange segments accepted by the check-margin API. Only these exact
 # canonical codes are accepted — aliases (e.g. "NSE", "MCX") are rejected, not
-# resolved. Margin does not support the currency (cde_fo) or BCD (bcs-fo)
-# segments that modify order allows.
+# resolved.
 margin_exchange_segment_allowed_values = ["bse_cm", "nse_cm", "nse_fo", "bse_fo", "mcx_fo"]
 
 # Order types accepted by the check-margin API. Only these exact canonical
@@ -119,12 +113,6 @@ exchange_segment = {
     "BFO": "bse_fo",
     "bse_fo": "bse_fo",
     "bfo": "bse_fo",
-    "CDS": "cde_fo",
-    "cde_fo": "cde_fo",
-    "cds": "cde_fo",
-    "BCD": "bcs-fo",
-    "bcs-fo": "bcs-fo",
-    "bcd": "bcs-fo",
     "MCX": "mcx_fo",
     "mcx": "mcx_fo",
     "mcx_fo": "mcx_fo",

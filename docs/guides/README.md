@@ -6,7 +6,7 @@ Comprehensive guides for developers, maintainers, and contributors.
 
 ### For Developers
 
-#### [Migration Guide (v2.0.2 → v2.2.5)](MIGRATION.md) ⭐ **UPGRADING? START HERE**
+#### [Migration Guide (v2.0.2 → v2.2.6)](MIGRATION.md) ⭐ **UPGRADING? START HERE**
 Step-by-step guide for upgrading from the previous SDK version.
 
 **Topics Covered:**
@@ -116,7 +116,7 @@ Complete guide for building and publishing the package to PyPI (production).
 - **[PyPI Best Practices](PUBLISHING.md#security-best-practices)** - Security guidelines
 
 ### Upgrading
-- **[Migration Guide (v2.0.2 → v2.2.5)](MIGRATION.md)** - Upgrade existing code
+- **[Migration Guide (v2.0.2 → v2.2.6)](MIGRATION.md)** - Upgrade existing code
 
 ### API Documentation
 - **[API Functions](../functions/README.md)** - Complete API reference
@@ -162,7 +162,7 @@ Complete guide for building and publishing the package to PyPI (production).
 docs/
 ├── guides/                          # 📖 You are here
 │   ├── README.md                    # This file
-│   ├── MIGRATION.md                 # v2.0.2 → v2.2.5 upgrade guide
+│   ├── MIGRATION.md                 # v2.0.2 → v2.2.6 upgrade guide
 │   ├── websocket.md         # Async SFeed WebSocket guide
 │   ├── INSTALLATION_REFERENCE.md    # Complete installation guide
 │   ├── TESTPYPI_UPLOAD_GUIDE.md    # TestPyPI publishing
