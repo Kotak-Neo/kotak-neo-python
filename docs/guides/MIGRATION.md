@@ -1,7 +1,7 @@
-# Migration Guide — v2.0.2 → v2.2.6
+# Migration Guide — v2.0.2 → v2.2.7
 
 This guide helps you upgrade the **Kotak Neo Python SDK** (`neo_api_client`) from
-**v2.0.2** to **v2.2.6**.
+**v2.0.2** to **v2.2.7**.
 
 The package import name is unchanged (`neo_api_client`), so your `import`
 statements keep working. However, several APIs changed in ways that **require
@@ -18,7 +18,7 @@ handling (now raises exceptions), and stricter order-parameter validation.
 
 ## 1. Installation & requirements
 
-| | v2.0.2 | v2.2.6 |
+| | v2.0.2 | v2.2.7 |
 |---|---|---|
 | Python | 3.7+ | **3.10 – 3.14** |
 | HTTP transport | `requests` | **`httpx` (HTTP/2)** |
@@ -70,7 +70,7 @@ a clear error for invalid input, instead of forwarding it to the exchange.
 ### 3.1 Product type — only `CNC`, `NRML`, `MIS`, `MTF`
 
 ```python
-# v2.2.6: allowed product values
+# v2.2.7: allowed product values
 client.place_order(..., product="CNC")   # or "NRML", "MIS", or "MTF"
 ```
 
@@ -145,7 +145,7 @@ the order lives on.
 ### 3.5 Price — must be positive for `L`/`SL` orders
 
 ```python
-# v2.2.6: price=0 is now rejected for Limit and Stop-Loss-Limit orders
+# v2.2.7: price=0 is now rejected for Limit and Stop-Loss-Limit orders
 client.place_order(..., order_type="L", price="0")   # raises ApiValueError
 client.place_order(..., order_type="L", price="1500")  # OK — a real limit price
 client.place_order(..., order_type="MKT", price="0")  # still OK — market orders ignore price
@@ -175,7 +175,7 @@ backend only requires `order_id`, `price`, `order_type`, `quantity`, and
 existed for is gone. Drop them from any call:
 
 ```python
-# Before (v2.2.6, "quick-modify" path)
+# Before (v2.2.7, "quick-modify" path)
 client.modify_order(
     order_id="250101000000001", price="1450", order_type="L", quantity="1",
     validity="DAY", instrument_token="11536", exchange_segment="nse_cm",
@@ -222,7 +222,7 @@ always sent (defaults to `"NO"`).
 **This is the most impactful behavioral change.** In v2.0.2 many methods swallowed
 errors and returned dicts like `{"Error": <exception>}` or
 `{"Error Message": "Complete the 2fa process ..."}`, so `try/except` around calls
-did nothing. In v2.2.6 the SDK raises a typed exception hierarchy.
+did nothing. In v2.2.7 the SDK raises a typed exception hierarchy.
 
 ```python
 from neo_api_client import (
@@ -271,7 +271,7 @@ Calling `subscribe` / `un_subscribe` / `subscribe_to_orderfeed` now raises
 ## 6. WebSocket — from callbacks to async/await
 
 The biggest code change. v2.0.2 used a callback model (assign `on_message`,
-`on_error`, then call `subscribe`). v2.2.6 uses a modern **async/await** client
+`on_error`, then call `subscribe`). v2.2.7 uses a modern **async/await** client
 with typed Pydantic messages.
 
 ### 6.1 Market data (LTP, option chain, depth)
@@ -289,7 +289,7 @@ client.subscribe(
 )
 ```
 
-**After (v2.2.6):**
+**After (v2.2.7):**
 
 ```python
 import asyncio
