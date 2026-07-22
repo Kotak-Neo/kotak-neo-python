@@ -83,21 +83,14 @@ margin_exchange_segment_allowed_values = ["bse_cm", "nse_cm", "nse_fo", "bse_fo"
 # resolved.
 margin_order_type_allowed_values = ["L", "MKT", "SL", "SL-M"]
 
+# Order types accepted by place/modify order. Only these exact canonical
+# codes are accepted — aliases (e.g. "Limit", "Market") and multi-leg types
+# (SP/2L/3L) are rejected, not resolved.
 order_type_allowed_values = [
-    "Limit",
-    "Market",
-    "Stop loss limit",
-    "Stop loss market",
-    "Spread",
-    "Two Leg",
-    "Three leg",
     "L",
     "MKT",
     "SL",
     "SL-M",
-    "SP",
-    "2L",
-    "3L",
 ]
 
 exchange_segment = {

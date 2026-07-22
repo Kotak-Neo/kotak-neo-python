@@ -10,7 +10,6 @@ from neo_api_client.settings import (
     validity_allowed_by_segment,
     validity_allowed_default,
 )
-from neo_api_client.settings import order_type as _order_type_map
 
 
 def _require_non_blank(value, name):
@@ -58,9 +57,11 @@ def _require_positive_price_for_order_type(price, order_type):
     valid there. L/SL orders need an actual limit price — leaving price at
     0 has been observed to make the exchange silently substitute a default
     price instead of rejecting the order.
+
+    ``order_type`` must already be one of the exact canonical codes (checked
+    by the caller before this runs), so no alias resolution is needed here.
     """
-    canonical_order_type = _order_type_map.get(order_type, order_type)
-    if canonical_order_type in price_required_order_types and float(price) <= 0:
+    if order_type in price_required_order_types and float(price) <= 0:
         raise ApiValueError(f"price must be greater than zero for order_type '{order_type}'.")
 
 
@@ -130,13 +131,12 @@ def place_order_validation(
     _require_non_blank(price, "price")
     _require_numeric(price, "price")
 
-    # Order type validation (mandatory, non-blank)
+    # Order type validation (mandatory, non-blank). Only the exact canonical
+    # codes are accepted — aliases (e.g. "Limit", "Market") and multi-leg
+    # types (SP/2L/3L) are rejected, not resolved.
     _require_non_blank(order_type, "order_type")
     if order_type not in order_type_allowed_values:
-        raise ApiValueError(
-            "Invalid order type. Allowed values are L or Limit, MKT or Market, SL or Stop loss limit,"
-            "SL-M or Stop loss market, SP or Spread, 2L or Tow leg, 3L or Three Leg."
-        )
+        raise ApiValueError("Invalid order type. Allowed values are L, MKT, SL, SL-M.")
 
     # L/SL orders need a real limit price; MKT/SL-M may legitimately use 0.
     _require_positive_price_for_order_type(price, order_type)
@@ -217,13 +217,12 @@ def modify_order_validation(
     _require_non_blank(price, "price")
     _require_numeric(price, "price")
 
-    # Order type (mandatory, non-blank, from the allowed set)
+    # Order type (mandatory, non-blank, from the allowed set). Only the exact
+    # canonical codes are accepted — aliases (e.g. "Limit", "Market") and
+    # multi-leg types (SP/2L/3L) are rejected, not resolved.
     _require_non_blank(order_type, "order_type")
     if order_type not in order_type_allowed_values:
-        raise ApiValueError(
-            "Invalid order type. Allowed values are L or Limit, MKT or Market, SL or Stop loss limit,"
-            "SL-M or Stop loss market, SP or Spread, 2L or Tow leg, 3L or Three Leg."
-        )
+        raise ApiValueError("Invalid order type. Allowed values are L, MKT, SL, SL-M.")
 
     # L/SL orders need a real limit price; MKT/SL-M may legitimately use 0.
     _require_positive_price_for_order_type(price, order_type)

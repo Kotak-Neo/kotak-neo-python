@@ -10,7 +10,7 @@ handling (now raises exceptions), and stricter order-parameter validation.
 
 > **TL;DR of what you must change**
 > 1. WebSocket code must move from callbacks to `async`/`await`.
-> 2. Order placement rejects `CO`/`BO` products, generic/currency-derivatives exchange segments (only exact codes like `nse_cm`/`bse_fo` are accepted), and non-`DAY`/`IOC` validity.
+> 2. Order placement rejects `CO`/`BO` products, generic/currency-derivatives exchange segments (only exact codes like `nse_cm`/`bse_fo` are accepted), order-type aliases like `"Limit"`/`"Market"` (only exact codes `L`/`MKT`/`SL`/`SL-M` are accepted), and non-`DAY`/`IOC` validity.
 > 3. Errors are now raised as exceptions (wrap calls in `try/except`).
 > 4. A few methods were removed (`cancel_cover_order`, `cancel_bracket_order`).
 
@@ -107,10 +107,27 @@ client.place_order(..., exchange_segment="bse_cm")   # or "bse_fo"
 ```
 
 `modify_order` no longer takes an `exchange_segment` parameter at all (see
-§3.6) — it always uses the default validity set (§3.3) and whichever segment
+§3.7) — it always uses the default validity set (§3.4) and whichever segment
 the order was originally placed on at the exchange.
 
-### 3.3 Validity — per exchange segment (`place_order` only)
+### 3.3 Order type — only `L`, `MKT`, `SL`, `SL-M`
+
+`place_order` and `modify_order` now accept **only** the exact canonical
+order-type codes: `L`, `MKT`, `SL`, `SL-M`. Aliases like `Limit`, `Market`,
+`Stop loss limit`, `Stop loss market` are **no longer resolved** — they now
+raise a validation error. Multi-leg order types (`SP`/`Spread`, `2L`/`Two Leg`,
+`3L`/`Three leg`) are also no longer accepted by either method. If your
+v2.0.2 code used any of these, switch to the exact code:
+
+```python
+# Before — no longer accepted
+client.place_order(..., order_type="Limit")
+
+# Now — use the exact code
+client.place_order(..., order_type="L")
+```
+
+### 3.4 Validity — per exchange segment (`place_order` only)
 
 `place_order` validates validity against the exchange segment:
 
@@ -125,7 +142,7 @@ the order lives on.
 
 `GTC`, `EOS`, and `GTD` are **no longer accepted** and raise a validation error.
 
-### 3.4 Price — must be positive for `L`/`SL` orders
+### 3.5 Price — must be positive for `L`/`SL` orders
 
 ```python
 # v2.2.6: price=0 is now rejected for Limit and Stop-Loss-Limit orders
@@ -142,14 +159,14 @@ for `L`/`SL` order types. `MKT` and `SL-M` orders are unaffected — they
 legitimately execute at the prevailing market price, so `price=0` remains valid
 there. The same rule applies to `modify_order`.
 
-### 3.5 Blank / invalid inputs are rejected
+### 3.6 Blank / invalid inputs are rejected
 
 Mandatory fields (`exchange_segment`, `product`, `price`, `order_type`,
 `quantity`, `validity`, `trading_symbol`, `transaction_type`) must be non-blank
 and well-formed (numeric price, positive-integer quantity, …). Blank or malformed
 values now raise a validation error rather than being silently sent.
 
-### 3.6 `modify_order` — `instrument_token`/`exchange_segment`/`trading_symbol`/`transaction_type` removed
+### 3.7 `modify_order` — `instrument_token`/`exchange_segment`/`trading_symbol`/`transaction_type` removed
 
 `modify_order()` no longer accepts `instrument_token`, `exchange_segment`,
 `trading_symbol`, or `transaction_type` — they were never mandatory (the
@@ -174,7 +191,7 @@ client.modify_order(
 
 `product` is still accepted (optional; exact canonical codes only — see §3.1).
 
-### 3.7 `modify_order` — optional exchange-rejection check (`isVerify`)
+### 3.8 `modify_order` — optional exchange-rejection check (`isVerify`)
 
 Order modification is acknowledged asynchronously: the server returns
 `stat: "Ok"` when it *accepts* the request, but the exchange may reject it moments
@@ -193,7 +210,7 @@ result = client.modify_order(
 )
 ```
 
-### 3.8 AMO orders
+### 3.9 AMO orders
 
 Pass `amo="YES"` to place/modify/cancel an After-Market Order. The `am` flag is
 always sent (defaults to `"NO"`).
@@ -377,7 +394,7 @@ See **[Order Feed](../functions/websocket/order_feed.md)**.
 - [ ] Bump Python to 3.10+ and `pip install --upgrade kotakneoapi`.
 - [ ] Remove any exact transitive pins carried over from v2.0.2.
 - [ ] Confirm auth uses `consumer_key` + `totp_login(mobile_number=...)` + `totp_validate(mpin=...)`.
-- [ ] Replace `product="CO"/"BO"`, `exchange_segment="CDS"/"cde_fo"/"BCD"/"bcs-fo"`, generic segment aliases (`NSE`/`BSE`/`NFO`/`BFO`/`MCX`), and `validity="GTC"/"EOS"/"GTD"` usages.
+- [ ] Replace `product="CO"/"BO"`, `exchange_segment="CDS"/"cde_fo"/"BCD"/"bcs-fo"`, generic segment aliases (`NSE`/`BSE`/`NFO`/`BFO`/`MCX`), order-type aliases (`"Limit"`/`"Market"`/`"Stop loss limit"`/`"Stop loss market"`/`"SP"`/`"2L"`/`"3L"`), and `validity="GTC"/"EOS"/"GTD"` usages in `place_order()`/`modify_order()`.
 - [ ] Replace `price="0"`/blank on `L`/`SL` orders with a real limit price.
 - [ ] Wrap order/API calls in `try/except` for the new exception hierarchy.
 - [ ] Rewrite WebSocket code to the async `create_websocket()` / `create_order_feed()` model.

@@ -136,6 +136,22 @@ def test_place_order_validation_type_errors(field, value):
         ("exchange_segment", "bcs-fo"),
         ("product", "INVALID"),
         ("order_type", "INVALID"),
+        # Order type aliases and multi-leg types are rejected, not resolved
+        # — only the exact canonical codes L/MKT/SL/SL-M are accepted.
+        ("order_type", "Limit"),
+        ("order_type", "Market"),
+        ("order_type", "Stop loss limit"),
+        ("order_type", "Stop loss market"),
+        ("order_type", "l"),
+        ("order_type", "mkt"),
+        ("order_type", "sl"),
+        ("order_type", "sl-m"),
+        ("order_type", "SP"),
+        ("order_type", "Spread"),
+        ("order_type", "2L"),
+        ("order_type", "Two Leg"),
+        ("order_type", "3L"),
+        ("order_type", "Three leg"),
         ("validity", "GTC"),
         ("transaction_type", "X"),
     ],
@@ -195,7 +211,7 @@ def test_place_order_validation_negative_price():
         place_order_validation(**_valid_place_kwargs(price="-1"))
 
 
-@pytest.mark.parametrize("order_type", ["L", "Limit", "SL", "Stop loss limit"])
+@pytest.mark.parametrize("order_type", ["L", "SL"])
 def test_place_order_validation_zero_price_rejected_for_limit_types(order_type):
     """L/SL orders need a real limit price; price=0 must be rejected rather
     than silently sent through (the exchange has been observed to substitute
@@ -204,7 +220,7 @@ def test_place_order_validation_zero_price_rejected_for_limit_types(order_type):
         place_order_validation(**_valid_place_kwargs(order_type=order_type, price="0"))
 
 
-@pytest.mark.parametrize("order_type", ["MKT", "Market", "SL-M", "Stop loss market"])
+@pytest.mark.parametrize("order_type", ["MKT", "SL-M"])
 def test_place_order_validation_zero_price_allowed_for_market_types(order_type):
     """MKT/SL-M orders execute at the prevailing market price, so price=0 is valid."""
     place_order_validation(**_valid_place_kwargs(order_type=order_type, price="0"))
@@ -318,6 +334,32 @@ def test_modify_order_validation_bad_quantity(bad_qty):
 def test_modify_order_validation_bad_order_type():
     with pytest.raises(ApiValueError, match="order type"):
         modify_order_validation(**_valid_modify_kwargs(order_type="INVALID"))
+
+
+@pytest.mark.parametrize(
+    "order_type",
+    [
+        "Limit",
+        "Market",
+        "Stop loss limit",
+        "Stop loss market",
+        "l",
+        "mkt",
+        "sl",
+        "sl-m",
+        "SP",
+        "Spread",
+        "2L",
+        "Two Leg",
+        "3L",
+        "Three leg",
+    ],
+)
+def test_modify_order_validation_rejects_order_type_aliases(order_type):
+    """Order type aliases and multi-leg types are rejected, not resolved —
+    only the exact canonical codes L/MKT/SL/SL-M are accepted."""
+    with pytest.raises(ApiValueError, match="order type"):
+        modify_order_validation(**_valid_modify_kwargs(order_type=order_type))
 
 
 def test_modify_order_validation_bad_validity():
