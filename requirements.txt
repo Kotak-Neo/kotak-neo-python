@@ -1,0 +1,19 @@
+# Runtime dependencies for kotakneoapi (neo_api_client).
+#
+# This file mirrors [project.dependencies] in pyproject.toml, which remains
+# the source of truth for the package's actual dependency constraints —
+# update both together. This file exists so tools that expect a
+# requirements.txt (e.g. Checkmarx SCA's dependency resolver) can resolve
+# this project's dependency tree; pyproject.toml alone (PEP 621) isn't
+# parsed by every such tool.
+numpy>=1.26,<3
+pandas>=2.2,<3
+PyJWT>=2.10.1,<3
+httpx[http2]>=0.27,<1
+websocket-client>=1.9.0,<2
+structlog>=24.1.0,<27
+tenacity>=8.2.3,<10
+python-decouple>=3.8,<4
+pyotp>=2.9.0
+websockets>=12.0
+pydantic>=2.0.0
