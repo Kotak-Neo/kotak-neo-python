@@ -1,0 +1,34 @@
+name: ❓ Question / Support
+description: Ask a "how do I...?" question or get help using the SDK
+title: "[Question]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have a usage question rather than a bug report? You're in the right place.
+        Tip: check the [docs](https://github.com/Kotak-Neo/kotak-neo-python/tree/main/docs) first — your answer might already be there.
+
+  - type: textarea
+    id: question
+    attributes:
+      label: What are you trying to do?
+    validations:
+      required: true
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: What have you tried so far?
+      description: Relevant code, docs you've already checked, etc.
+      render: python
+    validations:
+      required: false
+
+  - type: input
+    id: sdk-version
+    attributes:
+      label: SDK version
+      placeholder: e.g. 2.2.7
+    validations:
+      required: false

@@ -1,0 +1,92 @@
+name: 🐛 Bug Report
+description: Something in the SDK isn't working as expected (unexpected error, wrong response, crash, etc.)
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this! Please fill in as much detail as you can —
+        it helps us reproduce and fix the issue faster.
+
+  - type: input
+    id: sdk-version
+    attributes:
+      label: SDK version
+      description: Output of `pip show kotakneoapi` or the version pinned in your requirements.
+      placeholder: e.g. 2.2.7
+    validations:
+      required: true
+
+  - type: input
+    id: python-version
+    attributes:
+      label: Python version
+      placeholder: e.g. 3.11.6
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      options:
+        - prod
+        - uat
+        - Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen instead?
+    validations:
+      required: false
+
+  - type: textarea
+    id: repro-steps
+    attributes:
+      label: Steps to reproduce
+      description: A minimal code snippet or step-by-step sequence that triggers the issue.
+      render: python
+    validations:
+      required: true
+
+  - type: textarea
+    id: error-payload
+    attributes:
+      label: Error response / traceback
+      description: |
+        Paste the exact error you received — the raw API response (e.g. `{"stCode": ..., "errMsg": ..., "stat": ...}`)
+        and/or the Python traceback. This is usually the single most useful piece of information for triage.
+      render: json
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: Anything else that might be relevant (network, timing, frequency, related API calls before this one, etc.)
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and this hasn't already been reported.
+          required: true
+        - label: I'm using a supported Python version (3.10+) and a recent SDK release.
+          required: false

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📖 Documentation
+    url: https://github.com/Kotak-Neo/kotak-neo-python/tree/main/docs
+    about: Check the docs before opening an issue — your question might already be answered.
+  - name: 📧 Email Support
+    url: mailto:support@kotakneo.com
+    about: For account-specific or sensitive issues that shouldn't be posted publicly.
