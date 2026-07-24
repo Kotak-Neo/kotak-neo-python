@@ -71,7 +71,7 @@ a clear error for invalid input, instead of forwarding it to the exchange.
 
 ```python
 # v2.2.7: allowed product values
-client.place_order(..., product="CNC")   # or "NRML", "MIS", or "MTF"
+client.place_order(..., product="CNC")  # or "NRML", "MIS", or "MTF"
 ```
 
 `CO` (Cover Order) and `BO` (Bracket Order) are **no longer accepted** by
@@ -103,7 +103,7 @@ these generic aliases, switch to the exact segment code:
 client.place_order(..., exchange_segment="BSE")
 
 # Now — use the exact segment
-client.place_order(..., exchange_segment="bse_cm")   # or "bse_fo"
+client.place_order(..., exchange_segment="bse_cm")  # or "bse_fo"
 ```
 
 `modify_order` no longer takes an `exchange_segment` parameter at all (see
@@ -146,7 +146,7 @@ the order lives on.
 
 ```python
 # v2.2.7: price=0 is now rejected for Limit and Stop-Loss-Limit orders
-client.place_order(..., order_type="L", price="0")   # raises ApiValueError
+client.place_order(..., order_type="L", price="0")  # raises ApiValueError
 client.place_order(..., order_type="L", price="1500")  # OK — a real limit price
 client.place_order(..., order_type="MKT", price="0")  # still OK — market orders ignore price
 ```
@@ -177,15 +177,26 @@ existed for is gone. Drop them from any call:
 ```python
 # Before (v2.2.7, "quick-modify" path)
 client.modify_order(
-    order_id="250101000000001", price="1450", order_type="L", quantity="1",
-    validity="DAY", instrument_token="11536", exchange_segment="nse_cm",
-    product="CNC", trading_symbol="RELIANCE-EQ", transaction_type="B",
+    order_id="250101000000001",
+    price="1450",
+    order_type="L",
+    quantity="1",
+    validity="DAY",
+    instrument_token="11536",
+    exchange_segment="nse_cm",
+    product="CNC",
+    trading_symbol="RELIANCE-EQ",
+    transaction_type="B",
 )
 
 # Now
 client.modify_order(
-    order_id="250101000000001", price="1450", order_type="L", quantity="1",
-    validity="DAY", product="CNC",
+    order_id="250101000000001",
+    price="1450",
+    order_type="L",
+    quantity="1",
+    validity="DAY",
+    product="CNC",
 )
 ```
 
@@ -206,7 +217,7 @@ result = client.modify_order(
     order_type="L",
     quantity="1",
     validity="DAY",
-    isVerify=True,   # new in 2.2.x — confirm the final outcome
+    isVerify=True,  # new in 2.2.x — confirm the final outcome
 )
 ```
 
@@ -226,7 +237,7 @@ did nothing. In v2.2.7 the SDK raises a typed exception hierarchy.
 
 ```python
 from neo_api_client import (
-    NeoAPIException,      # base
+    NeoAPIException,  # base
     AuthenticationError,
     ValidationError,
     RateLimitError,
@@ -236,9 +247,14 @@ from neo_api_client import (
 
 try:
     client.place_order(
-        exchange_segment="nse_cm", product="CNC", price="1500",
-        order_type="L", quantity="1", validity="DAY",
-        trading_symbol="RELIANCE-EQ", transaction_type="B",
+        exchange_segment="nse_cm",
+        product="CNC",
+        price="1500",
+        order_type="L",
+        quantity="1",
+        validity="DAY",
+        trading_symbol="RELIANCE-EQ",
+        transaction_type="B",
     )
 except ValidationError as e:
     print("Invalid order parameters:", e)
@@ -282,11 +298,10 @@ with typed Pydantic messages.
 def on_message(message):
     print(message)
 
+
 client.on_message = on_message
 client.on_error = lambda e: print(e)
-client.subscribe(
-    instrument_tokens=[{"instrument_token": "11536", "exchange_segment": "nse_cm"}]
-)
+client.subscribe(instrument_tokens=[{"instrument_token": "11536", "exchange_segment": "nse_cm"}])
 ```
 
 **After (v2.2.7):**
@@ -295,12 +310,14 @@ client.subscribe(
 import asyncio
 from neo_api_client.websocket.feed import WsToken, SFeedScrip
 
+
 async def main():
     async with client.create_websocket() as ws:
         await ws.subscribe_scrips([WsToken("nse_cm", "11536")])
         async for message in ws:
             if isinstance(message, SFeedScrip):
                 print(message.trading_symbol, message.last_traded_price)
+
 
 asyncio.run(main())
 ```
@@ -333,6 +350,7 @@ Full reference: **[SFeed WebSocket Guide](./websocket.md)**.
 import asyncio
 from neo_api_client.websocket.orderfeed import OrderUpdate, PositionUpdate
 
+
 async def main():
     async with client.create_order_feed() as feed:
         async for msg in feed:
@@ -340,6 +358,7 @@ async def main():
                 print(msg.data.order_no, msg.data.order_status)
             elif isinstance(msg, PositionUpdate):
                 print(msg.data.symbol)
+
 
 asyncio.run(main())
 ```

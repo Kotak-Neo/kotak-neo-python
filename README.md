@@ -57,40 +57,37 @@ from neo_api_client import NeoAPI
 
 # Initialize the client
 client = NeoAPI(
-    consumer_key='your-consumer-key-token',  # Token from NEO app Trade API card
-    environment='prod',  # production (default)
+    consumer_key="your-consumer-key-token",  # Token from NEO app Trade API card
+    environment="prod",  # production (default)
     access_token=None,  # Optional
-    neo_fin_key=None  # Optional
+    neo_fin_key=None,  # Optional
 )
 
 # Step 1: Login with TOTP
 login_response = client.totp_login(
-    mobile_number='+919876543210',  # Your registered mobile with country code
-    ucc='YOUR_UCC',  # Find in NEO app/web under Profile section
-    totp='123456'  # 6-digit code from authenticator app (changes every 30 seconds)
+    mobile_number="+919876543210",  # Your registered mobile with country code
+    ucc="YOUR_UCC",  # Find in NEO app/web under Profile section
+    totp="123456",  # 6-digit code from authenticator app (changes every 30 seconds)
 )
 
 # Step 2: Validate with MPIN to complete authentication
-validate_response = client.totp_validate(mpin='123456')  # Your trading MPIN
+validate_response = client.totp_validate(mpin="123456")  # Your trading MPIN
 
 # Place an order
 order_response = client.place_order(
-    exchange_segment='nse_cm',
-    product='CNC',
-    price='1500.00',
-    order_type='L',
-    quantity='10',
-    validity='DAY',
-    trading_symbol='RELIANCE-EQ',
-    transaction_type='B'
+    exchange_segment="nse_cm",
+    product="CNC",
+    price="1500.00",
+    order_type="L",
+    quantity="10",
+    validity="DAY",
+    trading_symbol="RELIANCE-EQ",
+    transaction_type="B",
 )
 
 # Get real-time quotes
 quotes = client.quotes(
-    instrument_tokens=[
-        {'instrument_token': '1333', 'exchange_segment': 'nse_cm'}
-    ],
-    quote_type='all'
+    instrument_tokens=[{"instrument_token": "1333", "exchange_segment": "nse_cm"}], quote_type="all"
 )
 
 # Logout
@@ -155,23 +152,27 @@ import asyncio
 from neo_api_client import NeoAPI
 from neo_api_client.websocket.feed import WsToken, SFeedScrip
 
+
 async def main():
-    client = NeoAPI(consumer_key='your-consumer-key-token', environment='prod')
-    client.totp_login(mobile_number='+919876543210', ucc='YOUR_UCC', totp='123456')
-    client.totp_validate(mpin='123456')
+    client = NeoAPI(consumer_key="your-consumer-key-token", environment="prod")
+    client.totp_login(mobile_number="+919876543210", ucc="YOUR_UCC", totp="123456")
+    client.totp_validate(mpin="123456")
 
     # create_websocket() builds a SFeedWebSocket from the current session
     async with client.create_websocket() as ws:
         # Batch-subscribe any number of instruments in a single call
         await ws.subscribe_scrips([
-            WsToken('nse_cm', 'Nifty 50'),
-            WsToken('nse_cm', '11536'),
+            WsToken("nse_cm", "Nifty 50"),
+            WsToken("nse_cm", "11536"),
         ])
 
         async for message in ws:
             if isinstance(message, SFeedScrip):
-                print(f"{message.trading_symbol} ({message.instrument_token}) "
-                      f"LTP: {message.last_traded_price}")
+                print(
+                    f"{message.trading_symbol} ({message.instrument_token}) "
+                    f"LTP: {message.last_traded_price}"
+                )
+
 
 asyncio.run(main())
 ```
@@ -193,10 +194,11 @@ import asyncio
 from neo_api_client import NeoAPI
 from neo_api_client.websocket.orderfeed import OrderUpdate, PositionUpdate, OrderStatus
 
+
 async def main():
-    client = NeoAPI(consumer_key='your-consumer-key-token', environment='prod')
-    client.totp_login(mobile_number='+919876543210', ucc='YOUR_UCC', totp='123456')
-    client.totp_validate(mpin='123456')
+    client = NeoAPI(consumer_key="your-consumer-key-token", environment="prod")
+    client.totp_login(mobile_number="+919876543210", ucc="YOUR_UCC", totp="123456")
+    client.totp_validate(mpin="123456")
 
     # create_order_feed() connects to wss://<baseurl>/realtime using the session
     async with client.create_order_feed() as feed:
@@ -205,6 +207,7 @@ async def main():
                 print(f"order {message.data.order_no} -> {message.data.order_status}")
             elif isinstance(message, PositionUpdate):
                 print(f"position {message.data.symbol}")
+
 
 asyncio.run(main())
 ```
@@ -220,7 +223,7 @@ from neo_api_client import (
     ValidationError,
     RateLimitError,
     NetworkError,
-    OrderError
+    OrderError,
 )
 
 try:

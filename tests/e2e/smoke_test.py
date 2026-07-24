@@ -162,13 +162,11 @@ class APITestRunner:
             print("\nRESPONSE:")
             print(json.dumps(response, indent=2, default=str))
 
-            self.results.append(
-                {
-                    "api": api_name,
-                    "status": "PASS",
-                    "latency_ms": latency_ms,
-                }
-            )
+            self.results.append({
+                "api": api_name,
+                "status": "PASS",
+                "latency_ms": latency_ms,
+            })
 
             return response
 
@@ -178,14 +176,12 @@ class APITestRunner:
             print(f"❌ FAIL ({latency_ms} ms)")
             print(str(e))
 
-            self.results.append(
-                {
-                    "api": api_name,
-                    "status": "FAIL",
-                    "latency_ms": latency_ms,
-                    "error": str(e),
-                }
-            )
+            self.results.append({
+                "api": api_name,
+                "status": "FAIL",
+                "latency_ms": latency_ms,
+                "error": str(e),
+            })
 
             traceback.print_exc()
 

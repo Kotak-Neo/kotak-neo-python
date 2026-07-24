@@ -90,31 +90,29 @@ def test_parse_connection_ack_is_dropped():
 
 
 def test_parse_order_message_maps_all_fields():
-    frame = json.dumps(
-        {
-            "type": "order",
-            "data": {
-                "nOrdNo": "260216000308219",
-                "ordSt": "complete",
-                "avgPrc": "35.88",
-                "qty": 1,
-                "fldQty": 1,
-                "unFldSz": 0,
-                "sym": "ITBEES",
-                "trnsTp": "B",
-                "prcTp": "MKT",
-                "prod": "NRML",
-                "exSeg": "nse_cm",
-                "trdSym": "ITBEES-EQ",
-                "tok": "14428",
-                "ordDtTm": "16-Feb-2026 12:29:31",
-                "updRecvTm": 1739688571000000000,
-                "boeSec": 1739688571,
-                "exCfmTm": "16-Feb-2026 12:29:32",
-                "exOrdId": "1100000049435826",
-            },
-        }
-    )
+    frame = json.dumps({
+        "type": "order",
+        "data": {
+            "nOrdNo": "260216000308219",
+            "ordSt": "complete",
+            "avgPrc": "35.88",
+            "qty": 1,
+            "fldQty": 1,
+            "unFldSz": 0,
+            "sym": "ITBEES",
+            "trnsTp": "B",
+            "prcTp": "MKT",
+            "prod": "NRML",
+            "exSeg": "nse_cm",
+            "trdSym": "ITBEES-EQ",
+            "tok": "14428",
+            "ordDtTm": "16-Feb-2026 12:29:31",
+            "updRecvTm": 1739688571000000000,
+            "boeSec": 1739688571,
+            "exCfmTm": "16-Feb-2026 12:29:32",
+            "exOrdId": "1100000049435826",
+        },
+    })
     msg = _ws()._parse_message(frame)
     assert isinstance(msg, OrderUpdate)
     d = msg.data
@@ -139,26 +137,24 @@ def test_parse_order_message_maps_all_fields():
 
 
 def test_parse_position_message():
-    frame = json.dumps(
-        {
-            "type": "position",
-            "data": {
-                "actId": "XP6M4",
-                "sym": "ITBEES",
-                "exSeg": "nse_cm",
-                "prod": "NRML",
-                "flBuyQty": "1",
-                "flSellQty": "0",
-                "buyAmt": "35.88",
-                "sellAmt": "0.00",
-                "posFlg": "true",
-                "sqrFlg": "true",
-                "lotSz": "1",
-                "multiplier": "1",
-                "hsUpTm": "2026/02/16 12:29:31",
-            },
-        }
-    )
+    frame = json.dumps({
+        "type": "position",
+        "data": {
+            "actId": "XP6M4",
+            "sym": "ITBEES",
+            "exSeg": "nse_cm",
+            "prod": "NRML",
+            "flBuyQty": "1",
+            "flSellQty": "0",
+            "buyAmt": "35.88",
+            "sellAmt": "0.00",
+            "posFlg": "true",
+            "sqrFlg": "true",
+            "lotSz": "1",
+            "multiplier": "1",
+            "hsUpTm": "2026/02/16 12:29:31",
+        },
+    })
     msg = _ws()._parse_message(frame)
     assert isinstance(msg, PositionUpdate)
     d = msg.data

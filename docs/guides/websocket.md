@@ -35,6 +35,7 @@ import asyncio
 from neo_api_client import NeoAPI
 from neo_api_client.websocket.feed import WsToken, SFeedScrip
 
+
 async def main():
     client = NeoAPI(consumer_key="your-consumer-key", environment="prod")
     client.totp_login(mobile_number="+919876543210", ucc="ABC123", totp="123456")
@@ -49,8 +50,11 @@ async def main():
 
         async for message in ws:
             if isinstance(message, SFeedScrip):
-                print(f"{message.trading_symbol} ({message.instrument_token}) "
-                      f"LTP: {message.last_traded_price}")
+                print(
+                    f"{message.trading_symbol} ({message.instrument_token}) "
+                    f"LTP: {message.last_traded_price}"
+                )
+
 
 asyncio.run(main())
 ```
@@ -62,7 +66,7 @@ asyncio.run(main())
 ```python
 from neo_api_client.websocket.feed import SFeedWebSocket, WsToken
 
-async with SFeedWebSocket() as ws:      # uses SFeed defaults
+async with SFeedWebSocket() as ws:  # uses SFeed defaults
     await ws.subscribe_scrips([WsToken("nse_cm", "Nifty 50")])
     async for message in ws:
         print(message.model_dump())
@@ -87,9 +91,9 @@ A `WsToken` pairs an exchange segment with an instrument token. The token may be
 **numeric scrip code** or an **index/instrument name**:
 
 ```python
-WsToken("nse_cm", "11536")      # numeric token
-WsToken("nse_cm", "Nifty 50")   # index by name
-WsToken("nse_fo", "44498")      # F&O contract
+WsToken("nse_cm", "11536")  # numeric token
+WsToken("nse_cm", "Nifty 50")  # index by name
+WsToken("nse_fo", "44498")  # F&O contract
 ```
 
 `WsToken` is immutable (hashable), so it can be used in sets and as dict keys.
@@ -132,9 +136,9 @@ comma-separated `inputtoken` (e.g. `nse_fo|44498,nse_fo|44500,...`):
 
 ```python
 chain = [WsToken("nse_fo", str(t)) for t in range(44498, 44520)]
-await ws.subscribe_scrips(chain)     # one batched frame
+await ws.subscribe_scrips(chain)  # one batched frame
 # ...
-await ws.unsubscribe_scrips(chain)   # one batched frame
+await ws.unsubscribe_scrips(chain)  # one batched frame
 ```
 
 ### Subscription limit
@@ -152,11 +156,11 @@ etc. all draw from the same budget.
   [Configuration](#configuration)).
 
 ```python
-await ws.subscribe_scrips(ltp_tokens)        # e.g. 500 tokens
-await ws.subscribe_scrips(option_chain)      # e.g. 2400 tokens -> total 2900, OK
-await ws.subscribe_scrips(more_tokens)       # would exceed 3000 -> SubscriptionError
+await ws.subscribe_scrips(ltp_tokens)  # e.g. 500 tokens
+await ws.subscribe_scrips(option_chain)  # e.g. 2400 tokens -> total 2900, OK
+await ws.subscribe_scrips(more_tokens)  # would exceed 3000 -> SubscriptionError
 
-print(ws.subscription_count)                 # tokens currently subscribed
+print(ws.subscription_count)  # tokens currently subscribed
 ```
 
 ## Message Types
@@ -176,9 +180,11 @@ async for message in ws:
         print(f"LTP: {message.last_traded_price}")
         print(f"Change: {message.net_change} ({message.net_change_percent}%)")
         print(f"Volume: {message.volume_traded_today}")
-        print(f"OHLC: {message.open_price}/{message.high_price}/"
-              f"{message.low_price}/{message.close_price}")
-        for row in message.buy:      # depth rows (empty for touch line)
+        print(
+            f"OHLC: {message.open_price}/{message.high_price}/"
+            f"{message.low_price}/{message.close_price}"
+        )
+        for row in message.buy:  # depth rows (empty for touch line)
             print(f"  bid {row.price} x {row.quantity} ({row.orders} orders)")
 ```
 
@@ -241,8 +247,7 @@ await ws.subscribe_scrips([WsToken("nse_cm", "2885")])
 
 async for message in ws:
     # trading_symbol is resolved from the subscribe ack, e.g. "RELIANCE-EQ"
-    print(f"{message.trading_symbol} ({message.instrument_token}): "
-          f"{message.last_traded_price}")
+    print(f"{message.trading_symbol} ({message.instrument_token}): {message.last_traded_price}")
 ```
 
 Details:
@@ -280,11 +285,11 @@ Details:
 Alongside `async for`, you can attach callbacks:
 
 ```python
-ws.on_message = lambda msg: print(msg)          # each decoded message
+ws.on_message = lambda msg: print(msg)  # each decoded message
 ws.on_error = lambda err: print(f"error: {err}")
 ws.on_connect = lambda: print("connected")
 ws.on_disconnect = lambda: print("disconnected")
-ws.on_raw = lambda frame: print(repr(frame))    # raw wire frame (debugging)
+ws.on_raw = lambda frame: print(repr(frame))  # raw wire frame (debugging)
 ```
 
 ## Error Handling
@@ -325,10 +330,9 @@ pointing here.
 def on_message(message):
     ltp = message["data"]["ltp"]
 
+
 client.on_message = on_message
-client.subscribe(instrument_tokens=[
-    {"instrument_token": "11536", "exchange_segment": "nse_cm"}
-])
+client.subscribe(instrument_tokens=[{"instrument_token": "11536", "exchange_segment": "nse_cm"}])
 ```
 
 **After (SFeed):**

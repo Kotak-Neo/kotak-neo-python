@@ -235,14 +235,11 @@ from decouple import config
 client = NeoAPI(
     consumer_key=config("NEO_CONSUMER_KEY"),
     consumer_secret=config("NEO_CONSUMER_SECRET"),
-    environment="prod"
+    environment="prod",
 )
 
 # Login
-client.login(
-    mobilenumber=config("NEO_MOBILE_NUMBER"),
-    password=config("NEO_PASSWORD")
-)
+client.login(mobilenumber=config("NEO_MOBILE_NUMBER"), password=config("NEO_PASSWORD"))
 
 # Get OTP from your registered mobile
 otp = input("Enter OTP: ")
@@ -250,13 +247,7 @@ client.session_2fa(OTP=otp)
 
 # Get quotes
 quotes = client.quotes(
-    instrument_tokens=[
-        {
-            "instrument_token": "1333",
-            "exchange_segment": "nse_cm"
-        }
-    ],
-    quote_type="all"
+    instrument_tokens=[{"instrument_token": "1333", "exchange_segment": "nse_cm"}], quote_type="all"
 )
 
 print(quotes)
@@ -406,10 +397,7 @@ from neo_api_client import NeoAPI, __version__
 
 print(f"✓ kotakneoapi version: {__version__}")
 
-client = NeoAPI(
-    consumer_key="test_key",
-    environment="prod"
-)
+client = NeoAPI(consumer_key="test_key", environment="prod")
 
 print("✓ NeoAPI client created successfully")
 print("✓ Installation verified!")

@@ -2,7 +2,14 @@
 Get the scrip details
 
 ```python
-client.search_scrip(exchange_segment = "", symbol = "",  expiry = "", option_type = "", strike_price = "", ignore_50multiple = True)
+client.search_scrip(
+    exchange_segment="",
+    symbol="",
+    expiry="",
+    option_type="",
+    strike_price="",
+    ignore_50multiple=True,
+)
 ```
 
 > **Note:** Unlike most trading/portfolio methods, `search_scrip()` does not require a completed 2FA (TOTP) session — only `consumer_key` is required, since the underlying API authenticates via the `Authorization` header alone.
@@ -15,15 +22,16 @@ client.search_scrip(exchange_segment = "", symbol = "",  expiry = "", option_typ
 from neo_api_client import NeoAPI
 
 
-#Only consumer_key is required — no totp_login/totp_validate needed
-client = NeoAPI(environment='prod', consumer_key='your_consumer_key')
+# Only consumer_key is required — no totp_login/totp_validate needed
+client = NeoAPI(environment="prod", consumer_key="your_consumer_key")
 
 try:
     # get scrip search details for particular exchange segment
-    client.search_scrip(exchange_segment = "nse_cm", symbol = "YESBANK",  expiry = "", option_type = "", strike_price = "")
+    client.search_scrip(
+        exchange_segment="nse_cm", symbol="YESBANK", expiry="", option_type="", strike_price=""
+    )
 except Exception as e:
     print("Exception when calling scrip search api->scrip_search: %s\n" % e)
-
 ```
 ### Parameters
 

@@ -23,7 +23,7 @@ TOTP login is the first step in TOTP authentication flow where the view token is
 ## Usage
 
 ```python
-client.totp_login(mobile_number="", ucc="", totp='')
+client.totp_login(mobile_number="", ucc="", totp="")
 ```
 
 ### Example
@@ -33,10 +33,10 @@ from neo_api_client import NeoAPI
 
 # Initialize with consumer key from NEO app Trade API card
 client = NeoAPI(
-    consumer_key='your-consumer-key-token',  # Required: Token from NEO app
-    environment='prod',
+    consumer_key="your-consumer-key-token",  # Required: Token from NEO app
+    environment="prod",
     access_token=None,
-    neo_fin_key=None
+    neo_fin_key=None,
 )
 
 try:
@@ -44,7 +44,7 @@ try:
     response = client.totp_login(
         mobile_number="+919876543210",  # Registered mobile with country code
         ucc="ABC123",  # Your UCC from NEO app Profile
-        totp='123456'  # 6-digit code from authenticator app
+        totp="123456",  # 6-digit code from authenticator app
     )
     print(response)
 

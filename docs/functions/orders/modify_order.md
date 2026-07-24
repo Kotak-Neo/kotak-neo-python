@@ -40,19 +40,19 @@ from neo_api_client import NeoAPI
 from neo_api_client import BaseUrl
 
 
-#First initialize session and generate session token
-client = NeoAPI(environment='prod', access_token=None, neo_fin_key=None)
-client.totp_login(mobilenumber="", ucc="", totp='')
+# First initialize session and generate session token
+client = NeoAPI(environment="prod", access_token=None, neo_fin_key=None)
+client.totp_login(mobilenumber="", ucc="", totp="")
 client.totp_validate(mpin="")
 
 try:
     # Modify an existing order
-    client.modify_order(order_id = "", price = "", order_type = "", quantity= "", validity = "",
-                        product = "", amo = "")
+    client.modify_order(
+        order_id="", price="", order_type="", quantity="", validity="", product="", amo=""
+    )
 
 except Exception as e:
     print("Exception when calling OrderApi->modify_order: %s\n" % e)
-
 ```
 ### Parameters
 

@@ -2,8 +2,17 @@
 Get required margin details
 
 ```python
-client.margin_required(exchange_segment = "", price = "", order_type= "", product = "", quantity = "", instrument_token = "",
-                       transaction_type = "", broker_name = "KOTAK", branch_id = "ONLINE")
+client.margin_required(
+    exchange_segment="",
+    price="",
+    order_type="",
+    product="",
+    quantity="",
+    instrument_token="",
+    transaction_type="",
+    broker_name="KOTAK",
+    branch_id="ONLINE",
+)
 ```
 
 ### Example
@@ -12,13 +21,21 @@ client.margin_required(exchange_segment = "", price = "", order_type= "", produc
 from neo_api_client import NeoAPI
 
 
-#First initialize session and generate session token
-client = NeoAPI(environment='prod', access_token=None, neo_fin_key=None)
-client.totp_login(mobilenumber="", ucc="", totp='')
+# First initialize session and generate session token
+client = NeoAPI(environment="prod", access_token=None, neo_fin_key=None)
+client.totp_login(mobilenumber="", ucc="", totp="")
 client.totp_validate(mpin="")
 
 try:
-    client.margin_required(exchange_segment = "nse_cm", price = "100", order_type= "L", product = "CNC", quantity = "1", instrument_token = "11536", transaction_type = "B")
+    client.margin_required(
+        exchange_segment="nse_cm",
+        price="100",
+        order_type="L",
+        product="CNC",
+        quantity="1",
+        instrument_token="11536",
+        transaction_type="B",
+    )
 except Exception as e:
     print("Exception when calling margin_required->margin_required: %s\n" % e)
 ```

@@ -40,7 +40,7 @@ On the wire the unsubscribe frame omits the `json` field:
 
 ```python
 chain = [WsToken("nse_fo", str(t)) for t in range(44498, 44520)]
-await ws.unsubscribe_scrips(chain)   # one batched frame
+await ws.unsubscribe_scrips(chain)  # one batched frame
 ```
 
 ## Parameters
@@ -55,6 +55,7 @@ await ws.unsubscribe_scrips(chain)   # one batched frame
 import asyncio
 from neo_api_client import NeoAPI
 from neo_api_client.websocket.feed import WsToken
+
 
 async def main():
     client = NeoAPI(environment="prod", consumer_key="your-consumer-key")
@@ -76,6 +77,7 @@ async def main():
 
         await ws.unsubscribe_scrips(tokens)
     # Leaving the `async with` block closes the connection automatically.
+
 
 asyncio.run(main())
 ```

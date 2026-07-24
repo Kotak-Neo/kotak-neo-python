@@ -37,6 +37,7 @@ import asyncio
 from neo_api_client import NeoAPI
 from neo_api_client.websocket.orderfeed import OrderUpdate, PositionUpdate, OrderStatus
 
+
 async def main():
     client = NeoAPI(consumer_key="your-consumer-key", environment="prod")
     client.totp_login(mobile_number="+919876543210", ucc="YOUR_UCC", totp="123456")
@@ -49,9 +50,12 @@ async def main():
                 if message.data.order_status == OrderStatus.COMPLETE:
                     print("order fully executed")
             elif isinstance(message, PositionUpdate):
-                print(f"position {message.data.symbol}: "
-                      f"buy={message.data.filled_buy_quantity} "
-                      f"sell={message.data.filled_sell_quantity}")
+                print(
+                    f"position {message.data.symbol}: "
+                    f"buy={message.data.filled_buy_quantity} "
+                    f"sell={message.data.filled_sell_quantity}"
+                )
+
 
 asyncio.run(main())
 ```

@@ -21,13 +21,11 @@ from neo_api_client.websocket.feed.protocol import (  # noqa: E402
     MSG_MARKET_OPEN,
 )
 
-_AUTH_OK = json.dumps(
-    {
-        "message_code": 1119,
-        "format": "native_batch",
-        "exchanges": {"nse_cm": {"value": 1, "divider": 100}},
-    }
-)
+_AUTH_OK = json.dumps({
+    "message_code": 1119,
+    "format": "native_batch",
+    "exchanges": {"nse_cm": {"value": 1, "divider": 100}},
+})
 
 
 def _market_status_frame():
@@ -534,17 +532,15 @@ def test_authenticate_skips_binary_and_uses_divider_fallbacks(monkeypatch):
     resolved via EXCHANGE_NAME_TO_ID (client.py 278-283, 294-298)."""
 
     async def run():
-        auth = json.dumps(
-            {
-                "message_code": 1119,
-                "format": "native_batch",
-                "exchanges": {
-                    "nse_cm": {"value": 1, "divider": 100},
-                    "nse_fo": {"divider": 50},  # no "value" -> fallback to name map (id 2)
-                    "bogus": "not-a-dict",  # non-dict -> skipped
-                },
-            }
-        )
+        auth = json.dumps({
+            "message_code": 1119,
+            "format": "native_batch",
+            "exchanges": {
+                "nse_cm": {"value": 1, "divider": 100},
+                "nse_fo": {"divider": 50},  # no "value" -> fallback to name map (id 2)
+                "bogus": "not-a-dict",  # non-dict -> skipped
+            },
+        })
         # A binary frame arrives BEFORE the JSON auth response and must be skipped.
         fake = FakeAsyncWS(incoming=[b"\x00\x01binary-preamble", auth])
         _patch_connect(monkeypatch, fake)
@@ -609,16 +605,14 @@ def test_authenticate_skips_unresolvable_exchange(monkeypatch):
     so it is skipped (298->294)."""
 
     async def run():
-        auth = json.dumps(
-            {
-                "message_code": 1119,
-                "format": "native_batch",
-                "exchanges": {
-                    "nse_cm": {"value": 1, "divider": 100},
-                    "totally_unknown_exchange": {"divider": 25},  # no value, unknown name
-                },
-            }
-        )
+        auth = json.dumps({
+            "message_code": 1119,
+            "format": "native_batch",
+            "exchanges": {
+                "nse_cm": {"value": 1, "divider": 100},
+                "totally_unknown_exchange": {"divider": 25},  # no value, unknown name
+            },
+        })
         fake = FakeAsyncWS(incoming=[auth])
         _patch_connect(monkeypatch, fake)
         ws = SFeedWebSocket(url="wss://fake/feed")
@@ -652,16 +646,14 @@ def test_connect_plain_ws_scheme_skips_ssl(monkeypatch):
 
 # ---- trading_symbol map (subscribe ack 1109) --------------------------------
 
-_SUBSCRIBE_ACK = json.dumps(
-    {
-        "message_code": 1109,
-        "message": "Subscribed",
-        "trading_symbols": {
-            "nse_cm|2885": "RELIANCE-EQ",
-            "nse_cm|22": "ACC-EQ",
-        },
-    }
-)
+_SUBSCRIBE_ACK = json.dumps({
+    "message_code": 1109,
+    "message": "Subscribed",
+    "trading_symbols": {
+        "nse_cm|2885": "RELIANCE-EQ",
+        "nse_cm|22": "ACC-EQ",
+    },
+})
 
 
 def test_subscribe_ack_populates_trading_symbol_map(monkeypatch):
@@ -697,15 +689,13 @@ def test_subscribe_ack_skips_non_string_entries():
     """Ack entries with non-string keys/values are skipped; valid ones kept."""
     ws = SFeedWebSocket(url="wss://fake/feed")
     ws._handle_text_frame(
-        json.dumps(
-            {
-                "message_code": 1109,
-                "trading_symbols": {
-                    "nse_cm|2885": "RELIANCE-EQ",  # valid
-                    "nse_cm|99": 12345,  # non-string value -> skipped
-                },
-            }
-        )
+        json.dumps({
+            "message_code": 1109,
+            "trading_symbols": {
+                "nse_cm|2885": "RELIANCE-EQ",  # valid
+                "nse_cm|99": 12345,  # non-string value -> skipped
+            },
+        })
     )
     assert ws.trading_symbols == {"nse_cm|2885": "RELIANCE-EQ"}
 

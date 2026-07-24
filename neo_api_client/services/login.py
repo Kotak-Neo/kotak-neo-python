@@ -33,11 +33,9 @@ class LoginAPI:
             self.api_client.configuration.bearer_token = json_resp.get("access_token")
             return json_resp
         else:
-            return json.dumps(
-                {
-                    "data": {
-                        "Code": session_init.status_code,
-                        "Message": "Error occurred to initialise the session",
-                    }
+            return json.dumps({
+                "data": {
+                    "Code": session_init.status_code,
+                    "Message": "Error occurred to initialise the session",
                 }
-            )
+            })

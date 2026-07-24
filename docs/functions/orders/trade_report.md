@@ -15,9 +15,9 @@ client.trade_report()
 from neo_api_client import NeoAPI
 
 
-#First initialize session and generate session token
-client = NeoAPI(environment='prod', access_token=None, neo_fin_key=None)
-client.totp_login(mobilenumber="", ucc="", totp='')
+# First initialize session and generate session token
+client = NeoAPI(environment="prod", access_token=None, neo_fin_key=None)
+client.totp_login(mobilenumber="", ucc="", totp="")
 client.totp_validate(mpin="")
 
 try:

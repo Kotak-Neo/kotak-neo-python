@@ -205,7 +205,7 @@ print(f"✓ kotakneoapi version: {__version__}")
 # Create client instance with your consumer_key
 client = NeoAPI(
     consumer_key="your-consumer-key",  # REQUIRED
-    environment="prod"
+    environment="prod",
 )
 
 print("✓ NeoAPI client created successfully")

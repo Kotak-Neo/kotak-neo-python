@@ -16,6 +16,7 @@ import asyncio
 from neo_api_client import NeoAPI
 from neo_api_client.websocket.feed import WsToken, SFeedScrip
 
+
 async def main():
     client = NeoAPI(consumer_key="your-consumer-key", environment="prod")
     client.totp_login(mobile_number="+919876543210", ucc="YOUR_UCC", totp="123456")
@@ -24,13 +25,16 @@ async def main():
     async with client.create_websocket() as ws:
         await ws.subscribe_scrips([
             WsToken("nse_cm", "11536"),
-            WsToken("nse_cm", "Nifty 50"),   # index/instrument by name is allowed
+            WsToken("nse_cm", "Nifty 50"),  # index/instrument by name is allowed
         ])
 
         async for message in ws:
             if isinstance(message, SFeedScrip):
-                print(f"{message.trading_symbol} ({message.instrument_token}) "
-                      f"LTP: {message.last_traded_price}")
+                print(
+                    f"{message.trading_symbol} ({message.instrument_token}) "
+                    f"LTP: {message.last_traded_price}"
+                )
+
 
 asyncio.run(main())
 ```

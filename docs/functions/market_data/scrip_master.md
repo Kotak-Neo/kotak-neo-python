@@ -22,12 +22,11 @@ This returns just the matching file's URL (a string), not the CSV content itself
 ### Example
 
 ```python
-
 from neo_api_client import NeoAPI
 
 
-#Only consumer_key is required — no totp_login/totp_validate needed
-client = NeoAPI(environment='prod', consumer_key='your_consumer_key')
+# Only consumer_key is required — no totp_login/totp_validate needed
+client = NeoAPI(environment="prod", consumer_key="your_consumer_key")
 
 try:
     client.scrip_master()

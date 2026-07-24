@@ -457,13 +457,11 @@ class SFeedWebSocket:
         its trading symbol, which enriches subsequent feed messages.
         """
         await self._ws.send(
-            json.dumps(
-                {
-                    "event": event,
-                    "inputtoken": self._inputtoken(tokens),
-                    "ack_symbol": True,
-                }
-            )
+            json.dumps({
+                "event": event,
+                "inputtoken": self._inputtoken(tokens),
+                "ack_symbol": True,
+            })
         )
 
     async def _send_unsubscribe(self, event: str, tokens: list[WsToken]) -> None:

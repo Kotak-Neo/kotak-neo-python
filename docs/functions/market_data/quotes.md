@@ -5,10 +5,7 @@ Get real-time market quotes for one or multiple instruments including price, vol
 ## Function Signature
 
 ```python
-client.quotes(
-    instrument_tokens,
-    quote_type='all'
-)
+client.quotes(instrument_tokens, quote_type="all")
 ```
 
 > **Note:** Unlike most trading/portfolio methods, `quotes()` does not require a completed 2FA (TOTP) session — only `consumer_key` is required, since the underlying API authenticates via the `Authorization` header alone.
@@ -19,15 +16,12 @@ client.quotes(
 from neo_api_client import NeoAPI
 
 # Only consumer_key is required — no totp_login/totp_validate needed
-client = NeoAPI(
-    consumer_key='your-token-from-neo-app',
-    environment='prod'
-)
+client = NeoAPI(consumer_key="your-token-from-neo-app", environment="prod")
 
 # Get quotes for one or more instruments in a single call
 instrument_tokens = [
     {"instrument_token": "1333", "exchange_segment": "nse_cm"},  # HDFCBANK
-    {"instrument_token": "2885", "exchange_segment": "nse_cm"}   # RELIANCE
+    {"instrument_token": "2885", "exchange_segment": "nse_cm"},  # RELIANCE
 ]
 
 try:
@@ -58,12 +52,7 @@ except Exception as e:
 
 ### Instrument Token Format
 ```python
-[
-    {
-        "instrument_token": "1333",
-        "exchange_segment": "nse_cm"
-    }
-]
+[{"instrument_token": "1333", "exchange_segment": "nse_cm"}]
 ```
 
 ## Return Type

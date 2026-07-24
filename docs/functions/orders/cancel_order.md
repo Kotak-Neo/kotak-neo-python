@@ -2,7 +2,7 @@
 Cancel an order
 
 ```python
-client.cancel_order(order_id = "")
+client.cancel_order(order_id="")
 ```
 
 > **Note:** The cancel request is always sent straight to the backend — the exchange is the source of truth on whether an order (e.g. one that's already `complete`/`traded`/`rejected`/`cancelled`) can still be cancelled. The SDK does not pre-check the order book before sending. `isVerify` is retained for backward compatibility but has no effect on this behavior.
@@ -24,14 +24,14 @@ client.cancel_order(order_id = "")
 from neo_api_client import NeoAPI
 
 
-#First initialize session and generate session token
-client = NeoAPI(environment='prod', access_token=None, neo_fin_key=None)
-client.totp_login(mobilenumber="", ucc="", totp='')
+# First initialize session and generate session token
+client = NeoAPI(environment="prod", access_token=None, neo_fin_key=None)
+client.totp_login(mobilenumber="", ucc="", totp="")
 client.totp_validate(mpin="")
 
 try:
     # Cancel an order
-    client.cancel_order(order_id = "")
+    client.cancel_order(order_id="")
 except Exception as e:
     print("Exception when calling OrderApi->cancel_order: %s\n" % e)
 ```

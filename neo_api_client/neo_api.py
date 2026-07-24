@@ -690,9 +690,9 @@ class NeoAPI:
                     print(f"{function_name} is not a valid function name.")
                 else:
                     sig = inspect.signature(obj)
-                    arg_desc = ", ".join(
-                        [f"{param.name}: {param.annotation}" for param in sig.parameters.values()]
-                    )
+                    arg_desc = ", ".join([
+                        f"{param.name}: {param.annotation}" for param in sig.parameters.values()
+                    ])
                     print(f"{class_name}.{function_name}({arg_desc}): {obj.__doc__}")
         except Exception as e:
             return {

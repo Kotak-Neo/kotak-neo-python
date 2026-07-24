@@ -30,9 +30,9 @@ None
 from neo_api_client import NeoAPI
 
 # Initialize and login
-client = NeoAPI(environment='prod', consumer_key='your-consumer-key')
-client.totp_login(mobile_number='+919876543210', ucc='YOUR_UCC', totp='123456')
-client.totp_validate(mpin='123456')
+client = NeoAPI(environment="prod", consumer_key="your-consumer-key")
+client.totp_login(mobile_number="+919876543210", ucc="YOUR_UCC", totp="123456")
+client.totp_validate(mpin="123456")
 
 # Fetch the outbound IP seen by the server
 response = client.whatsmyip()

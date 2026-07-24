@@ -18,14 +18,11 @@ Before using any API functions, you must:
 from neo_api_client import NeoAPI
 
 # Initialize with consumer key (REQUIRED)
-client = NeoAPI(
-    consumer_key='your-token-from-neo-app',
-    environment='prod'
-)
+client = NeoAPI(consumer_key="your-token-from-neo-app", environment="prod")
 
 # Authenticate
-client.totp_login(mobile_number='+919876543210', ucc='ABC123', totp='123456')
-client.totp_validate(mpin='123456')
+client.totp_login(mobile_number="+919876543210", ucc="ABC123", totp="123456")
+client.totp_validate(mpin="123456")
 
 # Now you can use all API functions
 ```

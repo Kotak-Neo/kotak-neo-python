@@ -63,7 +63,7 @@ def test_should_retry_api_exception_without_status_or_category():
     exc.status = None
     # Ensure no category attribute is present on this instance.
     if hasattr(exc, "category"):
-        delattr(exc, "category")
+        del exc.category
     assert should_retry_exception(exc) is False
 
 
