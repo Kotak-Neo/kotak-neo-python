@@ -85,6 +85,11 @@ Documentation = "https://github.com/Kotak-Neo/kotak-neo-python/tree/main/docs"
 [tool.setuptools]
 include-package-data = true
 
+[tool.setuptools.package-data]
+# PEP 561 marker so type checkers/IDEs (Pylance, PyCharm, mypy) trust and use
+# this package's type hints for autocomplete and type checking.
+neo_api_client = ["py.typed"]
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["neo_api_client*"]
