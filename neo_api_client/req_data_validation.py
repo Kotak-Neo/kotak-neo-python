@@ -189,7 +189,6 @@ def modify_order_validation(
     trigger_price=None,
     disclosed_quantity=None,
     amo=None,
-    product=None,
 ):
     """Validate mandatory modify-order inputs before the request is built.
 
@@ -199,19 +198,9 @@ def modify_order_validation(
 
     modify_order has no exchange_segment parameter, so validity is always
     checked against the default allowed set (DAY, IOC).
-
-    ``product`` is optional; when given, only the exact canonical codes CNC,
-    NRML, MIS, MTF are accepted — aliases (e.g. "Normal", "Cash and Carry")
-    are rejected, not resolved.
     """
     # order_id (mandatory, non-blank)
     _require_non_blank(order_id, "order_id")
-
-    # Product (optional; when supplied, must be one of the exact canonical codes)
-    if product is not None:
-        _require_non_blank(product, "product")
-        if product not in place_order_product_allowed_values:
-            raise ApiValueError("Invalid product. Allowed values are CNC, NRML, MIS, MTF.")
 
     # Price (mandatory, non-blank numeric string)
     _require_non_blank(price, "price")

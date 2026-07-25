@@ -14,7 +14,7 @@ client.modify_order(
 )
 ````
 
-> **Note:** `product`, `dd`, `filled_quantity`, and `isVerify` do not need to be passed — they're optional and already default to sensible values (see the Parameters table below). Only pass them if you specifically need to override the default.
+> **Note:** `product`, `dd`, and `filled_quantity` are not accepted by `modify_order()` — they aren't required by the backend for a modify request. The optional order-book re-verification feature (`isVerify`) has also been removed; `modify_order()` always returns the raw OMS acknowledgement.
 
 > **Note:** The modify request is always sent straight to the backend — the exchange is the source of truth on whether an order (e.g. one that's already `complete`/`traded`/`rejected`/`cancelled`) can still be modified. The SDK does not pre-check the order book or fill in missing fields from it before sending.
 >
@@ -62,15 +62,6 @@ except Exception as e:
 | *amo*                | YES/NO - (Default Value - NO)                                                                         | Str [optional] |
 | *disclosed_quantity* | (Default Value - 0)                                                                                                      | Str [optional] |
 | *trigger_price*      | Required for SL/SL-M stop-loss orders. Optional for L/MKT — if omitted (or passed as `None`), the SDK sends `"0"` to the API automatically, since the REST field is mandatory even though its value doesn't matter for those order types.                                                          | Str [optional] |
-
-The following parameters do **not** need to be passed — they default to sensible values and only need to be supplied to override the default:
-
-| Name                 | Description                                                                                                              | Type           |
-|----------------------|--------------------------------------------------------------------------------------------------------------------------|----------------|
-| *product*            | Not required. Allowed values if supplied (exact match only, aliases are not accepted): CNC, NRML, MIS, MTF | Str [optional] |
-| *dd*                 | Not required. Default Value - “NA”                                                                                                     | Str [optional] |
-| *filled_quantity*    | Not required. Default Value - 0                                                                                                      | Str [optional] |
-| *isVerify*           | Not required. Default Value - False. A modify request is acknowledged asynchronously — the OMS returns `stat: "Ok"` when it accepts the request, but the exchange may reject it moments later (e.g. price outside the allowed band), which only shows up afterwards on the order book. When `True`, the SDK re-reads the order book after the modify and returns a failure dict (`stat: "Not_Ok"` with the rejection reason) if the order ended up rejected/cancelled. Leaving it `False` returns the raw OMS acknowledgement. | boolean [optional] |
 
 ### Return type
 

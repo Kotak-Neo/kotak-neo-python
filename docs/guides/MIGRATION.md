@@ -166,13 +166,13 @@ Mandatory fields (`exchange_segment`, `product`, `price`, `order_type`,
 and well-formed (numeric price, positive-integer quantity, …). Blank or malformed
 values now raise a validation error rather than being silently sent.
 
-### 3.7 `modify_order` — `instrument_token`/`exchange_segment`/`trading_symbol`/`transaction_type` removed
+### 3.7 `modify_order` — `instrument_token`/`exchange_segment`/`trading_symbol`/`transaction_type`/`product`/`dd`/`filled_quantity` removed
 
 `modify_order()` no longer accepts `instrument_token`, `exchange_segment`,
-`trading_symbol`, or `transaction_type` — they were never mandatory (the
-backend only requires `order_id`, `price`, `order_type`, `quantity`, and
-`validity`), and the "quick-modify" vs. "order-id-only" distinction they
-existed for is gone. Drop them from any call:
+`trading_symbol`, `transaction_type`, `product`, `dd`, or `filled_quantity` —
+none of them are required by the backend for a modify request, and the
+"quick-modify" vs. "order-id-only" distinction the first four existed for is
+gone. Drop them from any call:
 
 ```python
 # Before (v2.2.7, "quick-modify" path)
@@ -196,28 +196,36 @@ client.modify_order(
     order_type="L",
     quantity="1",
     validity="DAY",
-    product="CNC",
 )
 ```
 
-`product` is still accepted (optional; exact canonical codes only — see §3.1).
+### 3.8 `modify_order` — order-book re-verification (`isVerify`) removed
 
-### 3.8 `modify_order` — optional exchange-rejection check (`isVerify`)
-
-Order modification is acknowledged asynchronously: the server returns
-`stat: "Ok"` when it *accepts* the request, but the exchange may reject it moments
-later (e.g. a price outside the allowed band), which appears on the order book
-afterwards. Pass `isVerify=True` to have the SDK re-check the order book and
-return a failure if the modification was rejected:
+`modify_order()` no longer accepts `isVerify`. The order-book re-check that
+flag used to trigger — re-reading the order book after a modify to detect a
+later exchange-side rejection (e.g. price outside the allowed band) — has
+been removed. `modify_order()` now always returns the raw OMS acknowledgement
+(`stat: "Ok"` on acceptance); confirm the final state via the order feed or
+order history instead.
 
 ```python
-result = client.modify_order(
+# Before — no longer accepted
+client.modify_order(
     order_id="250101000000001",
     price="1450",
     order_type="L",
     quantity="1",
     validity="DAY",
-    isVerify=True,  # new in 2.2.x — confirm the final outcome
+    isVerify=True,
+)
+
+# Now
+client.modify_order(
+    order_id="250101000000001",
+    price="1450",
+    order_type="L",
+    quantity="1",
+    validity="DAY",
 )
 ```
 
@@ -418,10 +426,9 @@ See **[Order Feed](../functions/websocket/order_feed.md)**.
 - [ ] Wrap order/API calls in `try/except` for the new exception hierarchy.
 - [ ] Rewrite WebSocket code to the async `create_websocket()` / `create_order_feed()` model.
 - [ ] Replace `subscribe_to_orderfeed` and any cover/bracket cancel calls.
-- [ ] (Optional) Add `isVerify=True` to `modify_order` where you need confirmed outcomes.
 - [ ] Drop `segment`/`exchange`/`product` from `limits()` and `market_protection` from `place_order`/`modify_order` calls.
 - [ ] Drop the bracket/cover-order-only `place_order()` params (`pf`, `tag`, `scrip_token`, `square_off_type`, `stop_loss_type`, `stop_loss_value`, `square_off_value`, `last_traded_price`, `trailing_stop_loss`, `trailing_sl_value`).
-- [ ] Drop `instrument_token`, `exchange_segment`, `trading_symbol`, and `transaction_type` from `modify_order()` calls.
+- [ ] Drop `instrument_token`, `exchange_segment`, `trading_symbol`, `transaction_type`, `product`, `dd`, `filled_quantity`, and `isVerify` from `modify_order()` calls.
 - [ ] Replace `trade_report(order_id=...)` with `order_report(order_id=...)` for single-order lookups.
 - [ ] Replace `margin_required()` `exchange_segment`/`order_type` aliases (e.g. `"NSE"`, `"Limit"`) with their exact canonical codes.
 

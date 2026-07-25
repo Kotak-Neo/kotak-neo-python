@@ -382,47 +382,16 @@ def test_modify_order_validation_blank_amo():
         modify_order_validation(**_valid_modify_kwargs(), amo="")
 
 
-def test_modify_order_validation_product_not_supplied_ok():
-    """product is optional for modify_order."""
-    modify_order_validation(**_valid_modify_kwargs())
-
-
-@pytest.mark.parametrize("product", ["CNC", "NRML", "MIS", "MTF"])
-def test_modify_order_validation_allowed_products(product):
-    """Only the exact canonical codes CNC/NRML/MIS/MTF are accepted."""
-    modify_order_validation(**_valid_modify_kwargs(), product=product)
-
-
-@pytest.mark.parametrize(
-    "product",
-    [
-        "CO",
-        "BO",
-        "INTRADAY",
-        "XYZ",
-        # Aliases are rejected, not resolved.
-        "Normal",
-        "Cash and Carry",
-        "cnc",
-        "mis",
-        "mtf",
-        "Intraday",
-    ],
-)
-def test_modify_order_validation_rejects_disallowed_products(product):
-    with pytest.raises(ApiValueError, match="Allowed values are CNC, NRML, MIS, MTF"):
-        modify_order_validation(**_valid_modify_kwargs(), product=product)
-
-
-def test_modify_order_validation_blank_product():
-    with pytest.raises(ApiValueError, match="blank|mandatory"):
-        modify_order_validation(**_valid_modify_kwargs(), product="")
-
-
 def test_modify_order_validation_rejects_unexpected_exchange_segment_kwarg():
     """exchange_segment is no longer a modify_order parameter."""
     with pytest.raises(TypeError):
         modify_order_validation(**_valid_modify_kwargs(), exchange_segment="nse_cm")
+
+
+def test_modify_order_validation_rejects_unexpected_product_kwarg():
+    """product is no longer a modify_order parameter."""
+    with pytest.raises(TypeError):
+        modify_order_validation(**_valid_modify_kwargs(), product="CNC")
 
 
 # ---- order_history_validation -----------------------------------------------

@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import inspect
+from typing import TYPE_CHECKING, Any, NoReturn
 
 from neo_api_client import req_data_validation, settings
 from neo_api_client.api_client import ApiClient
@@ -17,6 +20,10 @@ from neo_api_client.services.scrip_search import ScripSearch
 from neo_api_client.services.totp import TotpAPI
 from neo_api_client.services.trade_report import TradeReportAPI
 from neo_api_client.utils.neo_utility import NeoUtility
+
+if TYPE_CHECKING:
+    from neo_api_client.websocket.feed import SFeedWebSocket
+    from neo_api_client.websocket.orderfeed import OrderFeedWebSocket
 
 
 class NeoAPI:
@@ -64,7 +71,13 @@ class NeoAPI:
         ```
     """
 
-    def __init__(self, consumer_key=None, environment="prod", access_token=None, neo_fin_key=None):
+    def __init__(
+        self,
+        consumer_key: str | None = None,
+        environment: str = "prod",
+        access_token: str | None = None,
+        neo_fin_key: str | None = None,
+    ) -> None:
         """
         Initializes the NeoAPI client with authentication credentials.
 
@@ -129,18 +142,18 @@ class NeoAPI:
 
     def place_order(
         self,
-        exchange_segment,
-        product,
-        price,
-        order_type,
-        quantity,
-        validity,
-        trading_symbol,
-        transaction_type,
-        amo="NO",
-        disclosed_quantity="0",
-        trigger_price="0",
-    ):
+        exchange_segment: str,
+        product: str,
+        price: str,
+        order_type: str,
+        quantity: str,
+        validity: str,
+        trading_symbol: str,
+        transaction_type: str,
+        amo: str = "NO",
+        disclosed_quantity: str = "0",
+        trigger_price: str | None = "0",
+    ) -> dict[str, Any]:
         """
         Places an order on the specified exchange segment and product, for a given trading symbol, transaction type,
         order type, quantity, and price.
@@ -207,7 +220,9 @@ class NeoAPI:
         else:
             return {"Error Message": "Complete the 2fa process before accessing this application"}
 
-    def cancel_order(self, order_id, amo="NO", isVerify=False):
+    def cancel_order(
+        self, order_id: str, amo: str = "NO", isVerify: bool = False
+    ) -> dict[str, Any]:
         """
         Cancels an order with the given `order_id` using the NEO API.
 
@@ -239,7 +254,7 @@ class NeoAPI:
         else:
             return {"Error Message": "Complete the 2fa process before accessing this application"}
 
-    def order_report(self, order_id=None):
+    def order_report(self, order_id: str | None = None) -> dict[str, Any]:
         """
         Retrieves orders from the order book using the NEO API.
 
@@ -265,7 +280,7 @@ class NeoAPI:
         else:
             return {"Error Message": "Complete the 2fa process before accessing this application"}
 
-    def order_history(self, order_id):
+    def order_history(self, order_id: str) -> dict[str, Any]:
         """
         Retrieves the order history for a given order ID using the NEO API.
 
@@ -288,7 +303,7 @@ class NeoAPI:
         else:
             return {"Error Message": "Complete the 2fa process before accessing this application"}
 
-    def trade_report(self):
+    def trade_report(self) -> dict[str, Any]:
         """
         Retrieves the full list of trades using the NEO API.
 
@@ -308,19 +323,15 @@ class NeoAPI:
 
     def modify_order(
         self,
-        order_id,
-        price,
-        order_type,
-        quantity,
-        validity,
-        product=None,
-        trigger_price="0",
-        dd="NA",
-        disclosed_quantity="0",
-        filled_quantity="0",
-        amo="NO",
-        isVerify=False,
-    ):
+        order_id: str,
+        price: str,
+        order_type: str,
+        quantity: str,
+        validity: str,
+        trigger_price: str | None = "0",
+        disclosed_quantity: str = "0",
+        amo: str = "NO",
+    ) -> dict[str, Any]:
         """
         Modify an existing order with new values for its parameters.
 
@@ -331,25 +342,14 @@ class NeoAPI:
             order_type (str): The new order type for the order.
             quantity (int): The new quantity of the order.
             validity (str): The new validity for the order.
-            product (str, optional): The product type for the order. Defaults to None.
             trigger_price (float, optional): The new trigger price for the order. Defaults to "0".
-            dd (str, optional): The new disclosed quantity for the order. Defaults to "NA".
             disclosed_quantity (str, optional): The new disclosed quantity for the order. Defaults to "0".
-            filled_quantity (str, optional): The new filled quantity for the order. Defaults to "0".
-            isVerify (bool, optional): Defaults to False. A modify request is
-                acknowledged asynchronously — the OMS returns ``stat: "Ok"`` when
-                it accepts the request, but the exchange may reject it moments
-                later (e.g. price outside the allowed band), which only shows up
-                afterwards on the order book. When True, the SDK re-reads the
-                order book after the modify and returns a failure dict
-                (``stat: "Not_Ok"`` with the rejection reason) if the order ended
-                up rejected/cancelled. Leaving it False returns the raw OMS
-                acknowledgement; confirm the final state via the order feed or
-                order history.
 
         The modify request is always sent straight to the backend — the
         exchange is the source of truth on whether an order (e.g. one that's
         already complete/traded/rejected/cancelled) can still be modified.
+        The raw OMS acknowledgement is returned as-is; confirm the final state
+        via the order feed or order history.
 
         Note:
         Market protection ("mp") is always sent as "0" — it is not caller-configurable.
@@ -370,7 +370,6 @@ class NeoAPI:
                     trigger_price=trigger_price,
                     disclosed_quantity=disclosed_quantity,
                     amo=amo,
-                    product=product,
                 )
             except Exception as e:
                 return {"Error": e}
@@ -383,9 +382,6 @@ class NeoAPI:
             if order_type in settings.NO_TRIGGER_ORDER_TYPES and trigger_price is None:
                 trigger_price = "0"
 
-            if product is not None:
-                product = settings.product[product]
-
             try:
                 return ModifyOrder(self.api_client).quick_modification(
                     order_id=order_id,
@@ -393,20 +389,16 @@ class NeoAPI:
                     order_type=order_type,
                     quantity=quantity,
                     validity=validity,
-                    product=product,
                     trigger_price=trigger_price,
-                    dd=dd,
                     disclosed_quantity=disclosed_quantity,
-                    filled_quantity=filled_quantity,
                     amo=amo,
-                    is_verify=isVerify,
                 )
             except Exception:
                 return {"Error": "Exception has been occurred while connecting to API"}
         else:
             return {"Error Message": "Complete the 2fa process before accessing this application"}
 
-    def positions(self):
+    def positions(self) -> dict[str, Any]:
         """
         Retrieves a list of positions using the NEO API.
 
@@ -425,7 +417,7 @@ class NeoAPI:
         else:
             return {"Error Message": "Complete the 2fa process before accessing this application"}
 
-    def holdings(self):
+    def holdings(self) -> dict[str, Any]:
         """
         Retrieves the current holdings for the portfolio using the NEO API.
 
@@ -446,23 +438,23 @@ class NeoAPI:
 
     def margin_required(
         self,
-        exchange_segment,
-        price,
-        order_type,
-        product,
-        quantity,
-        instrument_token,
-        transaction_type,
-        trigger_price=None,
-        broker_name="KOTAK",
-        branch_id="ONLINE",
-        stop_loss_type=None,
-        stop_loss_value=None,
-        square_off_type=None,
-        square_off_value=None,
-        trailing_stop_loss=None,
-        trailing_sl_value=None,
-    ):
+        exchange_segment: str,
+        price: str,
+        order_type: str,
+        product: str,
+        quantity: str,
+        instrument_token: str,
+        transaction_type: str,
+        trigger_price: str | None = None,
+        broker_name: str = "KOTAK",
+        branch_id: str = "ONLINE",
+        stop_loss_type: str | None = None,
+        stop_loss_value: str | None = None,
+        square_off_type: str | None = None,
+        square_off_value: str | None = None,
+        trailing_stop_loss: str | None = None,
+        trailing_sl_value: str | None = None,
+    ) -> dict[str, Any]:
         """
         Calculates the margin required for a given trade using the NEO API.
 
@@ -533,7 +525,7 @@ class NeoAPI:
         else:
             return {"Error Message": "Complete the 2fa process before accessing this application"}
 
-    def scrip_master(self, exchange_segment=None):
+    def scrip_master(self, exchange_segment: str | None = None) -> dict[str, Any]:
         """
         Retrieves the list of scrips available in the given exchange segment using the NEO API.
 
@@ -559,7 +551,7 @@ class NeoAPI:
         except Exception:
             return {"Error": "Exchange Segment is not available"}
 
-    def limits(self):
+    def limits(self) -> dict[str, Any]:
         """
         Retrieves the limits across all segments, exchanges, and products
         using the NEO API.
@@ -581,13 +573,13 @@ class NeoAPI:
 
     def search_scrip(
         self,
-        exchange_segment,
-        symbol="",
-        expiry=None,
-        option_type=None,
-        strike_price=None,
-        ignore_50multiple=True,
-    ):
+        exchange_segment: str,
+        symbol: str = "",
+        expiry: str | None = None,
+        option_type: str | None = None,
+        strike_price: str | None = None,
+        ignore_50multiple: bool = True,
+    ) -> dict[str, Any]:
         """
         Search for a scrip based on the given parameters.
 
@@ -658,7 +650,9 @@ class NeoAPI:
         "`client.create_websocket()` (see neo_api_client.websocket.feed.SFeedWebSocket)."
     )
 
-    def subscribe(self, instrument_tokens, isIndex=False, isDepth=False):
+    def subscribe(
+        self, instrument_tokens: list[dict[str, str]], isIndex: bool = False, isDepth: bool = False
+    ) -> NoReturn:
         """
         Removed in 2.2.0. Use :meth:`create_websocket` (SFeed WebSocket) instead.
 
@@ -667,7 +661,9 @@ class NeoAPI:
         """
         raise NotImplementedError(self._LEGACY_WS_MESSAGE)
 
-    def un_subscribe(self, instrument_tokens, isIndex=False, isDepth=False):
+    def un_subscribe(
+        self, instrument_tokens: list[dict[str, str]], isIndex: bool = False, isDepth: bool = False
+    ) -> NoReturn:
         """
         Removed in 2.2.0. Use :meth:`create_websocket` (SFeed WebSocket) instead.
 
@@ -676,7 +672,7 @@ class NeoAPI:
         """
         raise NotImplementedError(self._LEGACY_WS_MESSAGE)
 
-    def help(self, function_name=None):
+    def help(self, function_name: str | None = None) -> dict[str, Any] | None:
         class_name = NeoAPI.__name__
         try:
             if function_name is None:
@@ -699,8 +695,9 @@ class NeoAPI:
                 "Error": "Some Exception while connecting to help, Try after some time!",
                 "message": e,
             }
+        return None
 
-    def logout(self):
+    def logout(self) -> dict[str, Any]:
         """
         Logs out the user from the NEO API.
 
@@ -726,7 +723,7 @@ class NeoAPI:
         else:
             return {"Error Message": "Complete the 2fa process before accessing this application"}
 
-    def whatsmyip(self):
+    def whatsmyip(self) -> dict[str, Any]:
         """
         Retrieves the client's outbound IP address as seen by the NEO backend.
 
@@ -749,7 +746,7 @@ class NeoAPI:
         else:
             return {"Error Message": "Complete the 2fa process before accessing this application"}
 
-    def subscribe_to_orderfeed(self):
+    def subscribe_to_orderfeed(self) -> NoReturn:
         """
         Removed in 2.2.0. Use :meth:`create_websocket` (SFeed WebSocket) instead.
 
@@ -758,7 +755,12 @@ class NeoAPI:
         """
         raise NotImplementedError(self._LEGACY_WS_MESSAGE)
 
-    def totp_login(self, mobile_number=None, ucc=None, totp=None):
+    def totp_login(
+        self,
+        mobile_number: str | None = None,
+        ucc: str | None = None,
+        totp: str | None = None,
+    ) -> dict[str, Any]:
         """
         Step 1: Login using TOTP to generate a view token (read-only access).
 
@@ -819,7 +821,7 @@ class NeoAPI:
         )
         return totp_login
 
-    def totp_validate(self, mpin=None):
+    def totp_validate(self, mpin: str | None = None) -> dict[str, Any]:
         """
         Step 2: Validate MPIN to upgrade from view token to trade token (full trading access).
 
@@ -874,7 +876,7 @@ class NeoAPI:
         totp_validate = TotpAPI(self.api_client).totp_validate(mpin=mpin)
         return totp_validate
 
-    def create_websocket(self, url: str = None, **kwargs):
+    def create_websocket(self, url: str | None = None, **kwargs: Any) -> SFeedWebSocket:
         """
         Create a modern async/await SFeed WebSocket client.
 
@@ -944,7 +946,7 @@ class NeoAPI:
             **kwargs,
         )
 
-    def create_order_feed(self, **kwargs):
+    def create_order_feed(self, **kwargs: Any) -> OrderFeedWebSocket:
         """
         Create an async/await Order & Position streaming WebSocket client.
 
@@ -997,7 +999,9 @@ class NeoAPI:
             **kwargs,
         )
 
-    def quotes(self, instrument_tokens=None, quote_type=None):
+    def quotes(
+        self, instrument_tokens: list[dict[str, str]] | None = None, quote_type: str | None = None
+    ) -> dict[str, Any]:
         """
         Retrieves quotes for the given instrument tokens.
 

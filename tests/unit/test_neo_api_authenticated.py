@@ -531,7 +531,7 @@ def test_margin_required_invalid_returns_error(authenticated_client):
 
 
 def test_modify_order_success(authenticated_client, requests_mock):
-    """modify_order() with product supplied."""
+    """modify_order() happy path."""
     url = authenticated_client.configuration.get_url_details("modify_order")
     requests_mock.post(url, json={"stat": "Ok", "nOrdNo": "12345"}, status_code=200)
 
@@ -541,43 +541,12 @@ def test_modify_order_success(authenticated_client, requests_mock):
         order_type="L",
         quantity="2",
         validity="DAY",
-        product="CNC",
     )
     assert result["stat"] == "Ok"
 
 
-def test_modify_order_defaults_trigger_price_for_limit_with_product(
-    authenticated_client, monkeypatch
-):
-    """trigger_price=None is coerced to '0' for L/MKT, with product supplied."""
-    captured = {}
-
-    def fake_quick_modification(self, **kwargs):
-        captured.update(kwargs)
-        return {"stat": "Ok"}
-
-    monkeypatch.setattr(
-        "neo_api_client.neo_api.ModifyOrder.quick_modification", fake_quick_modification
-    )
-
-    authenticated_client.modify_order(
-        order_id="12345",
-        price="105",
-        order_type="L",
-        quantity="2",
-        validity="DAY",
-        product="CNC",
-        trigger_price=None,
-    )
-
-    assert captured["trigger_price"] == "0"
-
-
-def test_modify_order_defaults_trigger_price_for_limit_mandatory_only(
-    authenticated_client, monkeypatch
-):
-    """trigger_price=None is coerced to '0' for L/MKT, with only the
-    mandatory fields supplied (no product)."""
+def test_modify_order_defaults_trigger_price_for_limit(authenticated_client, monkeypatch):
+    """trigger_price=None is coerced to '0' for L/MKT."""
     captured = {}
 
     def fake_quick_modification(self, **kwargs):
@@ -729,22 +698,6 @@ def test_order_report_success(authenticated_client, requests_mock):
     assert result["stat"] == "Ok"
 
 
-def test_modify_order_with_only_mandatory_fields(authenticated_client, requests_mock):
-    """modify_order() with only the mandatory fields (no product) sends the
-    modification straight to the backend."""
-    modify_url = authenticated_client.configuration.get_url_details("modify_order")
-    requests_mock.post(modify_url, json={"stat": "Ok", "nOrdNo": "12345"}, status_code=200)
-
-    result = authenticated_client.modify_order(
-        order_id="12345",
-        price="105",
-        order_type="L",
-        quantity="2",
-        validity="DAY",
-    )
-    assert result["stat"] == "Ok"
-
-
 def test_search_scrip_success(authenticated_client, requests_mock):
     """search_scrip() happy path returns filtered scrip data."""
     url = authenticated_client.configuration.get_url_details("scrip_master")
@@ -824,23 +777,6 @@ def test_help_socket_keyword_maps_to_create_websocket(authenticated_client):
 
 def test_modify_order_exception(authenticated_client, requests_mock):
     """modify_order() returns an Error dict when the API call fails."""
-    modify_url = authenticated_client.configuration.get_url_details("modify_order")
-    requests_mock.post(modify_url, status_code=500, text="boom")
-
-    result = authenticated_client.modify_order(
-        order_id="12345",
-        price="105",
-        order_type="L",
-        quantity="2",
-        validity="DAY",
-        product="CNC",
-    )
-    assert "Error" in result
-
-
-def test_modify_order_exception_with_mandatory_only(authenticated_client, requests_mock):
-    """modify_order() with only the mandatory fields returns an Error dict
-    when the API call fails."""
     modify_url = authenticated_client.configuration.get_url_details("modify_order")
     requests_mock.post(modify_url, status_code=500, text="boom")
 
