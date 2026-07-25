@@ -5,14 +5,17 @@ This guide helps you upgrade the **Kotak Neo Python SDK** (`neo_api_client`) fro
 
 The package import name is unchanged (`neo_api_client`), so your `import`
 statements keep working. However, several APIs changed in ways that **require
-code updates** — most importantly the WebSocket client (now async/await), error
-handling (now raises exceptions), and stricter order-parameter validation.
+code updates** — most importantly the WebSocket client (now async/await) and
+stricter order-parameter validation. Error handling is **largely unchanged**
+(see §4) — this is easy to assume changed and it's worth reading that section
+even if you skim the rest.
 
 > **TL;DR of what you must change**
 > 1. WebSocket code must move from callbacks to `async`/`await`.
 > 2. Order placement rejects `CO`/`BO` products, generic/currency-derivatives exchange segments (only exact codes like `nse_cm`/`bse_fo` are accepted), order-type aliases like `"Limit"`/`"Market"` (only exact codes `L`/`MKT`/`SL`/`SL-M` are accepted), and non-`DAY`/`IOC` validity.
-> 3. Errors are now raised as exceptions (wrap calls in `try/except`).
-> 4. A few methods were removed (`cancel_cover_order`, `cancel_bracket_order`).
+> 3. `NeoAPI(...)` — pass `consumer_key` and other args as **keywords**, not positionally: the parameter order changed and the `environment` default flipped from `"uat"` to `"prod"` (see §2).
+> 4. A few methods were removed (`cancel_cover_order`, `cancel_bracket_order`); `place_order()`/`modify_order()`/`trade_report()`/`limits()` had parameters removed (see §5, §7).
+> 5. Error handling for REST calls (`place_order`, `modify_order`, etc.) is **not** switching to exceptions — keep checking `if "Error" in result` (see §4).
 
 ---
 
@@ -36,7 +39,9 @@ the old SDK's exact pins, remove those pins — the new SDK uses loose ranges an
 
 ## 2. Authentication (unchanged in shape, but confirm your flow)
 
-The TOTP two-step flow is the same in both versions:
+The TOTP two-step flow (`totp_login` → `totp_validate`) is the same in both
+versions — but **`NeoAPI(...)`'s constructor changed in a way that silently
+breaks positional calls.** Always pass its arguments as keywords:
 
 ```python
 from neo_api_client import NeoAPI
@@ -46,19 +51,38 @@ client.totp_login(mobile_number="+919876543210", ucc="YOUR_UCC", totp="123456")
 client.totp_validate(mpin="1234")
 ```
 
-Points to verify when upgrading:
+### ⚠️ `NeoAPI(...)` parameter order changed — silent breakage risk
+
+| | v2.0.2 | v2.2.x |
+|---|---|---|
+| Parameter order | `environment, access_token, neo_fin_key, consumer_key` | `consumer_key, environment, access_token, neo_fin_key` |
+| `environment` default | `"uat"` | `"prod"` |
+
+If your v2.0.2 code constructed the client **positionally** — e.g.
+`NeoAPI("prod", None, None, "my-consumer-key")` — upgrading will **not**
+raise an error. It will silently assign `"prod"` to `consumer_key` and drop
+`"my-consumer-key"` into an unused slot, and authentication will fail with no
+obvious cause. Switch to keyword arguments (`NeoAPI(consumer_key=..., environment=...)`)
+before upgrading, and verify: if you previously relied on the `"uat"` default
+by omitting `environment=` entirely, you're now defaulting to **production**.
+
+Other points to verify when upgrading:
 
 - **Use the keyword `mobile_number`** (with underscore). Some older doc snippets
   showed `mobilenumber` (one word); that was never the real parameter name and
   raises `TypeError`.
 - The legacy `login()` / `generateOTP()` / `session_2fa()` password-based flow and
-  `customer_key` / `customer_secret` do **not** exist. Use `consumer_key` +
-  `totp_login` + `totp_validate` only.
-- `environment="prod"` is the default and correct value for all customers.
+  `customer_key` / `customer_secret` do **not** exist in either version — grepping
+  v2.0.2's source shows they were never actually implemented, only referenced in
+  its docstring/demo script. If you copied from those, switch to `consumer_key` +
+  `totp_login` + `totp_validate`.
 - **Blank/missing fields are rejected client-side.** `totp_login()`/`totp_validate()`
   reject a blank/missing `mobile_number`/`ucc`/`totp`/`mpin` before sending anything,
   using the same error shape the backend itself returns for this case, e.g.:
   `{"error": [{"code": "400", "message": "Missing required field 'MobileNumber'"}]}`.
+  This is additive (v2.0.2 had no such guard) — if a network failure happens
+  during `totp_login`/`totp_validate` itself (not a blank-field case), an
+  `ApiException` still propagates uncaught, unchanged from v2.0.2 (see §4).
 
 ---
 
@@ -236,12 +260,71 @@ always sent (defaults to `"NO"`).
 
 ---
 
-## 4. Error handling — exceptions instead of silent dicts
+## 4. Error handling — mostly unchanged; don't switch to `try/except` for REST calls
 
-**This is the most impactful behavioral change.** In v2.0.2 many methods swallowed
-errors and returned dicts like `{"Error": <exception>}` or
-`{"Error Message": "Complete the 2fa process ..."}`, so `try/except` around calls
-did nothing. In v2.2.7 the SDK raises a typed exception hierarchy.
+**This is not the sweeping change it might look like.** `place_order()`,
+`modify_order()`, `cancel_order()`, `order_report()`, `order_history()`,
+`trade_report()`, `positions()`, `holdings()`, `margin_required()`, `limits()`,
+`scrip_master()`, `search_scrip()`, `logout()`, and `whatsmyip()` all still
+catch their own errors internally and return a dict — exactly like v2.0.2:
+
+```python
+result = client.place_order(
+    exchange_segment="nse_cm",
+    product="CNC",
+    price="1500",
+    order_type="Limit",  # invalid — only exact codes L/MKT/SL/SL-M are accepted (§3.3)
+    quantity="1",
+    validity="DAY",
+    trading_symbol="RELIANCE-EQ",
+    transaction_type="B",
+)
+# result == {"Error": ApiValueError("Invalid order type. Allowed values are L, MKT, SL, SL-M.")}
+# No exception was raised — place_order() never raises for input-validation or
+# network failures. Keep checking the response, don't wrap the call in try/except:
+if "Error" in result or "error" in result:
+    print("Order failed:", result)
+```
+
+**What actually changed:** the checks that produce that `{"Error": ...}` dict
+got stricter (§3) and a couple of methods gained new failure dicts (e.g. the
+`stCode: 1021` / `status_code: 400` shape on an already-complete order —
+see [modify_order.md](../functions/orders/modify_order.md)) — but the *shape*
+of a failure (a dict with an `"Error"`/`"error"`/`"Error Message"` key) is
+the same as v2.0.2 for every method above. **Action:** if your v2.0.2 code
+checked `if "Error" in response:`, no change is needed here.
+
+### Where exceptions genuinely are raised
+
+- **`totp_login()` / `totp_validate()`** — a network-level failure (e.g. the
+  host is unreachable) raises `ApiException` **uncaught**, in both v2.0.2 and
+  v2.2.x. This is the one place in the REST API surface where wrapping the
+  call in `try/except ApiException` is warranted:
+
+  ```python
+  from neo_api_client import NeoAPI
+  from neo_api_client.exceptions import ApiException
+
+  try:
+      client.totp_login(mobile_number="+919876543210", ucc="YOUR_UCC", totp="123456")
+  except ApiException as e:
+      print("Network/API error during login:", e)
+  ```
+
+  Note `ApiException` is a plain `Exception` subclass, not part of the
+  `NeoAPIException` hierarchy below — `except NeoAPIException` will **not**
+  catch it.
+
+- **The async WebSocket clients** (`SFeedWebSocket`, `OrderFeedWebSocket` —
+  see §6) do raise real exceptions: `AuthenticationError`, `ConnectionError`,
+  and friends from the typed hierarchy below. This is new in v2.2.x, since
+  the WebSocket client itself is new.
+
+- **The optional rate limiter** (off by default; only active if you construct
+  the client with `enable_rate_limiting=True`) raises `TimeoutError` when a
+  request can't get a token in time.
+
+The full typed hierarchy still exists and is exported for these cases:
 
 ```python
 from neo_api_client import (
@@ -252,28 +335,10 @@ from neo_api_client import (
     NetworkError,
     OrderError,
 )
-
-try:
-    client.place_order(
-        exchange_segment="nse_cm",
-        product="CNC",
-        price="1500",
-        order_type="L",
-        quantity="1",
-        validity="DAY",
-        trading_symbol="RELIANCE-EQ",
-        transaction_type="B",
-    )
-except ValidationError as e:
-    print("Invalid order parameters:", e)
-except AuthenticationError:
-    print("Session invalid — re-login")
-except NeoAPIException as e:
-    print("API error:", e)
 ```
 
-**Action:** review any code that inspected `response["Error"]` and switch to
-`try/except`.
+Use it around WebSocket connect/subscribe calls, not around `place_order()`
+and friends.
 
 ---
 
@@ -421,9 +486,10 @@ See **[Order Feed](../functions/websocket/order_feed.md)**.
 - [ ] Bump Python to 3.10+ and `pip install --upgrade kotakneoapi`.
 - [ ] Remove any exact transitive pins carried over from v2.0.2.
 - [ ] Confirm auth uses `consumer_key` + `totp_login(mobile_number=...)` + `totp_validate(mpin=...)`.
+- [ ] Pass `NeoAPI(...)` arguments as **keywords**, not positionally — the parameter order changed and `environment` now defaults to `"prod"` instead of `"uat"` (see §2).
 - [ ] Replace `product="CO"/"BO"`, `exchange_segment="CDS"/"cde_fo"/"BCD"/"bcs-fo"`, generic segment aliases (`NSE`/`BSE`/`NFO`/`BFO`/`MCX`), order-type aliases (`"Limit"`/`"Market"`/`"Stop loss limit"`/`"Stop loss market"`/`"SP"`/`"2L"`/`"3L"`), and `validity="GTC"/"EOS"/"GTD"` usages in `place_order()`/`modify_order()`.
 - [ ] Replace `price="0"`/blank on `L`/`SL` orders with a real limit price.
-- [ ] Wrap order/API calls in `try/except` for the new exception hierarchy.
+- [ ] **Do not** wrap `place_order`/`modify_order`/`cancel_order`/etc. in `try/except` expecting exceptions — they still return `{"Error": ...}` dicts, unchanged from v2.0.2 (see §4). Only wrap `totp_login`/`totp_validate` (may raise `ApiException` on network failure) and the WebSocket clients (raise the typed exception hierarchy).
 - [ ] Rewrite WebSocket code to the async `create_websocket()` / `create_order_feed()` model.
 - [ ] Replace `subscribe_to_orderfeed` and any cover/bracket cancel calls.
 - [ ] Drop `segment`/`exchange`/`product` from `limits()` and `market_protection` from `place_order`/`modify_order` calls.

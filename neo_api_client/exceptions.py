@@ -122,7 +122,6 @@ class ApiException(OpenApiException):
         if self.body:
             error_message += f"HTTP response body: {self.body}\n"
         self.error_message = error_message
-        print("ERROR msg", self.error_message)
         return self.error_message
 
 
