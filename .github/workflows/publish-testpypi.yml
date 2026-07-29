@@ -1,8 +1,7 @@
-name: Publish Kotak Neo SDK to PyPI
+name: Publish Kotak Neo SDK to TestPyPI
 
 on:
-  release:
-    types: [published]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -30,13 +29,13 @@ jobs:
           name: dist
           path: dist/
 
-  publish-pypi:
-    name: Publish to PyPI
+  publish-testpypi:
+    name: Publish to TestPyPI
     needs: build
     runs-on: ubuntu-24.04
     environment:
-      name: pypi
-      url: https://pypi.org/p/kotakneoapi
+      name: testpypi
+      url: https://test.pypi.org/p/kotakneoapi
     permissions:
       id-token: write
 
@@ -47,5 +46,7 @@ jobs:
           name: dist
           path: dist/
 
-      - name: Publish to PyPI
+      - name: Publish to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
