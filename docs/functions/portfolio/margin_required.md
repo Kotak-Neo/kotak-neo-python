@@ -10,8 +10,6 @@ client.margin_required(
     quantity="",
     instrument_token="",
     transaction_type="",
-    broker_name="KOTAK",
-    branch_id="ONLINE",
 )
 ```
 
@@ -53,8 +51,6 @@ All parameters below are mandatory unless noted otherwise, and are validated cli
 | *quantity*         | Non-zero positive value                                                     | Str            |
 | *instrument_token* | pSymbol in ScripMaster files. Must be a valid (positive integer) token      | Str            |
 | *transaction_type* | Allowed values: `B` (Buy), `S` (Sell)                                       | Str            |
-| *broker_name*      | Optional, defaults to "KOTAK". If provided, cannot be blank                 | Str            |
-| *branch_id*        | Optional, defaults to "ONLINE". If provided, cannot be blank                | Str            |
 | *stop_loss_type*   | Optional. The type of stop loss to use. Not validated client-side.          | Str            |
 | *stop_loss_value*  | Optional. The value for the stop loss. Not validated client-side.           | Str            |
 | *square_off_type*  | Optional. The type of square off to use. Not validated client-side.         | Str            |
