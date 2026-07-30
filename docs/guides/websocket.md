@@ -252,9 +252,24 @@ async for message in ws:
 
 Details:
 
-- `trading_symbol` is `None` until the acknowledgement for that token has been
-  received (e.g. the very first frames right after subscribing), and for any
-  token the server didn't return a symbol for.
+- While a subscribe acknowledgement is outstanding, incoming data frames are
+  **discarded**, not delivered — this is a live market price feed, so a tick
+  decoded before its trading_symbol mapping was known cannot be held back
+  and delivered later; that would put a stale price out of order relative
+  to newer ticks arriving once the ack lands, which is worse than a brief
+  gap. The window is bounded by `ack_wait_timeout` (default 5.0s, set via
+  `SFeedWebSocket(..., ack_wait_timeout=...)`); once the ack arrives (or the
+  timeout elapses without one), frames are decoded and delivered normally
+  again. Use `ws.dropped_frame_count` to monitor how many frames were
+  discarded this way.
+- `subscribe_scrips()` (and the other `subscribe_*` methods) wait for the
+  acknowledgement before returning (up to `ack_wait_timeout`), so
+  `ws.trading_symbols` is already populated by the time the call completes.
+  If the ack doesn't arrive in that window, the subscribe call still returns
+  normally, and frames resume being delivered (with `trading_symbol=None`
+  for tokens the map has no entry for) rather than dropping forever.
+- `trading_symbol` is `None` for any token the server didn't return a
+  symbol for, or if no ack arrived before `ack_wait_timeout` elapsed.
 - The mapping is keyed by `"<exchange_segment>|<instrument_token>"`. You can
   inspect the current map via the read-only `ws.trading_symbols` property.
 - On **unsubscribe**, a token's entry is removed once it is no longer subscribed
@@ -279,6 +294,7 @@ Details:
 | `max_connect_retries` | `3` | Cap on retries for the *initial* `connect()` call itself if opening the socket fails (e.g. a transient network error). Set to `0` to fail immediately with no retries |
 | `ping_interval` | `20` | WebSocket keep-alive ping interval (seconds) |
 | `max_subscriptions` | `3000` | Max total input tokens subscribed at once (across all requests) |
+| `ack_wait_timeout` | `5.0` | Seconds `subscribe_scrips()` (etc.) wait for the subscribe acknowledgement — see [Trading symbol](#trading-symbol) |
 
 ## Event Callbacks (optional)
 

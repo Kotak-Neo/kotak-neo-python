@@ -96,6 +96,7 @@ class SFeedWebSocket:
         ping_interval: int = 20,
         max_subscriptions: int = 3000,
         verify_ssl: bool = True,
+        ack_wait_timeout: float = 5.0,
     ):
         """Initialize the client.
 
@@ -131,6 +132,21 @@ class SFeedWebSocket:
                 connections (default True). Only set to False for a trusted
                 development endpoint with a self-signed certificate; disabling
                 verification exposes the connection to man-in-the-middle attacks.
+            ack_wait_timeout: Seconds to wait for the server's subscribe
+                acknowledgement (message_code 1109, carrying the
+                trading_symbols map) after sending a subscribe frame.
+                Default 5.0. While an ack is outstanding, incoming data
+                frames are **discarded** rather than decoded/delivered —
+                this is a live price feed, so a tick decoded before its
+                trading_symbol mapping was known can't be held back and
+                delivered later without going stale relative to newer
+                ticks; dropping it is preferable to that. See
+                ``dropped_frame_count``. ``subscribe_scrips()`` (etc.) also
+                waits up to this long before returning. If no ack arrives
+                within the timeout, frames stop being discarded (delivered
+                with ``trading_symbol=None`` where unmapped) and the
+                subscribe call returns anyway — the feed never stalls
+                indefinitely on a missing ack.
         """
         self.access_token = access_token
         self.sid = sid
@@ -165,6 +181,24 @@ class SFeedWebSocket:
         # acknowledgement (message_code 1109) and cleared on unsubscribe. Used
         # to enrich each feed message with its trading_symbol.
         self._trading_symbols: dict[str, str] = {}
+        # Signaled by _handle_text_frame whenever a subscribe acknowledgement
+        # is processed. _wait_for_subscribe_ack waits on this (briefly) so a
+        # subscribe call doesn't return to the caller before trading_symbols
+        # is populated.
+        self._subscribe_ack_event = asyncio.Event()
+        self.ack_wait_timeout = ack_wait_timeout
+        # While True, _handle_binary_frame drops incoming frames instead of
+        # decoding/delivering them. Set by _send_subscribe (a subscribe was
+        # just sent, ack_symbol requested) and cleared once the ack is
+        # processed — or once ack_deadline passes, so a lost/delayed ack
+        # can't block the live feed forever. This is a live market price
+        # feed: a data frame that arrives before its trading_symbol mapping
+        # is known cannot be buffered and delivered later, since that would
+        # deliver a stale price out of order with newer ticks. Discarding it
+        # is correct — the next frame for that token supersedes it anyway.
+        self._ack_pending = False
+        self._ack_deadline: float | None = None
+        self._dropped_frame_count = 0
 
         # Callbacks
         self.on_message: Callable[[SFeedMessage], None] | None = None
@@ -223,6 +257,12 @@ class SFeedWebSocket:
         """Total number of currently subscribed input tokens across all requests."""
         return len(self._subscriptions)
 
+    @property
+    def dropped_frame_count(self) -> int:
+        """Total binary frames discarded because they arrived before a
+        subscribe acknowledgement (see ``ack_wait_timeout``)."""
+        return self._dropped_frame_count
+
     async def connect(self) -> None:
         """Open the socket and authenticate.
 
@@ -241,6 +281,12 @@ class SFeedWebSocket:
         """
         if self.is_connected:
             raise AlreadyConnectedError("WebSocket is already connected")
+
+        # Discard any state left over from a prior connection (e.g. an
+        # ack-pending window that never resolved before a disconnect) — it
+        # doesn't apply to the connection being opened now.
+        self._ack_pending = False
+        self._ack_deadline = None
 
         ssl_context = None
         if self.url.startswith("wss"):
@@ -393,14 +439,49 @@ class SFeedWebSocket:
                 for key, symbol in mapping.items():
                     if isinstance(key, str) and isinstance(symbol, str):
                         self._trading_symbols[key] = symbol
+            # Wake up any _wait_for_subscribe_ack() waiting on this ack.
+            # Set/clear around each subscribe send (see _send_subscribe) so a
+            # later ack doesn't spuriously satisfy an earlier wait that
+            # already timed out.
+            self._subscribe_ack_event.set()
+            # The map is now up to date -- resume decoding/delivering frames.
+            self._ack_pending = False
+            self._ack_deadline = None
 
     def _trading_symbol_for(self, message: SFeedMessage) -> str | None:
         """Look up the trading symbol for a decoded message, if known."""
         key = f"{message.exchange_segment}|{message.instrument_token}"
         return self._trading_symbols.get(key)
 
+    def _ack_deadline_passed(self) -> bool:
+        return self._ack_deadline is not None and time.monotonic() >= self._ack_deadline
+
     def _handle_binary_frame(self, frame: bytes) -> None:
-        """Split a binary batch into packets, decode each, and enqueue."""
+        """Split a binary batch into packets, decode each, and enqueue.
+
+        While a subscribe acknowledgement is outstanding (``_ack_pending``),
+        incoming frames are **discarded**, not buffered. This is a live
+        market price feed: a tick that arrived before its trading_symbol
+        mapping was known cannot be held back and delivered later, since
+        that would deliver a stale price out of order relative to newer
+        ticks arriving once the ack lands — worse than a brief gap. The next
+        frame for that token (post-ack) supersedes whatever was dropped.
+
+        If the ack doesn't arrive within ``ack_wait_timeout``, frames stop
+        being discarded even without one (server may not always send acks,
+        or may be slow) so the feed doesn't stall indefinitely.
+        """
+        if self._ack_pending:
+            if self._ack_deadline_passed():
+                self._ack_pending = False
+                self._ack_deadline = None
+            else:
+                self._dropped_frame_count += 1
+                return
+        self._decode_and_deliver_binary_frame(frame)
+
+    def _decode_and_deliver_binary_frame(self, frame: bytes) -> None:
+        """Decode a binary batch into packets and enqueue/deliver each message."""
         for packet in split_batch(frame):
             try:
                 message = decode_packet(packet, self._dividers)
@@ -455,7 +536,15 @@ class SFeedWebSocket:
         ``ack_symbol: true`` asks the server to return the trading-symbol
         acknowledgement (message_code 1109) mapping each ``exchange|token`` to
         its trading symbol, which enriches subsequent feed messages.
+
+        Data frames delivered by the receive loop while this ack is
+        outstanding are held back (see ``_handle_binary_frame`` /
+        ``_ack_pending``) so they aren't decoded and delivered with
+        ``trading_symbol=None`` before the map is ready.
         """
+        self._subscribe_ack_event.clear()
+        self._ack_pending = True
+        self._ack_deadline = time.monotonic() + self.ack_wait_timeout
         await self._ws.send(
             json.dumps({
                 "event": event,
@@ -463,6 +552,29 @@ class SFeedWebSocket:
                 "ack_symbol": True,
             })
         )
+
+    async def _wait_for_subscribe_ack(self) -> None:
+        """Wait briefly for the subscribe acknowledgement sent by ``_send_subscribe``.
+
+        Closes a race where the server's binary data frames for the just-
+        subscribed tokens arrive on ``_receive_loop`` before the ack —
+        without this wait, those frames would be enriched with
+        ``trading_symbol=None`` permanently, since enrichment only happens
+        once, at decode time (see ``_handle_binary_frame``).
+
+        Only waits if the receive loop is actually running to process an
+        ack — without it (e.g. before connect(), or in tests that stub the
+        socket directly) no ack could ever arrive, so waiting would just
+        block for the full timeout with nothing to show for it. Must be
+        called *after* ``self._subscriptions`` bookkeeping is updated, so a
+        disconnect/reconnect racing this wait still has the correct
+        subscription set to resend.
+        """
+        if self._receive_task is not None:
+            with contextlib.suppress(asyncio.TimeoutError):
+                await asyncio.wait_for(
+                    self._subscribe_ack_event.wait(), timeout=self.ack_wait_timeout
+                )
 
     async def _send_unsubscribe(self, event: str, tokens: list[WsToken]) -> None:
         """Send a batched unsubscribe frame (no ``json`` field, per spec)."""
@@ -493,6 +605,8 @@ class SFeedWebSocket:
             raise
         except Exception as e:
             raise SubscriptionError(f"Failed to subscribe ({intent}): {e}") from e
+
+        await self._wait_for_subscribe_ack()
 
     async def _unsubscribe(self, tokens: list[WsToken], intent: str) -> None:
         if not self.is_connected:

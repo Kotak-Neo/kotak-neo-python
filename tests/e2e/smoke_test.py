@@ -643,26 +643,23 @@ else:
 # Tokens for the documented WebSocket operations
 LTP_TOKENS = [WsToken("nse_cm", "Nifty 50")]  # LTP by index name
 
-# Option chain: a batch of NSE F&O tokens (subset of the documented list)
+# Option chain: underlying + a batch of NSE F&O contract tokens
 OPTION_CHAIN_TOKENS = [
-    WsToken("nse_fo", str(t))
-    for t in (
-        44498,
-        44500,
-        44510,
-        44512,
-        44514,
-        44516,
-        44518,
-        44520,
-        44499,
-        44501,
-        44511,
-        44513,
-        44515,
-        44517,
-        44519,
-        44521,
+    WsToken(*pair.split("|"))
+    for pair in (
+        "nse_cm|2885",
+        "nse_cm|22",
+        "nse_fo|61593",
+        "nse_fo|58073",
+        "nse_fo|58072",
+        "nse_fo|58067",
+        "nse_fo|58070",
+        "nse_fo|58071",
+        "nse_fo|61153",
+        "nse_fo|61148",
+        "nse_fo|61155",
+        "nse_fo|61172",
+        "nse_fo|61174",
     )
 ]
 
@@ -702,12 +699,18 @@ def _ws_subscribe_test(tokens):
             _trace_ws_frames(ws)
 
             await ws.subscribe_scrips(tokens)
-            print(f"\nSubscribed to {len(tokens)} token(s) - receiving (5 seconds)...")
+            print(f"\nSubscribed to {len(tokens)} token(s)")
+            print("[TRADING SYMBOLS MAP] (from subscribe ack):")
+            print(json.dumps(ws.trading_symbols, indent=2))
+
+            print("\nReceiving (5 seconds)...")
             await _collect_for(ws, 5, on_message=runner.on_ws_message)
 
             await ws.close()
 
-        asyncio.run(_run())
+            return dict(ws.trading_symbols)
+
+        trading_symbols = asyncio.run(_run())
 
         if runner.ws_error:
             raise RuntimeError(f"WebSocket error: {runner.ws_error}")
@@ -715,6 +718,7 @@ def _ws_subscribe_test(tokens):
         return {
             "subscribed_tokens": len(tokens),
             "messages_received": len(runner.ws_messages),
+            "trading_symbols": trading_symbols,
         }
 
     return _test

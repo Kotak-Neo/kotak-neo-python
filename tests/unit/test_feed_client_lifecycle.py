@@ -7,6 +7,7 @@ scripted fake async WebSocket injected in place of ``websockets.connect``.
 import asyncio
 import json
 import struct
+import time
 
 import pytest
 
@@ -217,7 +218,9 @@ def test_subscribe_over_live_connection(monkeypatch):
     async def run():
         fake = FakeAsyncWS(incoming=[_AUTH_OK])
         _patch_connect(monkeypatch, fake)
-        ws = SFeedWebSocket(url="wss://fake/feed")
+        # No subscribe ack is scripted; use a short ack_wait_timeout so the
+        # (expected) wait-then-give-up doesn't slow the test down.
+        ws = SFeedWebSocket(url="wss://fake/feed", ack_wait_timeout=0.05)
         await ws.connect()
 
         await ws.subscribe_scrips_lite([WsToken("nse_cm", "1")])
@@ -265,7 +268,15 @@ def test_reconnect_resubscribes(monkeypatch):
 
         monkeypatch.setattr(_client_mod.websockets, "connect", fake_connect)
 
-        ws = SFeedWebSocket(url="wss://fake/feed", reconnect_delay=0, max_reconnect_attempts=2)
+        # No subscribe ack is scripted on the first socket; use a short
+        # ack_wait_timeout so the (expected) wait-then-give-up doesn't slow
+        # the test down.
+        ws = SFeedWebSocket(
+            url="wss://fake/feed",
+            reconnect_delay=0,
+            max_reconnect_attempts=2,
+            ack_wait_timeout=0.05,
+        )
         await ws.connect()
         await ws.subscribe_scrips([WsToken("nse_cm", "11536")])
 
@@ -748,6 +759,103 @@ def test_binary_frame_stamps_trading_symbol_on_enqueued_message(monkeypatch):
     assert msg.trading_symbol == "MARKET-STATUS"
 
 
+def test_data_frame_ahead_of_ack_is_discarded_not_delivered_stale(monkeypatch):
+    """A data frame that arrives on the wire BEFORE its subscribe ack must be
+    discarded, not delivered with a stale/unenriched trading_symbol.
+
+    This is a live price feed: delivering a tick decoded before the
+    trading_symbols map was ready -- even if "fixed up" and delivered later
+    -- would put a stale price out of order relative to newer ticks that
+    arrive once the ack lands. Dropping it is correct; the queue must stay
+    empty for it.
+    """
+
+    async def run():
+        ack = json.dumps({
+            "message_code": 1109,
+            "trading_symbols": {"nse_cm|": "MARKET-STATUS"},
+        })
+        # The market-status frame arrives on the wire BEFORE the ack.
+        fake = FakeAsyncWS(incoming=[_AUTH_OK, _market_status_frame(), ack])
+        _patch_connect(monkeypatch, fake)
+        ws = SFeedWebSocket(url="wss://fake/feed")
+        await ws.connect()
+
+        await ws.subscribe_scrips([WsToken("nse_cm", "2885")])
+        await asyncio.sleep(0.05)
+
+        queue_empty = ws._message_queue.empty()
+        dropped = ws.dropped_frame_count
+        await ws.close()
+        return queue_empty, dropped
+
+    queue_empty, dropped = asyncio.run(run())
+    assert queue_empty is True  # the pre-ack frame was never delivered
+    assert dropped == 1
+
+
+def test_binary_frame_discarded_while_ack_pending(monkeypatch):
+    """_handle_binary_frame discards frames while _ack_pending is set,
+    counting them via dropped_frame_count, rather than queuing them."""
+
+    async def run():
+        fake = FakeAsyncWS(incoming=[_AUTH_OK])
+        _patch_connect(monkeypatch, fake)
+        ws = SFeedWebSocket(url="wss://fake/feed")
+        await ws.connect()
+
+        # Simulate having just sent a subscribe (ack outstanding).
+        ws._ack_pending = True
+        ws._ack_deadline = time.monotonic() + 5.0
+
+        ws._handle_binary_frame(_market_status_frame())
+        assert ws._message_queue.empty()
+        assert ws.dropped_frame_count == 1
+
+        # The ack arrives: resumes normal decode/deliver for the next frame.
+        ws._trading_symbols = {}
+        ack = json.dumps({
+            "message_code": 1109,
+            "trading_symbols": {"nse_cm|": "MARKET-STATUS"},
+        })
+        ws._handle_text_frame(ack)
+        assert ws._ack_pending is False
+
+        ws._handle_binary_frame(_market_status_frame())
+        msg = await asyncio.wait_for(ws._message_queue.get(), timeout=1.0)
+        await ws.close()
+        return msg
+
+    msg = asyncio.run(run())
+    assert msg.trading_symbol == "MARKET-STATUS"
+    # Only the pre-ack frame was dropped; the post-ack one was delivered.
+
+
+def test_binary_frame_delivered_after_ack_deadline_passes(monkeypatch):
+    """If the ack never arrives, frames stop being discarded once
+    ack_deadline passes -- the feed must not go silent indefinitely."""
+
+    async def run():
+        fake = FakeAsyncWS(incoming=[_AUTH_OK])
+        _patch_connect(monkeypatch, fake)
+        ws = SFeedWebSocket(url="wss://fake/feed")
+        await ws.connect()
+
+        ws._ack_pending = True
+        ws._ack_deadline = time.monotonic() - 0.001  # already passed
+
+        ws._handle_binary_frame(_market_status_frame())
+
+        assert ws._ack_pending is False
+        assert ws.dropped_frame_count == 0
+        msg = await asyncio.wait_for(ws._message_queue.get(), timeout=1.0)
+        await ws.close()
+        return msg
+
+    msg = asyncio.run(run())
+    assert msg.trading_symbol is None  # no ack ever populated the map
+
+
 def test_unsubscribe_removes_trading_symbol_entry(monkeypatch):
     """Unsubscribing a token drops its entry from the trading-symbol map."""
 
@@ -779,7 +887,9 @@ def test_unsubscribe_keeps_symbol_when_token_still_on_another_level(monkeypatch)
     async def run():
         fake = FakeAsyncWS(incoming=[_AUTH_OK, _SUBSCRIBE_ACK])
         _patch_connect(monkeypatch, fake)
-        ws = SFeedWebSocket(url="wss://fake/feed")
+        # Only one ack is scripted; the second subscribe's wait-then-give-up
+        # should be short so it doesn't slow the test down.
+        ws = SFeedWebSocket(url="wss://fake/feed", ack_wait_timeout=0.05)
         await ws.connect()
 
         tok = WsToken("nse_cm", "2885")

@@ -175,10 +175,11 @@ touch main.py .env .gitignore
 Create `.env` file:
 ```bash
 cat > .env << 'EOF'
-NEO_CONSUMER_KEY=your_consumer_key_here
-NEO_CONSUMER_SECRET=your_consumer_secret_here
+NEO_CONSUMER_KEY=your-consumer-key-token-here
 NEO_MOBILE_NUMBER=+91XXXXXXXXXX
-NEO_PASSWORD=your_password_here
+NEO_UCC=XXXXX
+NEO_TOTP_SECRET=XXXXXXXXXXXXXXXXXXXXXXXXXX
+NEO_MPIN=XXXXXX
 EOF
 ```
 
@@ -220,6 +221,9 @@ EOF
 
 ### Step 3: Install python-decouple for .env Support
 
+`python-decouple` ships as a core dependency of `kotakneoapi`, so a separate
+install isn't required if the SDK is already installed. Shown here for
+clarity in case you're using a bare venv:
 ```bash
 pip install python-decouple
 ```
@@ -228,22 +232,28 @@ pip install python-decouple
 
 Create `main.py`:
 ```python
+import pyotp
 from neo_api_client import NeoAPI
 from decouple import config
 
 # Load credentials from .env file
 client = NeoAPI(
     consumer_key=config("NEO_CONSUMER_KEY"),
-    consumer_secret=config("NEO_CONSUMER_SECRET"),
     environment="prod",
 )
 
-# Login
-client.login(mobilenumber=config("NEO_MOBILE_NUMBER"), password=config("NEO_PASSWORD"))
+# Generate the current 6-digit TOTP code from the base32 secret
+totp_code = pyotp.TOTP(config("NEO_TOTP_SECRET")).now()
 
-# Get OTP from your registered mobile
-otp = input("Enter OTP: ")
-client.session_2fa(OTP=otp)
+# Step 1: Login with TOTP
+client.totp_login(
+    mobile_number=config("NEO_MOBILE_NUMBER"),
+    ucc=config("NEO_UCC"),
+    totp=totp_code,
+)
+
+# Step 2: Validate with MPIN to complete authentication
+client.totp_validate(mpin=config("NEO_MPIN"))
 
 # Get quotes
 quotes = client.quotes(
@@ -322,6 +332,7 @@ code --install-extension ms-python.python
 ```bash
 code --install-extension ms-python.python
 code --install-extension ms-python.vscode-pylance
+code --install-extension charliermarsh.ruff
 code --install-extension KevinRose.vsc-python-indent
 code --install-extension njpwerner.autodocstring
 code --install-extension eamodio.gitlens
@@ -334,11 +345,10 @@ Create `.vscode/settings.json`:
 ```json
 {
     "python.defaultInterpreterPath": "${workspaceFolder}/venv/bin/python",
-    "python.linting.enabled": true,
-    "python.linting.pylintEnabled": false,
-    "python.linting.flake8Enabled": true,
-    "python.formatting.provider": "black",
     "editor.formatOnSave": true,
+    "[python]": {
+        "editor.defaultFormatter": "charliermarsh.ruff"
+    },
     "python.testing.pytestEnabled": true,
     "files.exclude": {
         "**/__pycache__": true,
@@ -346,6 +356,11 @@ Create `.vscode/settings.json`:
     }
 }
 ```
+
+This project lints and formats with [ruff](https://docs.astral.sh/ruff/) (see
+`pyproject.toml`), not flake8/black/pylint — install the
+`charliermarsh.ruff` VS Code extension alongside the Python extension for
+inline linting and format-on-save.
 
 ### Create Launch Configuration
 
@@ -374,7 +389,7 @@ Create `.vscode/launch.json`:
 # Check installed packages
 pip list | grep kotakneoapi
 
-# Should show: kotakneoapi    2.2.0
+# Should show the installed version, e.g.: kotakneoapi    2.2.8
 ```
 
 ### 2. Test Import
@@ -664,7 +679,7 @@ pip install -r requirements.txt
 - [SDK Documentation](../../README.md)
 - [VS Code Setup Guide](vscode.md)
 - [PyCharm Setup Guide](pycharm.md)
-- [Publishing Guide](../../PUBLISH.md)
+- [Publishing Guide](../guides/PUBLISHING.md)
 - [Kotak Neo API Docs](https://developers.kotaksecurities.com/)
 
 ## Getting Help

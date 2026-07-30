@@ -1,0 +1,6673 @@
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_cm",
+  "instrument_token": "2885",
+  "trading_symbol": null,
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 1291.2,
+  "open_price": 1279.8,
+  "high_price": 1297.0,
+  "low_price": 1275.3,
+  "close_price": 1275.9,
+  "average_trade_price": 1289.02,
+  "last_trade_time": 1785403593,
+  "last_update_time": 1785403596,
+  "last_trade_qty": 80,
+  "total_buy_quantity": 705383,
+  "total_sell_quantity": 1068792,
+  "volume_traded_today": 7740077,
+  "open_interest": 0,
+  "net_change": 15.3,
+  "net_change_percent": 1.2,
+  "upper_circuit_limit": 1403.4,
+  "lower_circuit_limit": 1148.4,
+  "yearly_high": 1611.8,
+  "yearly_low": 1249.8,
+  "total_traded_value": 9977114054.54,
+  "market_lot": 1,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 67,
+      "price": 1291.3,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 369,
+      "price": 1291.4,
+      "orders": 9
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_cm",
+  "instrument_token": "22",
+  "trading_symbol": null,
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 1351.2,
+  "open_price": 1370.8,
+  "high_price": 1370.8,
+  "low_price": 1345.3,
+  "close_price": 1370.8,
+  "average_trade_price": 1351.66,
+  "last_trade_time": 1785403568,
+  "last_update_time": 1785403568,
+  "last_trade_qty": 1,
+  "total_buy_quantity": 33570,
+  "total_sell_quantity": 47659,
+  "volume_traded_today": 128074,
+  "open_interest": 0,
+  "net_change": -19.6,
+  "net_change_percent": -1.43,
+  "upper_circuit_limit": 1644.9,
+  "lower_circuit_limit": 1096.7,
+  "yearly_high": 1987.0,
+  "yearly_low": 1251.7,
+  "total_traded_value": 173112502.84,
+  "market_lot": 1,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 3,
+      "price": 1351.0,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 31,
+      "price": 1351.2,
+      "orders": 4
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61593",
+  "trading_symbol": null,
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 504.95,
+  "open_price": 462.4,
+  "high_price": 548.45,
+  "low_price": 444.25,
+  "close_price": 487.55,
+  "average_trade_price": 493.83,
+  "last_trade_time": 1785400661,
+  "last_update_time": 1785400682,
+  "last_trade_qty": 65,
+  "total_buy_quantity": 53755,
+  "total_sell_quantity": 64155,
+  "volume_traded_today": 1236625,
+  "open_interest": 6367855,
+  "net_change": 17.4,
+  "net_change_percent": 3.57,
+  "upper_circuit_limit": 894.1,
+  "lower_circuit_limit": 81.0,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 610682523.75,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 130,
+      "price": 504.5,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 65,
+      "price": 506.35,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58073",
+  "trading_symbol": null,
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 72549.8,
+  "open_price": 72330.0,
+  "high_price": 72800.0,
+  "low_price": 72330.0,
+  "close_price": 72658.2,
+  "average_trade_price": 72586.87,
+  "last_trade_time": 1785399844,
+  "last_update_time": 1785400682,
+  "last_trade_qty": 25,
+  "total_buy_quantity": 1525,
+  "total_sell_quantity": 1650,
+  "volume_traded_today": 1400,
+  "open_interest": 16075,
+  "net_change": -108.4,
+  "net_change_percent": -0.15,
+  "upper_circuit_limit": 79924.0,
+  "lower_circuit_limit": 65392.4,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 101621618.0,
+  "market_lot": 25,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 25,
+      "price": 72468.0,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 25,
+      "price": 72567.0,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58072",
+  "trading_symbol": null,
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 24332.9,
+  "open_price": 24265.6,
+  "high_price": 24397.0,
+  "low_price": 24250.0,
+  "close_price": 24311.5,
+  "average_trade_price": 24318.41,
+  "last_trade_time": 1785402902,
+  "last_update_time": 1785402902,
+  "last_trade_qty": 65,
+  "total_buy_quantity": 483860,
+  "total_sell_quantity": 446290,
+  "volume_traded_today": 2144740,
+  "open_interest": 13249535,
+  "net_change": 21.4,
+  "net_change_percent": 0.09,
+  "upper_circuit_limit": 26742.6,
+  "lower_circuit_limit": 21880.4,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 52156666663.4,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 845,
+      "price": 24330.0,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 325,
+      "price": 24332.1,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_cm",
+  "instrument_token": "2885",
+  "trading_symbol": null,
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 1291.2,
+  "open_price": 1279.8,
+  "high_price": 1297.0,
+  "low_price": 1275.3,
+  "close_price": 1275.9,
+  "average_trade_price": 1289.02,
+  "last_trade_time": 1785403593,
+  "last_update_time": 1785403596,
+  "last_trade_qty": 80,
+  "total_buy_quantity": 705383,
+  "total_sell_quantity": 1068792,
+  "volume_traded_today": 7740077,
+  "open_interest": 0,
+  "net_change": 15.3,
+  "net_change_percent": 1.2,
+  "upper_circuit_limit": 1403.4,
+  "lower_circuit_limit": 1148.4,
+  "yearly_high": 1611.8,
+  "yearly_low": 1249.8,
+  "total_traded_value": 9977114054.54,
+  "market_lot": 1,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 67,
+      "price": 1291.3,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 369,
+      "price": 1291.4,
+      "orders": 9
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_cm",
+  "instrument_token": "22",
+  "trading_symbol": null,
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 1351.2,
+  "open_price": 1370.8,
+  "high_price": 1370.8,
+  "low_price": 1345.3,
+  "close_price": 1370.8,
+  "average_trade_price": 1351.66,
+  "last_trade_time": 1785403568,
+  "last_update_time": 1785403568,
+  "last_trade_qty": 1,
+  "total_buy_quantity": 33570,
+  "total_sell_quantity": 47659,
+  "volume_traded_today": 128074,
+  "open_interest": 0,
+  "net_change": -19.6,
+  "net_change_percent": -1.43,
+  "upper_circuit_limit": 1644.9,
+  "lower_circuit_limit": 1096.7,
+  "yearly_high": 1987.0,
+  "yearly_low": 1251.7,
+  "total_traded_value": 173112502.84,
+  "market_lot": 1,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 3,
+      "price": 1351.0,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 31,
+      "price": 1351.2,
+      "orders": 4
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61593",
+  "trading_symbol": null,
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 504.95,
+  "open_price": 462.4,
+  "high_price": 548.45,
+  "low_price": 444.25,
+  "close_price": 487.55,
+  "average_trade_price": 493.83,
+  "last_trade_time": 1785400661,
+  "last_update_time": 1785400682,
+  "last_trade_qty": 65,
+  "total_buy_quantity": 53755,
+  "total_sell_quantity": 64155,
+  "volume_traded_today": 1236625,
+  "open_interest": 6367855,
+  "net_change": 17.4,
+  "net_change_percent": 3.57,
+  "upper_circuit_limit": 894.1,
+  "lower_circuit_limit": 81.0,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 610682523.75,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 130,
+      "price": 504.5,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 65,
+      "price": 506.35,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58073",
+  "trading_symbol": null,
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 72549.8,
+  "open_price": 72330.0,
+  "high_price": 72800.0,
+  "low_price": 72330.0,
+  "close_price": 72658.2,
+  "average_trade_price": 72586.87,
+  "last_trade_time": 1785399844,
+  "last_update_time": 1785400682,
+  "last_trade_qty": 25,
+  "total_buy_quantity": 1525,
+  "total_sell_quantity": 1650,
+  "volume_traded_today": 1400,
+  "open_interest": 16075,
+  "net_change": -108.4,
+  "net_change_percent": -0.15,
+  "upper_circuit_limit": 79924.0,
+  "lower_circuit_limit": 65392.4,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 101621618.0,
+  "market_lot": 25,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 25,
+      "price": 72468.0,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 25,
+      "price": 72567.0,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58072",
+  "trading_symbol": null,
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 24332.9,
+  "open_price": 24265.6,
+  "high_price": 24397.0,
+  "low_price": 24250.0,
+  "close_price": 24311.5,
+  "average_trade_price": 24318.41,
+  "last_trade_time": 1785402902,
+  "last_update_time": 1785402902,
+  "last_trade_qty": 65,
+  "total_buy_quantity": 483860,
+  "total_sell_quantity": 446290,
+  "volume_traded_today": 2144740,
+  "open_interest": 13249535,
+  "net_change": 21.4,
+  "net_change_percent": 0.09,
+  "upper_circuit_limit": 26742.6,
+  "lower_circuit_limit": 21880.4,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 52156666663.4,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 845,
+      "price": 24330.0,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 325,
+      "price": 24332.1,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58067",
+  "trading_symbol": null,
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 57210.0,
+  "open_price": 57125.0,
+  "high_price": 57350.0,
+  "low_price": 56925.0,
+  "close_price": 57344.4,
+  "average_trade_price": 57104.92,
+  "last_trade_time": 1785400656,
+  "last_update_time": 1785400683,
+  "last_trade_qty": 30,
+  "total_buy_quantity": 58170,
+  "total_sell_quantity": 67080,
+  "volume_traded_today": 448140,
+  "open_interest": 2140290,
+  "net_change": -134.4,
+  "net_change_percent": -0.23,
+  "upper_circuit_limit": 63078.8,
+  "lower_circuit_limit": 51610.0,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 25590998848.8,
+  "market_lot": 30,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 60,
+      "price": 57198.0,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 30,
+      "price": 57210.0,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58070",
+  "trading_symbol": null,
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 26267.8,
+  "open_price": 26120.2,
+  "high_price": 26334.6,
+  "low_price": 26120.1,
+  "close_price": 26346.4,
+  "average_trade_price": 26242.27,
+  "last_trade_time": 1785399810,
+  "last_update_time": 1785400682,
+  "last_trade_qty": 60,
+  "total_buy_quantity": 12780,
+  "total_sell_quantity": 12060,
+  "volume_traded_today": 3960,
+  "open_interest": 27660,
+  "net_change": -78.6,
+  "net_change_percent": -0.3,
+  "upper_circuit_limit": 28981.0,
+  "lower_circuit_limit": 23711.8,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 103919389.2,
+  "market_lot": 60,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 60,
+      "price": 26258.6,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 60,
+      "price": 26280.9,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61172",
+  "trading_symbol": null,
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 6.65,
+  "open_price": 6.2,
+  "high_price": 6.95,
+  "low_price": 6.2,
+  "close_price": 6.85,
+  "average_trade_price": 6.64,
+  "last_trade_time": 1785398986,
+  "last_update_time": 1785400547,
+  "last_trade_qty": 65,
+  "total_buy_quantity": 53040,
+  "total_sell_quantity": 13455,
+  "volume_traded_today": 2210,
+  "open_interest": 56225,
+  "net_change": -0.2,
+  "net_change_percent": -2.92,
+  "upper_circuit_limit": 26.85,
+  "lower_circuit_limit": 0.05,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 14674.4,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 260,
+      "price": 6.55,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 260,
+      "price": 7.15,
+      "orders": 3
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61174",
+  "trading_symbol": null,
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 6.05,
+  "open_price": 6.4,
+  "high_price": 7.55,
+  "low_price": 5.6,
+  "close_price": 6.15,
+  "average_trade_price": 6.58,
+  "last_trade_time": 1785392940,
+  "last_update_time": 1785400634,
+  "last_trade_qty": 130,
+  "total_buy_quantity": 45175,
+  "total_sell_quantity": 10140,
+  "volume_traded_today": 1690,
+  "open_interest": 1820,
+  "net_change": -0.1,
+  "net_change_percent": -1.63,
+  "upper_circuit_limit": 26.15,
+  "lower_circuit_limit": 0.05,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 11120.2,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 650,
+      "price": 6.25,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 195,
+      "price": 7.45,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61148",
+  "trading_symbol": null,
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 3021.8,
+  "open_price": 3021.8,
+  "high_price": 3021.8,
+  "low_price": 3021.8,
+  "close_price": 3000.0,
+  "average_trade_price": 3021.8,
+  "last_trade_time": 1785389276,
+  "last_update_time": 1785400682,
+  "last_trade_qty": 65,
+  "total_buy_quantity": 6370,
+  "total_sell_quantity": 4875,
+  "volume_traded_today": 65,
+  "open_interest": 9490,
+  "net_change": 21.8,
+  "net_change_percent": 0.73,
+  "upper_circuit_limit": 3638.3,
+  "lower_circuit_limit": 2361.7,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 196417.0,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 65,
+      "price": 3116.75,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 65,
+      "price": 3148.65,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61153",
+  "trading_symbol": null,
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 6.3,
+  "open_price": 6.4,
+  "high_price": 6.45,
+  "low_price": 5.75,
+  "close_price": 6.4,
+  "average_trade_price": 6.16,
+  "last_trade_time": 1785400177,
+  "last_update_time": 1785400540,
+  "last_trade_qty": 260,
+  "total_buy_quantity": 77025,
+  "total_sell_quantity": 24050,
+  "volume_traded_today": 136760,
+  "open_interest": 604110,
+  "net_change": -0.1,
+  "net_change_percent": -1.56,
+  "upper_circuit_limit": 26.4,
+  "lower_circuit_limit": 0.05,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 842441.6,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 3510,
+      "price": 6.2,
+      "orders": 4
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 2340,
+      "price": 6.35,
+      "orders": 5
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58071",
+  "trading_symbol": null,
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 14689.8,
+  "open_price": 14690.0,
+  "high_price": 14778.45,
+  "low_price": 14651.1,
+  "close_price": 14729.85,
+  "average_trade_price": 14713.31,
+  "last_trade_time": 1785400672,
+  "last_update_time": 1785400682,
+  "last_trade_qty": 120,
+  "total_buy_quantity": 45840,
+  "total_sell_quantity": 47280,
+  "volume_traded_today": 139680,
+  "open_interest": 1866600,
+  "net_change": -40.05,
+  "net_change_percent": -0.27,
+  "upper_circuit_limit": 16202.8,
+  "lower_circuit_limit": 13256.9,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 2055155140.8,
+  "market_lot": 120,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 480,
+      "price": 14680.95,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 120,
+      "price": 14690.75,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61155",
+  "trading_symbol": null,
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 6.35,
+  "open_price": 6.0,
+  "high_price": 6.4,
+  "low_price": 5.6,
+  "close_price": 6.9,
+  "average_trade_price": 6.04,
+  "last_trade_time": 1785399833,
+  "last_update_time": 1785400536,
+  "last_trade_qty": 65,
+  "total_buy_quantity": 52065,
+  "total_sell_quantity": 13585,
+  "volume_traded_today": 1430,
+  "open_interest": 6435,
+  "net_change": -0.55,
+  "net_change_percent": -7.97,
+  "upper_circuit_limit": 26.9,
+  "lower_circuit_limit": 0.05,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 8637.2,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 65,
+      "price": 5.7,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 325,
+      "price": 6.35,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_cm",
+  "instrument_token": "22",
+  "trading_symbol": "ACC-EQ",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 1351.3,
+  "open_price": 1370.8,
+  "high_price": 1370.8,
+  "low_price": 1345.3,
+  "close_price": 1370.8,
+  "average_trade_price": 1351.66,
+  "last_trade_time": 1785403570,
+  "last_update_time": 1785403596,
+  "last_trade_qty": 1,
+  "total_buy_quantity": 33687,
+  "total_sell_quantity": 47456,
+  "volume_traded_today": 128185,
+  "open_interest": 0,
+  "net_change": -19.5,
+  "net_change_percent": -1.42,
+  "upper_circuit_limit": 1644.9,
+  "lower_circuit_limit": 1096.7,
+  "yearly_high": 1987.0,
+  "yearly_low": 1251.7,
+  "total_traded_value": 173262537.1,
+  "market_lot": 1,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 3,
+      "price": 1351.1,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 8,
+      "price": 1351.4,
+      "orders": 3
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58073",
+  "trading_symbol": "NIFTYNXT5026AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 72601.6,
+  "open_price": 72330.0,
+  "high_price": 72800.0,
+  "low_price": 72330.0,
+  "close_price": 72658.2,
+  "average_trade_price": 72571.69,
+  "last_trade_time": 1785403024,
+  "last_update_time": 1785403595,
+  "last_trade_qty": 25,
+  "total_buy_quantity": 1575,
+  "total_sell_quantity": 1600,
+  "volume_traded_today": 1575,
+  "open_interest": 16075,
+  "net_change": -56.6,
+  "net_change_percent": -0.08,
+  "upper_circuit_limit": 79924.0,
+  "lower_circuit_limit": 65392.4,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 114300411.75,
+  "market_lot": 25,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 75,
+      "price": 72526.0,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 25,
+      "price": 72595.6,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58071",
+  "trading_symbol": "MIDCPNIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 14680.0,
+  "open_price": 14690.0,
+  "high_price": 14778.45,
+  "low_price": 14630.0,
+  "close_price": 14729.85,
+  "average_trade_price": 14701.48,
+  "last_trade_time": 1785403593,
+  "last_update_time": 1785403596,
+  "last_trade_qty": 120,
+  "total_buy_quantity": 40200,
+  "total_sell_quantity": 47880,
+  "volume_traded_today": 178440,
+  "open_interest": 1870320,
+  "net_change": -49.85,
+  "net_change_percent": -0.34,
+  "upper_circuit_limit": 16202.8,
+  "lower_circuit_limit": 13256.9,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 2623332091.2,
+  "market_lot": 120,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 600,
+      "price": 14678.1,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 120,
+      "price": 14688.95,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58072",
+  "trading_symbol": "NIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 24349.8,
+  "open_price": 24265.6,
+  "high_price": 24397.0,
+  "low_price": 24250.0,
+  "close_price": 24311.5,
+  "average_trade_price": 24319.12,
+  "last_trade_time": 1785403595,
+  "last_update_time": 1785403595,
+  "last_trade_qty": 195,
+  "total_buy_quantity": 500760,
+  "total_sell_quantity": 424970,
+  "volume_traded_today": 2201745,
+  "open_interest": 13220415,
+  "net_change": 38.3,
+  "net_change_percent": 0.16,
+  "upper_circuit_limit": 26742.6,
+  "lower_circuit_limit": 21880.4,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 53544500864.4,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 65,
+      "price": 24345.0,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 455,
+      "price": 24350.0,
+      "orders": 7
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58067",
+  "trading_symbol": "BANKNIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 57255.0,
+  "open_price": 57125.0,
+  "high_price": 57350.0,
+  "low_price": 56925.0,
+  "close_price": 57344.4,
+  "average_trade_price": 57110.63,
+  "last_trade_time": 1785403592,
+  "last_update_time": 1785403596,
+  "last_trade_qty": 30,
+  "total_buy_quantity": 60960,
+  "total_sell_quantity": 70920,
+  "volume_traded_today": 476670,
+  "open_interest": 2137860,
+  "net_change": -89.4,
+  "net_change_percent": -0.16,
+  "upper_circuit_limit": 63078.8,
+  "lower_circuit_limit": 51610.0,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 27222924002.1,
+  "market_lot": 30,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 270,
+      "price": 57250.0,
+      "orders": 4
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 120,
+      "price": 57260.0,
+      "orders": 3
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61593",
+  "trading_symbol": "NIFTY26AUG24000CE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 507.1,
+  "open_price": 462.4,
+  "high_price": 548.45,
+  "low_price": 444.25,
+  "close_price": 487.55,
+  "average_trade_price": 493.64,
+  "last_trade_time": 1785403587,
+  "last_update_time": 1785403595,
+  "last_trade_qty": 260,
+  "total_buy_quantity": 51740,
+  "total_sell_quantity": 68185,
+  "volume_traded_today": 1393210,
+  "open_interest": 6361550,
+  "net_change": 19.55,
+  "net_change_percent": 4.01,
+  "upper_circuit_limit": 894.1,
+  "lower_circuit_limit": 81.0,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 687744184.4,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 325,
+      "price": 506.05,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 130,
+      "price": 507.6,
+      "orders": 2
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61148",
+  "trading_symbol": "NIFTY26AUG21200CE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 3120.4,
+  "open_price": 3021.8,
+  "high_price": 3120.4,
+  "low_price": 3021.8,
+  "close_price": 3000.0,
+  "average_trade_price": 3071.1,
+  "last_trade_time": 1785403189,
+  "last_update_time": 1785403595,
+  "last_trade_qty": 65,
+  "total_buy_quantity": 6435,
+  "total_sell_quantity": 5785,
+  "volume_traded_today": 130,
+  "open_interest": 9555,
+  "net_change": 120.4,
+  "net_change_percent": 4.01,
+  "upper_circuit_limit": 3638.3,
+  "lower_circuit_limit": 2361.7,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 399243.0,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 65,
+      "price": 3119.1,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 65,
+      "price": 3152.5,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61172",
+  "trading_symbol": "NIFTY26AUG21300PE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 6.75,
+  "open_price": 6.2,
+  "high_price": 6.95,
+  "low_price": 6.2,
+  "close_price": 6.85,
+  "average_trade_price": 6.64,
+  "last_trade_time": 1785401447,
+  "last_update_time": 1785403583,
+  "last_trade_qty": 65,
+  "total_buy_quantity": 52910,
+  "total_sell_quantity": 13910,
+  "volume_traded_today": 2275,
+  "open_interest": 56290,
+  "net_change": -0.1,
+  "net_change_percent": -1.46,
+  "upper_circuit_limit": 26.85,
+  "lower_circuit_limit": 0.05,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 15106.0,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 260,
+      "price": 6.4,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 715,
+      "price": 7.2,
+      "orders": 3
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61155",
+  "trading_symbol": "NIFTY26AUG21250PE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 6.35,
+  "open_price": 6.0,
+  "high_price": 6.4,
+  "low_price": 5.6,
+  "close_price": 6.9,
+  "average_trade_price": 6.05,
+  "last_trade_time": 1785403497,
+  "last_update_time": 1785403497,
+  "last_trade_qty": 65,
+  "total_buy_quantity": 52065,
+  "total_sell_quantity": 13065,
+  "volume_traded_today": 1495,
+  "open_interest": 6435,
+  "net_change": -0.55,
+  "net_change_percent": -7.97,
+  "upper_circuit_limit": 26.9,
+  "lower_circuit_limit": 0.05,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 9044.75,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 65,
+      "price": 5.55,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 520,
+      "price": 6.35,
+      "orders": 2
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61153",
+  "trading_symbol": "NIFTY26AUG21200PE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 6.2,
+  "open_price": 6.4,
+  "high_price": 6.45,
+  "low_price": 5.75,
+  "close_price": 6.4,
+  "average_trade_price": 6.13,
+  "last_trade_time": 1785403583,
+  "last_update_time": 1785403583,
+  "last_trade_qty": 260,
+  "total_buy_quantity": 69225,
+  "total_sell_quantity": 24765,
+  "volume_traded_today": 182715,
+  "open_interest": 627900,
+  "net_change": -0.2,
+  "net_change_percent": -3.13,
+  "upper_circuit_limit": 26.4,
+  "lower_circuit_limit": 0.05,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 1120042.95,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 2600,
+      "price": 6.1,
+      "orders": 7
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 325,
+      "price": 6.2,
+      "orders": 2
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58070",
+  "trading_symbol": "FINNIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 26311.3,
+  "open_price": 26120.2,
+  "high_price": 26334.6,
+  "low_price": 26120.1,
+  "close_price": 26346.4,
+  "average_trade_price": 26242.42,
+  "last_trade_time": 1785403394,
+  "last_update_time": 1785403595,
+  "last_trade_qty": 60,
+  "total_buy_quantity": 13260,
+  "total_sell_quantity": 12600,
+  "volume_traded_today": 4440,
+  "open_interest": 27660,
+  "net_change": -35.1,
+  "net_change_percent": -0.13,
+  "upper_circuit_limit": 28981.0,
+  "lower_circuit_limit": 23711.8,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 116516344.8,
+  "market_lot": 60,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 60,
+      "price": 26283.7,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 60,
+      "price": 26306.5,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61174",
+  "trading_symbol": "NIFTY26AUG21350PE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 6.05,
+  "open_price": 6.4,
+  "high_price": 7.55,
+  "low_price": 5.6,
+  "close_price": 6.15,
+  "average_trade_price": 6.58,
+  "last_trade_time": 1785392940,
+  "last_update_time": 1785403574,
+  "last_trade_qty": 130,
+  "total_buy_quantity": 44070,
+  "total_sell_quantity": 10790,
+  "volume_traded_today": 1690,
+  "open_interest": 1820,
+  "net_change": -0.1,
+  "net_change_percent": -1.63,
+  "upper_circuit_limit": 26.15,
+  "lower_circuit_limit": 0.05,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 11120.2,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 260,
+      "price": 5.9,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 195,
+      "price": 7.2,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58067",
+  "trading_symbol": null,
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 57210.0,
+  "open_price": 57125.0,
+  "high_price": 57350.0,
+  "low_price": 56925.0,
+  "close_price": 57344.4,
+  "average_trade_price": 57104.92,
+  "last_trade_time": 1785400656,
+  "last_update_time": 1785400683,
+  "last_trade_qty": 30,
+  "total_buy_quantity": 58170,
+  "total_sell_quantity": 67080,
+  "volume_traded_today": 448140,
+  "open_interest": 2140290,
+  "net_change": -134.4,
+  "net_change_percent": -0.23,
+  "upper_circuit_limit": 63078.8,
+  "lower_circuit_limit": 51610.0,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 25590998848.8,
+  "market_lot": 30,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 60,
+      "price": 57198.0,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 30,
+      "price": 57210.0,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58070",
+  "trading_symbol": null,
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 26267.8,
+  "open_price": 26120.2,
+  "high_price": 26334.6,
+  "low_price": 26120.1,
+  "close_price": 26346.4,
+  "average_trade_price": 26242.27,
+  "last_trade_time": 1785399810,
+  "last_update_time": 1785400682,
+  "last_trade_qty": 60,
+  "total_buy_quantity": 12780,
+  "total_sell_quantity": 12060,
+  "volume_traded_today": 3960,
+  "open_interest": 27660,
+  "net_change": -78.6,
+  "net_change_percent": -0.3,
+  "upper_circuit_limit": 28981.0,
+  "lower_circuit_limit": 23711.8,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 103919389.2,
+  "market_lot": 60,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 60,
+      "price": 26258.6,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 60,
+      "price": 26280.9,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61172",
+  "trading_symbol": null,
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 6.65,
+  "open_price": 6.2,
+  "high_price": 6.95,
+  "low_price": 6.2,
+  "close_price": 6.85,
+  "average_trade_price": 6.64,
+  "last_trade_time": 1785398986,
+  "last_update_time": 1785400547,
+  "last_trade_qty": 65,
+  "total_buy_quantity": 53040,
+  "total_sell_quantity": 13455,
+  "volume_traded_today": 2210,
+  "open_interest": 56225,
+  "net_change": -0.2,
+  "net_change_percent": -2.92,
+  "upper_circuit_limit": 26.85,
+  "lower_circuit_limit": 0.05,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 14674.4,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 260,
+      "price": 6.55,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 260,
+      "price": 7.15,
+      "orders": 3
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61174",
+  "trading_symbol": null,
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 6.05,
+  "open_price": 6.4,
+  "high_price": 7.55,
+  "low_price": 5.6,
+  "close_price": 6.15,
+  "average_trade_price": 6.58,
+  "last_trade_time": 1785392940,
+  "last_update_time": 1785400634,
+  "last_trade_qty": 130,
+  "total_buy_quantity": 45175,
+  "total_sell_quantity": 10140,
+  "volume_traded_today": 1690,
+  "open_interest": 1820,
+  "net_change": -0.1,
+  "net_change_percent": -1.63,
+  "upper_circuit_limit": 26.15,
+  "lower_circuit_limit": 0.05,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 11120.2,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 650,
+      "price": 6.25,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 195,
+      "price": 7.45,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61148",
+  "trading_symbol": null,
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 3021.8,
+  "open_price": 3021.8,
+  "high_price": 3021.8,
+  "low_price": 3021.8,
+  "close_price": 3000.0,
+  "average_trade_price": 3021.8,
+  "last_trade_time": 1785389276,
+  "last_update_time": 1785400682,
+  "last_trade_qty": 65,
+  "total_buy_quantity": 6370,
+  "total_sell_quantity": 4875,
+  "volume_traded_today": 65,
+  "open_interest": 9490,
+  "net_change": 21.8,
+  "net_change_percent": 0.73,
+  "upper_circuit_limit": 3638.3,
+  "lower_circuit_limit": 2361.7,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 196417.0,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 65,
+      "price": 3116.75,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 65,
+      "price": 3148.65,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61153",
+  "trading_symbol": null,
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 6.3,
+  "open_price": 6.4,
+  "high_price": 6.45,
+  "low_price": 5.75,
+  "close_price": 6.4,
+  "average_trade_price": 6.16,
+  "last_trade_time": 1785400177,
+  "last_update_time": 1785400540,
+  "last_trade_qty": 260,
+  "total_buy_quantity": 77025,
+  "total_sell_quantity": 24050,
+  "volume_traded_today": 136760,
+  "open_interest": 604110,
+  "net_change": -0.1,
+  "net_change_percent": -1.56,
+  "upper_circuit_limit": 26.4,
+  "lower_circuit_limit": 0.05,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 842441.6,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 3510,
+      "price": 6.2,
+      "orders": 4
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 2340,
+      "price": 6.35,
+      "orders": 5
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58071",
+  "trading_symbol": null,
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 14689.8,
+  "open_price": 14690.0,
+  "high_price": 14778.45,
+  "low_price": 14651.1,
+  "close_price": 14729.85,
+  "average_trade_price": 14713.31,
+  "last_trade_time": 1785400672,
+  "last_update_time": 1785400682,
+  "last_trade_qty": 120,
+  "total_buy_quantity": 45840,
+  "total_sell_quantity": 47280,
+  "volume_traded_today": 139680,
+  "open_interest": 1866600,
+  "net_change": -40.05,
+  "net_change_percent": -0.27,
+  "upper_circuit_limit": 16202.8,
+  "lower_circuit_limit": 13256.9,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 2055155140.8,
+  "market_lot": 120,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 480,
+      "price": 14680.95,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 120,
+      "price": 14690.75,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61155",
+  "trading_symbol": null,
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 6.35,
+  "open_price": 6.0,
+  "high_price": 6.4,
+  "low_price": 5.6,
+  "close_price": 6.9,
+  "average_trade_price": 6.04,
+  "last_trade_time": 1785399833,
+  "last_update_time": 1785400536,
+  "last_trade_qty": 65,
+  "total_buy_quantity": 52065,
+  "total_sell_quantity": 13585,
+  "volume_traded_today": 1430,
+  "open_interest": 6435,
+  "net_change": -0.55,
+  "net_change_percent": -7.97,
+  "upper_circuit_limit": 26.9,
+  "lower_circuit_limit": 0.05,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 8637.2,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 65,
+      "price": 5.7,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 325,
+      "price": 6.35,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_cm",
+  "instrument_token": "22",
+  "trading_symbol": "ACC-EQ",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 1351.3,
+  "open_price": 1370.8,
+  "high_price": 1370.8,
+  "low_price": 1345.3,
+  "close_price": 1370.8,
+  "average_trade_price": 1351.66,
+  "last_trade_time": 1785403570,
+  "last_update_time": 1785403596,
+  "last_trade_qty": 1,
+  "total_buy_quantity": 33687,
+  "total_sell_quantity": 47456,
+  "volume_traded_today": 128185,
+  "open_interest": 0,
+  "net_change": -19.5,
+  "net_change_percent": -1.42,
+  "upper_circuit_limit": 1644.9,
+  "lower_circuit_limit": 1096.7,
+  "yearly_high": 1987.0,
+  "yearly_low": 1251.7,
+  "total_traded_value": 173262537.1,
+  "market_lot": 1,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 3,
+      "price": 1351.1,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 8,
+      "price": 1351.4,
+      "orders": 3
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58073",
+  "trading_symbol": "NIFTYNXT5026AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 72601.6,
+  "open_price": 72330.0,
+  "high_price": 72800.0,
+  "low_price": 72330.0,
+  "close_price": 72658.2,
+  "average_trade_price": 72571.69,
+  "last_trade_time": 1785403024,
+  "last_update_time": 1785403595,
+  "last_trade_qty": 25,
+  "total_buy_quantity": 1575,
+  "total_sell_quantity": 1600,
+  "volume_traded_today": 1575,
+  "open_interest": 16075,
+  "net_change": -56.6,
+  "net_change_percent": -0.08,
+  "upper_circuit_limit": 79924.0,
+  "lower_circuit_limit": 65392.4,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 114300411.75,
+  "market_lot": 25,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 75,
+      "price": 72526.0,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 25,
+      "price": 72595.6,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58071",
+  "trading_symbol": "MIDCPNIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 14680.0,
+  "open_price": 14690.0,
+  "high_price": 14778.45,
+  "low_price": 14630.0,
+  "close_price": 14729.85,
+  "average_trade_price": 14701.48,
+  "last_trade_time": 1785403593,
+  "last_update_time": 1785403596,
+  "last_trade_qty": 120,
+  "total_buy_quantity": 40200,
+  "total_sell_quantity": 47880,
+  "volume_traded_today": 178440,
+  "open_interest": 1870320,
+  "net_change": -49.85,
+  "net_change_percent": -0.34,
+  "upper_circuit_limit": 16202.8,
+  "lower_circuit_limit": 13256.9,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 2623332091.2,
+  "market_lot": 120,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 600,
+      "price": 14678.1,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 120,
+      "price": 14688.95,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58072",
+  "trading_symbol": "NIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 24349.8,
+  "open_price": 24265.6,
+  "high_price": 24397.0,
+  "low_price": 24250.0,
+  "close_price": 24311.5,
+  "average_trade_price": 24319.12,
+  "last_trade_time": 1785403595,
+  "last_update_time": 1785403595,
+  "last_trade_qty": 195,
+  "total_buy_quantity": 500760,
+  "total_sell_quantity": 424970,
+  "volume_traded_today": 2201745,
+  "open_interest": 13220415,
+  "net_change": 38.3,
+  "net_change_percent": 0.16,
+  "upper_circuit_limit": 26742.6,
+  "lower_circuit_limit": 21880.4,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 53544500864.4,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 65,
+      "price": 24345.0,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 455,
+      "price": 24350.0,
+      "orders": 7
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58067",
+  "trading_symbol": "BANKNIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 57255.0,
+  "open_price": 57125.0,
+  "high_price": 57350.0,
+  "low_price": 56925.0,
+  "close_price": 57344.4,
+  "average_trade_price": 57110.63,
+  "last_trade_time": 1785403592,
+  "last_update_time": 1785403596,
+  "last_trade_qty": 30,
+  "total_buy_quantity": 60960,
+  "total_sell_quantity": 70920,
+  "volume_traded_today": 476670,
+  "open_interest": 2137860,
+  "net_change": -89.4,
+  "net_change_percent": -0.16,
+  "upper_circuit_limit": 63078.8,
+  "lower_circuit_limit": 51610.0,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 27222924002.1,
+  "market_lot": 30,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 270,
+      "price": 57250.0,
+      "orders": 4
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 120,
+      "price": 57260.0,
+      "orders": 3
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61593",
+  "trading_symbol": "NIFTY26AUG24000CE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 507.1,
+  "open_price": 462.4,
+  "high_price": 548.45,
+  "low_price": 444.25,
+  "close_price": 487.55,
+  "average_trade_price": 493.64,
+  "last_trade_time": 1785403587,
+  "last_update_time": 1785403595,
+  "last_trade_qty": 260,
+  "total_buy_quantity": 51740,
+  "total_sell_quantity": 68185,
+  "volume_traded_today": 1393210,
+  "open_interest": 6361550,
+  "net_change": 19.55,
+  "net_change_percent": 4.01,
+  "upper_circuit_limit": 894.1,
+  "lower_circuit_limit": 81.0,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 687744184.4,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 325,
+      "price": 506.05,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 130,
+      "price": 507.6,
+      "orders": 2
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61148",
+  "trading_symbol": "NIFTY26AUG21200CE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 3120.4,
+  "open_price": 3021.8,
+  "high_price": 3120.4,
+  "low_price": 3021.8,
+  "close_price": 3000.0,
+  "average_trade_price": 3071.1,
+  "last_trade_time": 1785403189,
+  "last_update_time": 1785403595,
+  "last_trade_qty": 65,
+  "total_buy_quantity": 6435,
+  "total_sell_quantity": 5785,
+  "volume_traded_today": 130,
+  "open_interest": 9555,
+  "net_change": 120.4,
+  "net_change_percent": 4.01,
+  "upper_circuit_limit": 3638.3,
+  "lower_circuit_limit": 2361.7,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 399243.0,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 65,
+      "price": 3119.1,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 65,
+      "price": 3152.5,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61172",
+  "trading_symbol": "NIFTY26AUG21300PE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 6.75,
+  "open_price": 6.2,
+  "high_price": 6.95,
+  "low_price": 6.2,
+  "close_price": 6.85,
+  "average_trade_price": 6.64,
+  "last_trade_time": 1785401447,
+  "last_update_time": 1785403583,
+  "last_trade_qty": 65,
+  "total_buy_quantity": 52910,
+  "total_sell_quantity": 13910,
+  "volume_traded_today": 2275,
+  "open_interest": 56290,
+  "net_change": -0.1,
+  "net_change_percent": -1.46,
+  "upper_circuit_limit": 26.85,
+  "lower_circuit_limit": 0.05,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 15106.0,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 260,
+      "price": 6.4,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 715,
+      "price": 7.2,
+      "orders": 3
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61155",
+  "trading_symbol": "NIFTY26AUG21250PE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 6.35,
+  "open_price": 6.0,
+  "high_price": 6.4,
+  "low_price": 5.6,
+  "close_price": 6.9,
+  "average_trade_price": 6.05,
+  "last_trade_time": 1785403497,
+  "last_update_time": 1785403497,
+  "last_trade_qty": 65,
+  "total_buy_quantity": 52065,
+  "total_sell_quantity": 13065,
+  "volume_traded_today": 1495,
+  "open_interest": 6435,
+  "net_change": -0.55,
+  "net_change_percent": -7.97,
+  "upper_circuit_limit": 26.9,
+  "lower_circuit_limit": 0.05,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 9044.75,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 65,
+      "price": 5.55,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 520,
+      "price": 6.35,
+      "orders": 2
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61153",
+  "trading_symbol": "NIFTY26AUG21200PE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 6.2,
+  "open_price": 6.4,
+  "high_price": 6.45,
+  "low_price": 5.75,
+  "close_price": 6.4,
+  "average_trade_price": 6.13,
+  "last_trade_time": 1785403583,
+  "last_update_time": 1785403583,
+  "last_trade_qty": 260,
+  "total_buy_quantity": 69225,
+  "total_sell_quantity": 24765,
+  "volume_traded_today": 182715,
+  "open_interest": 627900,
+  "net_change": -0.2,
+  "net_change_percent": -3.13,
+  "upper_circuit_limit": 26.4,
+  "lower_circuit_limit": 0.05,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 1120042.95,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 2600,
+      "price": 6.1,
+      "orders": 7
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 325,
+      "price": 6.2,
+      "orders": 2
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58070",
+  "trading_symbol": "FINNIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 26311.3,
+  "open_price": 26120.2,
+  "high_price": 26334.6,
+  "low_price": 26120.1,
+  "close_price": 26346.4,
+  "average_trade_price": 26242.42,
+  "last_trade_time": 1785403394,
+  "last_update_time": 1785403595,
+  "last_trade_qty": 60,
+  "total_buy_quantity": 13260,
+  "total_sell_quantity": 12600,
+  "volume_traded_today": 4440,
+  "open_interest": 27660,
+  "net_change": -35.1,
+  "net_change_percent": -0.13,
+  "upper_circuit_limit": 28981.0,
+  "lower_circuit_limit": 23711.8,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 116516344.8,
+  "market_lot": 60,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 60,
+      "price": 26283.7,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 60,
+      "price": 26306.5,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61174",
+  "trading_symbol": "NIFTY26AUG21350PE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 6.05,
+  "open_price": 6.4,
+  "high_price": 7.55,
+  "low_price": 5.6,
+  "close_price": 6.15,
+  "average_trade_price": 6.58,
+  "last_trade_time": 1785392940,
+  "last_update_time": 1785403574,
+  "last_trade_qty": 130,
+  "total_buy_quantity": 44070,
+  "total_sell_quantity": 10790,
+  "volume_traded_today": 1690,
+  "open_interest": 1820,
+  "net_change": -0.1,
+  "net_change_percent": -1.63,
+  "upper_circuit_limit": 26.15,
+  "lower_circuit_limit": 0.05,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 11120.2,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 260,
+      "price": 5.9,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 195,
+      "price": 7.2,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58070",
+  "trading_symbol": "FINNIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 26311.3,
+  "open_price": 26120.2,
+  "high_price": 26334.6,
+  "low_price": 26120.1,
+  "close_price": 26346.4,
+  "average_trade_price": 26242.42,
+  "last_trade_time": 1785403394,
+  "last_update_time": 1785403596,
+  "last_trade_qty": 60,
+  "total_buy_quantity": 13260,
+  "total_sell_quantity": 12660,
+  "volume_traded_today": 4440,
+  "open_interest": 27660,
+  "net_change": -35.1,
+  "net_change_percent": -0.13,
+  "upper_circuit_limit": 28981.0,
+  "lower_circuit_limit": 23711.8,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 116516344.8,
+  "market_lot": 60,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 120,
+      "price": 26283.4,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 60,
+      "price": 26306.5,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58070",
+  "trading_symbol": "FINNIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 26311.3,
+  "open_price": 26120.2,
+  "high_price": 26334.6,
+  "low_price": 26120.1,
+  "close_price": 26346.4,
+  "average_trade_price": 26242.42,
+  "last_trade_time": 1785403394,
+  "last_update_time": 1785403596,
+  "last_trade_qty": 60,
+  "total_buy_quantity": 13260,
+  "total_sell_quantity": 12660,
+  "volume_traded_today": 4440,
+  "open_interest": 27660,
+  "net_change": -35.1,
+  "net_change_percent": -0.13,
+  "upper_circuit_limit": 28981.0,
+  "lower_circuit_limit": 23711.8,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 116516344.8,
+  "market_lot": 60,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 120,
+      "price": 26283.4,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 60,
+      "price": 26306.5,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58072",
+  "trading_symbol": "NIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 24349.8,
+  "open_price": 24265.6,
+  "high_price": 24397.0,
+  "low_price": 24250.0,
+  "close_price": 24311.5,
+  "average_trade_price": 24319.12,
+  "last_trade_time": 1785403595,
+  "last_update_time": 1785403596,
+  "last_trade_qty": 195,
+  "total_buy_quantity": 500435,
+  "total_sell_quantity": 431210,
+  "volume_traded_today": 2201745,
+  "open_interest": 13220415,
+  "net_change": 38.3,
+  "net_change_percent": 0.16,
+  "upper_circuit_limit": 26742.6,
+  "lower_circuit_limit": 21880.4,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 53544500864.4,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 65,
+      "price": 24345.0,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 910,
+      "price": 24350.0,
+      "orders": 8
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58072",
+  "trading_symbol": "NIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 24349.8,
+  "open_price": 24265.6,
+  "high_price": 24397.0,
+  "low_price": 24250.0,
+  "close_price": 24311.5,
+  "average_trade_price": 24319.12,
+  "last_trade_time": 1785403595,
+  "last_update_time": 1785403596,
+  "last_trade_qty": 195,
+  "total_buy_quantity": 500435,
+  "total_sell_quantity": 431210,
+  "volume_traded_today": 2201745,
+  "open_interest": 13220415,
+  "net_change": 38.3,
+  "net_change_percent": 0.16,
+  "upper_circuit_limit": 26742.6,
+  "lower_circuit_limit": 21880.4,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 53544500864.4,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 65,
+      "price": 24345.0,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 910,
+      "price": 24350.0,
+      "orders": 8
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61593",
+  "trading_symbol": "NIFTY26AUG24000CE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 507.1,
+  "open_price": 462.4,
+  "high_price": 548.45,
+  "low_price": 444.25,
+  "close_price": 487.55,
+  "average_trade_price": 493.64,
+  "last_trade_time": 1785403587,
+  "last_update_time": 1785403596,
+  "last_trade_qty": 260,
+  "total_buy_quantity": 52000,
+  "total_sell_quantity": 68250,
+  "volume_traded_today": 1393210,
+  "open_interest": 6361550,
+  "net_change": 19.55,
+  "net_change_percent": 4.01,
+  "upper_circuit_limit": 894.1,
+  "lower_circuit_limit": 81.0,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 687744184.4,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 65,
+      "price": 505.7,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 65,
+      "price": 507.4,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61593",
+  "trading_symbol": "NIFTY26AUG24000CE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 507.1,
+  "open_price": 462.4,
+  "high_price": 548.45,
+  "low_price": 444.25,
+  "close_price": 487.55,
+  "average_trade_price": 493.64,
+  "last_trade_time": 1785403587,
+  "last_update_time": 1785403596,
+  "last_trade_qty": 260,
+  "total_buy_quantity": 52000,
+  "total_sell_quantity": 68250,
+  "volume_traded_today": 1393210,
+  "open_interest": 6361550,
+  "net_change": 19.55,
+  "net_change_percent": 4.01,
+  "upper_circuit_limit": 894.1,
+  "lower_circuit_limit": 81.0,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 687744184.4,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 65,
+      "price": 505.7,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 65,
+      "price": 507.4,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61148",
+  "trading_symbol": "NIFTY26AUG21200CE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 3120.4,
+  "open_price": 3021.8,
+  "high_price": 3120.4,
+  "low_price": 3021.8,
+  "close_price": 3000.0,
+  "average_trade_price": 3071.1,
+  "last_trade_time": 1785403189,
+  "last_update_time": 1785403596,
+  "last_trade_qty": 65,
+  "total_buy_quantity": 6370,
+  "total_sell_quantity": 5655,
+  "volume_traded_today": 130,
+  "open_interest": 9555,
+  "net_change": 120.4,
+  "net_change_percent": 4.01,
+  "upper_circuit_limit": 3638.3,
+  "lower_circuit_limit": 2361.7,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 399243.0,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 65,
+      "price": 3119.3,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 65,
+      "price": 3150.65,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61148",
+  "trading_symbol": "NIFTY26AUG21200CE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 3120.4,
+  "open_price": 3021.8,
+  "high_price": 3120.4,
+  "low_price": 3021.8,
+  "close_price": 3000.0,
+  "average_trade_price": 3071.1,
+  "last_trade_time": 1785403189,
+  "last_update_time": 1785403596,
+  "last_trade_qty": 65,
+  "total_buy_quantity": 6370,
+  "total_sell_quantity": 5655,
+  "volume_traded_today": 130,
+  "open_interest": 9555,
+  "net_change": 120.4,
+  "net_change_percent": 4.01,
+  "upper_circuit_limit": 3638.3,
+  "lower_circuit_limit": 2361.7,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 399243.0,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 65,
+      "price": 3119.3,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 65,
+      "price": 3150.65,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58073",
+  "trading_symbol": "NIFTYNXT5026AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 72601.6,
+  "open_price": 72330.0,
+  "high_price": 72800.0,
+  "low_price": 72330.0,
+  "close_price": 72658.2,
+  "average_trade_price": 72571.69,
+  "last_trade_time": 1785403024,
+  "last_update_time": 1785403596,
+  "last_trade_qty": 25,
+  "total_buy_quantity": 1575,
+  "total_sell_quantity": 1600,
+  "volume_traded_today": 1575,
+  "open_interest": 16075,
+  "net_change": -56.6,
+  "net_change_percent": -0.08,
+  "upper_circuit_limit": 79924.0,
+  "lower_circuit_limit": 65392.4,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 114300411.75,
+  "market_lot": 25,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 75,
+      "price": 72526.0,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 25,
+      "price": 72595.6,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58073",
+  "trading_symbol": "NIFTYNXT5026AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 72601.6,
+  "open_price": 72330.0,
+  "high_price": 72800.0,
+  "low_price": 72330.0,
+  "close_price": 72658.2,
+  "average_trade_price": 72571.69,
+  "last_trade_time": 1785403024,
+  "last_update_time": 1785403596,
+  "last_trade_qty": 25,
+  "total_buy_quantity": 1575,
+  "total_sell_quantity": 1600,
+  "volume_traded_today": 1575,
+  "open_interest": 16075,
+  "net_change": -56.6,
+  "net_change_percent": -0.08,
+  "upper_circuit_limit": 79924.0,
+  "lower_circuit_limit": 65392.4,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 114300411.75,
+  "market_lot": 25,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 75,
+      "price": 72526.0,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 25,
+      "price": 72595.6,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_cm",
+  "instrument_token": "2885",
+  "trading_symbol": "RELIANCE-EQ",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 1291.2,
+  "open_price": 1279.8,
+  "high_price": 1297.0,
+  "low_price": 1275.3,
+  "close_price": 1275.9,
+  "average_trade_price": 1289.02,
+  "last_trade_time": 1785403597,
+  "last_update_time": 1785403597,
+  "last_trade_qty": 158,
+  "total_buy_quantity": 704304,
+  "total_sell_quantity": 1068097,
+  "volume_traded_today": 7741049,
+  "open_interest": 0,
+  "net_change": 15.3,
+  "net_change_percent": 1.2,
+  "upper_circuit_limit": 1403.4,
+  "lower_circuit_limit": 1148.4,
+  "yearly_high": 1611.8,
+  "yearly_low": 1249.8,
+  "total_traded_value": 9978366981.98,
+  "market_lot": 1,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 130,
+      "price": 1291.2,
+      "orders": 4
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 366,
+      "price": 1291.4,
+      "orders": 9
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_cm",
+  "instrument_token": "2885",
+  "trading_symbol": "RELIANCE-EQ",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 1291.2,
+  "open_price": 1279.8,
+  "high_price": 1297.0,
+  "low_price": 1275.3,
+  "close_price": 1275.9,
+  "average_trade_price": 1289.02,
+  "last_trade_time": 1785403597,
+  "last_update_time": 1785403597,
+  "last_trade_qty": 158,
+  "total_buy_quantity": 704304,
+  "total_sell_quantity": 1068097,
+  "volume_traded_today": 7741049,
+  "open_interest": 0,
+  "net_change": 15.3,
+  "net_change_percent": 1.2,
+  "upper_circuit_limit": 1403.4,
+  "lower_circuit_limit": 1148.4,
+  "yearly_high": 1611.8,
+  "yearly_low": 1249.8,
+  "total_traded_value": 9978366981.98,
+  "market_lot": 1,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 130,
+      "price": 1291.2,
+      "orders": 4
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 366,
+      "price": 1291.4,
+      "orders": 9
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58067",
+  "trading_symbol": "BANKNIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 57255.0,
+  "open_price": 57125.0,
+  "high_price": 57350.0,
+  "low_price": 56925.0,
+  "close_price": 57344.4,
+  "average_trade_price": 57110.63,
+  "last_trade_time": 1785403592,
+  "last_update_time": 1785403597,
+  "last_trade_qty": 30,
+  "total_buy_quantity": 60900,
+  "total_sell_quantity": 70800,
+  "volume_traded_today": 476670,
+  "open_interest": 2137860,
+  "net_change": -89.4,
+  "net_change_percent": -0.16,
+  "upper_circuit_limit": 63078.8,
+  "lower_circuit_limit": 51610.0,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 27222924002.1,
+  "market_lot": 30,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 270,
+      "price": 57250.0,
+      "orders": 4
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 120,
+      "price": 57260.0,
+      "orders": 3
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58067",
+  "trading_symbol": "BANKNIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 57255.0,
+  "open_price": 57125.0,
+  "high_price": 57350.0,
+  "low_price": 56925.0,
+  "close_price": 57344.4,
+  "average_trade_price": 57110.63,
+  "last_trade_time": 1785403592,
+  "last_update_time": 1785403597,
+  "last_trade_qty": 30,
+  "total_buy_quantity": 60900,
+  "total_sell_quantity": 70800,
+  "volume_traded_today": 476670,
+  "open_interest": 2137860,
+  "net_change": -89.4,
+  "net_change_percent": -0.16,
+  "upper_circuit_limit": 63078.8,
+  "lower_circuit_limit": 51610.0,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 27222924002.1,
+  "market_lot": 30,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 270,
+      "price": 57250.0,
+      "orders": 4
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 120,
+      "price": 57260.0,
+      "orders": 3
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58071",
+  "trading_symbol": "MIDCPNIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 14680.0,
+  "open_price": 14690.0,
+  "high_price": 14778.45,
+  "low_price": 14630.0,
+  "close_price": 14729.85,
+  "average_trade_price": 14701.48,
+  "last_trade_time": 1785403593,
+  "last_update_time": 1785403597,
+  "last_trade_qty": 120,
+  "total_buy_quantity": 40200,
+  "total_sell_quantity": 48960,
+  "volume_traded_today": 178440,
+  "open_interest": 1870320,
+  "net_change": -49.85,
+  "net_change_percent": -0.34,
+  "upper_circuit_limit": 16202.8,
+  "lower_circuit_limit": 13256.9,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 2623332091.2,
+  "market_lot": 120,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 480,
+      "price": 14678.9,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 120,
+      "price": 14689.95,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58071",
+  "trading_symbol": "MIDCPNIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 14680.0,
+  "open_price": 14690.0,
+  "high_price": 14778.45,
+  "low_price": 14630.0,
+  "close_price": 14729.85,
+  "average_trade_price": 14701.48,
+  "last_trade_time": 1785403593,
+  "last_update_time": 1785403597,
+  "last_trade_qty": 120,
+  "total_buy_quantity": 40200,
+  "total_sell_quantity": 48960,
+  "volume_traded_today": 178440,
+  "open_interest": 1870320,
+  "net_change": -49.85,
+  "net_change_percent": -0.34,
+  "upper_circuit_limit": 16202.8,
+  "lower_circuit_limit": 13256.9,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 2623332091.2,
+  "market_lot": 120,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 480,
+      "price": 14678.9,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 120,
+      "price": 14689.95,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_cm",
+  "instrument_token": "22",
+  "trading_symbol": "ACC-EQ",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 1351.3,
+  "open_price": 1370.8,
+  "high_price": 1370.8,
+  "low_price": 1345.3,
+  "close_price": 1370.8,
+  "average_trade_price": 1351.66,
+  "last_trade_time": 1785403570,
+  "last_update_time": 1785403597,
+  "last_trade_qty": 1,
+  "total_buy_quantity": 33683,
+  "total_sell_quantity": 47475,
+  "volume_traded_today": 128185,
+  "open_interest": 0,
+  "net_change": -19.5,
+  "net_change_percent": -1.42,
+  "upper_circuit_limit": 1644.9,
+  "lower_circuit_limit": 1096.7,
+  "yearly_high": 1987.0,
+  "yearly_low": 1251.7,
+  "total_traded_value": 173262537.1,
+  "market_lot": 1,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 2,
+      "price": 1351.0,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 8,
+      "price": 1351.4,
+      "orders": 3
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_cm",
+  "instrument_token": "22",
+  "trading_symbol": "ACC-EQ",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 1351.3,
+  "open_price": 1370.8,
+  "high_price": 1370.8,
+  "low_price": 1345.3,
+  "close_price": 1370.8,
+  "average_trade_price": 1351.66,
+  "last_trade_time": 1785403570,
+  "last_update_time": 1785403597,
+  "last_trade_qty": 1,
+  "total_buy_quantity": 33683,
+  "total_sell_quantity": 47475,
+  "volume_traded_today": 128185,
+  "open_interest": 0,
+  "net_change": -19.5,
+  "net_change_percent": -1.42,
+  "upper_circuit_limit": 1644.9,
+  "lower_circuit_limit": 1096.7,
+  "yearly_high": 1987.0,
+  "yearly_low": 1251.7,
+  "total_traded_value": 173262537.1,
+  "market_lot": 1,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 2,
+      "price": 1351.0,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 8,
+      "price": 1351.4,
+      "orders": 3
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58070",
+  "trading_symbol": "FINNIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 26311.3,
+  "open_price": 26120.2,
+  "high_price": 26334.6,
+  "low_price": 26120.1,
+  "close_price": 26346.4,
+  "average_trade_price": 26242.42,
+  "last_trade_time": 1785403394,
+  "last_update_time": 1785403597,
+  "last_trade_qty": 60,
+  "total_buy_quantity": 13380,
+  "total_sell_quantity": 12480,
+  "volume_traded_today": 4440,
+  "open_interest": 27660,
+  "net_change": -35.1,
+  "net_change_percent": -0.13,
+  "upper_circuit_limit": 28981.0,
+  "lower_circuit_limit": 23711.8,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 116516344.8,
+  "market_lot": 60,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 120,
+      "price": 26283.4,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 60,
+      "price": 26309.7,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58070",
+  "trading_symbol": "FINNIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 26311.3,
+  "open_price": 26120.2,
+  "high_price": 26334.6,
+  "low_price": 26120.1,
+  "close_price": 26346.4,
+  "average_trade_price": 26242.42,
+  "last_trade_time": 1785403394,
+  "last_update_time": 1785403597,
+  "last_trade_qty": 60,
+  "total_buy_quantity": 13380,
+  "total_sell_quantity": 12480,
+  "volume_traded_today": 4440,
+  "open_interest": 27660,
+  "net_change": -35.1,
+  "net_change_percent": -0.13,
+  "upper_circuit_limit": 28981.0,
+  "lower_circuit_limit": 23711.8,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 116516344.8,
+  "market_lot": 60,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 120,
+      "price": 26283.4,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 60,
+      "price": 26309.7,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58072",
+  "trading_symbol": "NIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 24349.8,
+  "open_price": 24265.6,
+  "high_price": 24397.0,
+  "low_price": 24250.0,
+  "close_price": 24311.5,
+  "average_trade_price": 24319.12,
+  "last_trade_time": 1785403595,
+  "last_update_time": 1785403597,
+  "last_trade_qty": 195,
+  "total_buy_quantity": 501735,
+  "total_sell_quantity": 431470,
+  "volume_traded_today": 2201745,
+  "open_interest": 13220415,
+  "net_change": 38.3,
+  "net_change_percent": 0.16,
+  "upper_circuit_limit": 26742.6,
+  "lower_circuit_limit": 21880.4,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 53544500864.4,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 195,
+      "price": 24345.0,
+      "orders": 3
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 910,
+      "price": 24350.0,
+      "orders": 8
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58072",
+  "trading_symbol": "NIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 24349.8,
+  "open_price": 24265.6,
+  "high_price": 24397.0,
+  "low_price": 24250.0,
+  "close_price": 24311.5,
+  "average_trade_price": 24319.12,
+  "last_trade_time": 1785403595,
+  "last_update_time": 1785403597,
+  "last_trade_qty": 195,
+  "total_buy_quantity": 501735,
+  "total_sell_quantity": 431470,
+  "volume_traded_today": 2201745,
+  "open_interest": 13220415,
+  "net_change": 38.3,
+  "net_change_percent": 0.16,
+  "upper_circuit_limit": 26742.6,
+  "lower_circuit_limit": 21880.4,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 53544500864.4,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 195,
+      "price": 24345.0,
+      "orders": 3
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 910,
+      "price": 24350.0,
+      "orders": 8
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61593",
+  "trading_symbol": "NIFTY26AUG24000CE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 507.1,
+  "open_price": 462.4,
+  "high_price": 548.45,
+  "low_price": 444.25,
+  "close_price": 487.55,
+  "average_trade_price": 493.64,
+  "last_trade_time": 1785403587,
+  "last_update_time": 1785403597,
+  "last_trade_qty": 260,
+  "total_buy_quantity": 51805,
+  "total_sell_quantity": 68185,
+  "volume_traded_today": 1393210,
+  "open_interest": 6361550,
+  "net_change": 19.55,
+  "net_change_percent": 4.01,
+  "upper_circuit_limit": 894.1,
+  "lower_circuit_limit": 81.0,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 687744184.4,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 260,
+      "price": 506.0,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 65,
+      "price": 507.55,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61593",
+  "trading_symbol": "NIFTY26AUG24000CE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 507.1,
+  "open_price": 462.4,
+  "high_price": 548.45,
+  "low_price": 444.25,
+  "close_price": 487.55,
+  "average_trade_price": 493.64,
+  "last_trade_time": 1785403587,
+  "last_update_time": 1785403597,
+  "last_trade_qty": 260,
+  "total_buy_quantity": 51805,
+  "total_sell_quantity": 68185,
+  "volume_traded_today": 1393210,
+  "open_interest": 6361550,
+  "net_change": 19.55,
+  "net_change_percent": 4.01,
+  "upper_circuit_limit": 894.1,
+  "lower_circuit_limit": 81.0,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 687744184.4,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 260,
+      "price": 506.0,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 65,
+      "price": 507.55,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61148",
+  "trading_symbol": "NIFTY26AUG21200CE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 3120.4,
+  "open_price": 3021.8,
+  "high_price": 3120.4,
+  "low_price": 3021.8,
+  "close_price": 3000.0,
+  "average_trade_price": 3071.1,
+  "last_trade_time": 1785403189,
+  "last_update_time": 1785403597,
+  "last_trade_qty": 65,
+  "total_buy_quantity": 6370,
+  "total_sell_quantity": 5525,
+  "volume_traded_today": 130,
+  "open_interest": 9555,
+  "net_change": 120.4,
+  "net_change_percent": 4.01,
+  "upper_circuit_limit": 3638.3,
+  "lower_circuit_limit": 2361.7,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 399243.0,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 65,
+      "price": 3119.55,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 65,
+      "price": 3149.6,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61148",
+  "trading_symbol": "NIFTY26AUG21200CE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 3120.4,
+  "open_price": 3021.8,
+  "high_price": 3120.4,
+  "low_price": 3021.8,
+  "close_price": 3000.0,
+  "average_trade_price": 3071.1,
+  "last_trade_time": 1785403189,
+  "last_update_time": 1785403597,
+  "last_trade_qty": 65,
+  "total_buy_quantity": 6370,
+  "total_sell_quantity": 5525,
+  "volume_traded_today": 130,
+  "open_interest": 9555,
+  "net_change": 120.4,
+  "net_change_percent": 4.01,
+  "upper_circuit_limit": 3638.3,
+  "lower_circuit_limit": 2361.7,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 399243.0,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 65,
+      "price": 3119.55,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 65,
+      "price": 3149.6,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58073",
+  "trading_symbol": "NIFTYNXT5026AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 72601.6,
+  "open_price": 72330.0,
+  "high_price": 72800.0,
+  "low_price": 72330.0,
+  "close_price": 72658.2,
+  "average_trade_price": 72571.69,
+  "last_trade_time": 1785403024,
+  "last_update_time": 1785403597,
+  "last_trade_qty": 25,
+  "total_buy_quantity": 1575,
+  "total_sell_quantity": 1600,
+  "volume_traded_today": 1575,
+  "open_interest": 16075,
+  "net_change": -56.6,
+  "net_change_percent": -0.08,
+  "upper_circuit_limit": 79924.0,
+  "lower_circuit_limit": 65392.4,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 114300411.75,
+  "market_lot": 25,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 75,
+      "price": 72526.0,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 25,
+      "price": 72595.6,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58073",
+  "trading_symbol": "NIFTYNXT5026AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 72601.6,
+  "open_price": 72330.0,
+  "high_price": 72800.0,
+  "low_price": 72330.0,
+  "close_price": 72658.2,
+  "average_trade_price": 72571.69,
+  "last_trade_time": 1785403024,
+  "last_update_time": 1785403597,
+  "last_trade_qty": 25,
+  "total_buy_quantity": 1575,
+  "total_sell_quantity": 1600,
+  "volume_traded_today": 1575,
+  "open_interest": 16075,
+  "net_change": -56.6,
+  "net_change_percent": -0.08,
+  "upper_circuit_limit": 79924.0,
+  "lower_circuit_limit": 65392.4,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 114300411.75,
+  "market_lot": 25,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 75,
+      "price": 72526.0,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 25,
+      "price": 72595.6,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_cm",
+  "instrument_token": "2885",
+  "trading_symbol": "RELIANCE-EQ",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 1291.4,
+  "open_price": 1279.8,
+  "high_price": 1297.0,
+  "low_price": 1275.3,
+  "close_price": 1275.9,
+  "average_trade_price": 1289.02,
+  "last_trade_time": 1785403597,
+  "last_update_time": 1785403598,
+  "last_trade_qty": 1,
+  "total_buy_quantity": 704214,
+  "total_sell_quantity": 1068596,
+  "volume_traded_today": 7741150,
+  "open_interest": 0,
+  "net_change": 15.5,
+  "net_change_percent": 1.21,
+  "upper_circuit_limit": 1403.4,
+  "lower_circuit_limit": 1148.4,
+  "yearly_high": 1611.8,
+  "yearly_low": 1249.8,
+  "total_traded_value": 9978497173.0,
+  "market_lot": 1,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 13,
+      "price": 1291.2,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 365,
+      "price": 1291.4,
+      "orders": 9
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_cm",
+  "instrument_token": "2885",
+  "trading_symbol": "RELIANCE-EQ",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 1291.4,
+  "open_price": 1279.8,
+  "high_price": 1297.0,
+  "low_price": 1275.3,
+  "close_price": 1275.9,
+  "average_trade_price": 1289.02,
+  "last_trade_time": 1785403597,
+  "last_update_time": 1785403598,
+  "last_trade_qty": 1,
+  "total_buy_quantity": 704214,
+  "total_sell_quantity": 1068596,
+  "volume_traded_today": 7741150,
+  "open_interest": 0,
+  "net_change": 15.5,
+  "net_change_percent": 1.21,
+  "upper_circuit_limit": 1403.4,
+  "lower_circuit_limit": 1148.4,
+  "yearly_high": 1611.8,
+  "yearly_low": 1249.8,
+  "total_traded_value": 9978497173.0,
+  "market_lot": 1,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 13,
+      "price": 1291.2,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 365,
+      "price": 1291.4,
+      "orders": 9
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58067",
+  "trading_symbol": "BANKNIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 57255.0,
+  "open_price": 57125.0,
+  "high_price": 57350.0,
+  "low_price": 56925.0,
+  "close_price": 57344.4,
+  "average_trade_price": 57110.63,
+  "last_trade_time": 1785403592,
+  "last_update_time": 1785403598,
+  "last_trade_qty": 30,
+  "total_buy_quantity": 60840,
+  "total_sell_quantity": 70560,
+  "volume_traded_today": 476670,
+  "open_interest": 2137860,
+  "net_change": -89.4,
+  "net_change_percent": -0.16,
+  "upper_circuit_limit": 63078.8,
+  "lower_circuit_limit": 51610.0,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 27222924002.1,
+  "market_lot": 30,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 270,
+      "price": 57250.0,
+      "orders": 4
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 120,
+      "price": 57260.0,
+      "orders": 3
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58067",
+  "trading_symbol": "BANKNIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 57255.0,
+  "open_price": 57125.0,
+  "high_price": 57350.0,
+  "low_price": 56925.0,
+  "close_price": 57344.4,
+  "average_trade_price": 57110.63,
+  "last_trade_time": 1785403592,
+  "last_update_time": 1785403598,
+  "last_trade_qty": 30,
+  "total_buy_quantity": 60840,
+  "total_sell_quantity": 70560,
+  "volume_traded_today": 476670,
+  "open_interest": 2137860,
+  "net_change": -89.4,
+  "net_change_percent": -0.16,
+  "upper_circuit_limit": 63078.8,
+  "lower_circuit_limit": 51610.0,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 27222924002.1,
+  "market_lot": 30,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 270,
+      "price": 57250.0,
+      "orders": 4
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 120,
+      "price": 57260.0,
+      "orders": 3
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58071",
+  "trading_symbol": "MIDCPNIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 14680.0,
+  "open_price": 14690.0,
+  "high_price": 14778.45,
+  "low_price": 14630.0,
+  "close_price": 14729.85,
+  "average_trade_price": 14701.48,
+  "last_trade_time": 1785403593,
+  "last_update_time": 1785403598,
+  "last_trade_qty": 120,
+  "total_buy_quantity": 40320,
+  "total_sell_quantity": 48120,
+  "volume_traded_today": 178440,
+  "open_interest": 1870320,
+  "net_change": -49.85,
+  "net_change_percent": -0.34,
+  "upper_circuit_limit": 16202.8,
+  "lower_circuit_limit": 13256.9,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 2623332091.2,
+  "market_lot": 120,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 480,
+      "price": 14681.05,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 120,
+      "price": 14689.95,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58071",
+  "trading_symbol": "MIDCPNIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 14680.0,
+  "open_price": 14690.0,
+  "high_price": 14778.45,
+  "low_price": 14630.0,
+  "close_price": 14729.85,
+  "average_trade_price": 14701.48,
+  "last_trade_time": 1785403593,
+  "last_update_time": 1785403598,
+  "last_trade_qty": 120,
+  "total_buy_quantity": 40320,
+  "total_sell_quantity": 48120,
+  "volume_traded_today": 178440,
+  "open_interest": 1870320,
+  "net_change": -49.85,
+  "net_change_percent": -0.34,
+  "upper_circuit_limit": 16202.8,
+  "lower_circuit_limit": 13256.9,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 2623332091.2,
+  "market_lot": 120,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 480,
+      "price": 14681.05,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 120,
+      "price": 14689.95,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58070",
+  "trading_symbol": "FINNIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 26311.3,
+  "open_price": 26120.2,
+  "high_price": 26334.6,
+  "low_price": 26120.1,
+  "close_price": 26346.4,
+  "average_trade_price": 26242.42,
+  "last_trade_time": 1785403394,
+  "last_update_time": 1785403598,
+  "last_trade_qty": 60,
+  "total_buy_quantity": 13380,
+  "total_sell_quantity": 12480,
+  "volume_traded_today": 4440,
+  "open_interest": 27660,
+  "net_change": -35.1,
+  "net_change_percent": -0.13,
+  "upper_circuit_limit": 28981.0,
+  "lower_circuit_limit": 23711.8,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 116516344.8,
+  "market_lot": 60,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 120,
+      "price": 26283.4,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 60,
+      "price": 26309.7,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58070",
+  "trading_symbol": "FINNIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 26311.3,
+  "open_price": 26120.2,
+  "high_price": 26334.6,
+  "low_price": 26120.1,
+  "close_price": 26346.4,
+  "average_trade_price": 26242.42,
+  "last_trade_time": 1785403394,
+  "last_update_time": 1785403598,
+  "last_trade_qty": 60,
+  "total_buy_quantity": 13380,
+  "total_sell_quantity": 12480,
+  "volume_traded_today": 4440,
+  "open_interest": 27660,
+  "net_change": -35.1,
+  "net_change_percent": -0.13,
+  "upper_circuit_limit": 28981.0,
+  "lower_circuit_limit": 23711.8,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 116516344.8,
+  "market_lot": 60,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 120,
+      "price": 26283.4,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 60,
+      "price": 26309.7,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58072",
+  "trading_symbol": "NIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 24349.8,
+  "open_price": 24265.6,
+  "high_price": 24397.0,
+  "low_price": 24250.0,
+  "close_price": 24311.5,
+  "average_trade_price": 24319.12,
+  "last_trade_time": 1785403595,
+  "last_update_time": 1785403598,
+  "last_trade_qty": 195,
+  "total_buy_quantity": 486980,
+  "total_sell_quantity": 431210,
+  "volume_traded_today": 2201745,
+  "open_interest": 13220415,
+  "net_change": 38.3,
+  "net_change_percent": 0.16,
+  "upper_circuit_limit": 26742.6,
+  "lower_circuit_limit": 21880.4,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 53544500864.4,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 195,
+      "price": 24345.0,
+      "orders": 3
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 650,
+      "price": 24349.8,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58072",
+  "trading_symbol": "NIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 24349.8,
+  "open_price": 24265.6,
+  "high_price": 24397.0,
+  "low_price": 24250.0,
+  "close_price": 24311.5,
+  "average_trade_price": 24319.12,
+  "last_trade_time": 1785403595,
+  "last_update_time": 1785403598,
+  "last_trade_qty": 195,
+  "total_buy_quantity": 486980,
+  "total_sell_quantity": 431210,
+  "volume_traded_today": 2201745,
+  "open_interest": 13220415,
+  "net_change": 38.3,
+  "net_change_percent": 0.16,
+  "upper_circuit_limit": 26742.6,
+  "lower_circuit_limit": 21880.4,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 53544500864.4,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 195,
+      "price": 24345.0,
+      "orders": 3
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 650,
+      "price": 24349.8,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61174",
+  "trading_symbol": "NIFTY26AUG21350PE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 6.05,
+  "open_price": 6.4,
+  "high_price": 7.55,
+  "low_price": 5.6,
+  "close_price": 6.15,
+  "average_trade_price": 6.58,
+  "last_trade_time": 1785392940,
+  "last_update_time": 1785403598,
+  "last_trade_qty": 130,
+  "total_buy_quantity": 44070,
+  "total_sell_quantity": 10140,
+  "volume_traded_today": 1690,
+  "open_interest": 1820,
+  "net_change": -0.1,
+  "net_change_percent": -1.63,
+  "upper_circuit_limit": 26.15,
+  "lower_circuit_limit": 0.05,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 11120.2,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 260,
+      "price": 5.9,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 195,
+      "price": 7.2,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61174",
+  "trading_symbol": "NIFTY26AUG21350PE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 6.05,
+  "open_price": 6.4,
+  "high_price": 7.55,
+  "low_price": 5.6,
+  "close_price": 6.15,
+  "average_trade_price": 6.58,
+  "last_trade_time": 1785392940,
+  "last_update_time": 1785403598,
+  "last_trade_qty": 130,
+  "total_buy_quantity": 44070,
+  "total_sell_quantity": 10140,
+  "volume_traded_today": 1690,
+  "open_interest": 1820,
+  "net_change": -0.1,
+  "net_change_percent": -1.63,
+  "upper_circuit_limit": 26.15,
+  "lower_circuit_limit": 0.05,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 11120.2,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 260,
+      "price": 5.9,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 195,
+      "price": 7.2,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61172",
+  "trading_symbol": "NIFTY26AUG21300PE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 6.75,
+  "open_price": 6.2,
+  "high_price": 6.95,
+  "low_price": 6.2,
+  "close_price": 6.85,
+  "average_trade_price": 6.64,
+  "last_trade_time": 1785401447,
+  "last_update_time": 1785403598,
+  "last_trade_qty": 65,
+  "total_buy_quantity": 52910,
+  "total_sell_quantity": 13260,
+  "volume_traded_today": 2275,
+  "open_interest": 56290,
+  "net_change": -0.1,
+  "net_change_percent": -1.46,
+  "upper_circuit_limit": 26.85,
+  "lower_circuit_limit": 0.05,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 15106.0,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 260,
+      "price": 6.4,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 715,
+      "price": 7.2,
+      "orders": 3
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61172",
+  "trading_symbol": "NIFTY26AUG21300PE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 6.75,
+  "open_price": 6.2,
+  "high_price": 6.95,
+  "low_price": 6.2,
+  "close_price": 6.85,
+  "average_trade_price": 6.64,
+  "last_trade_time": 1785401447,
+  "last_update_time": 1785403598,
+  "last_trade_qty": 65,
+  "total_buy_quantity": 52910,
+  "total_sell_quantity": 13260,
+  "volume_traded_today": 2275,
+  "open_interest": 56290,
+  "net_change": -0.1,
+  "net_change_percent": -1.46,
+  "upper_circuit_limit": 26.85,
+  "lower_circuit_limit": 0.05,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 15106.0,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 260,
+      "price": 6.4,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 715,
+      "price": 7.2,
+      "orders": 3
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61593",
+  "trading_symbol": "NIFTY26AUG24000CE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 507.1,
+  "open_price": 462.4,
+  "high_price": 548.45,
+  "low_price": 444.25,
+  "close_price": 487.55,
+  "average_trade_price": 493.64,
+  "last_trade_time": 1785403587,
+  "last_update_time": 1785403598,
+  "last_trade_qty": 260,
+  "total_buy_quantity": 52000,
+  "total_sell_quantity": 68185,
+  "volume_traded_today": 1393210,
+  "open_interest": 6361550,
+  "net_change": 19.55,
+  "net_change_percent": 4.01,
+  "upper_circuit_limit": 894.1,
+  "lower_circuit_limit": 81.0,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 687744184.4,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 325,
+      "price": 505.55,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 65,
+      "price": 507.25,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61148",
+  "trading_symbol": "NIFTY26AUG21200CE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 3120.4,
+  "open_price": 3021.8,
+  "high_price": 3120.4,
+  "low_price": 3021.8,
+  "close_price": 3000.0,
+  "average_trade_price": 3071.1,
+  "last_trade_time": 1785403189,
+  "last_update_time": 1785403598,
+  "last_trade_qty": 65,
+  "total_buy_quantity": 6370,
+  "total_sell_quantity": 5590,
+  "volume_traded_today": 130,
+  "open_interest": 9555,
+  "net_change": 120.4,
+  "net_change_percent": 4.01,
+  "upper_circuit_limit": 3638.3,
+  "lower_circuit_limit": 2361.7,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 399243.0,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 130,
+      "price": 3119.5,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 195,
+      "price": 3148.75,
+      "orders": 3
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61593",
+  "trading_symbol": "NIFTY26AUG24000CE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 507.1,
+  "open_price": 462.4,
+  "high_price": 548.45,
+  "low_price": 444.25,
+  "close_price": 487.55,
+  "average_trade_price": 493.64,
+  "last_trade_time": 1785403587,
+  "last_update_time": 1785403598,
+  "last_trade_qty": 260,
+  "total_buy_quantity": 52000,
+  "total_sell_quantity": 68185,
+  "volume_traded_today": 1393210,
+  "open_interest": 6361550,
+  "net_change": 19.55,
+  "net_change_percent": 4.01,
+  "upper_circuit_limit": 894.1,
+  "lower_circuit_limit": 81.0,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 687744184.4,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 325,
+      "price": 505.55,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 65,
+      "price": 507.25,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61148",
+  "trading_symbol": "NIFTY26AUG21200CE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 3120.4,
+  "open_price": 3021.8,
+  "high_price": 3120.4,
+  "low_price": 3021.8,
+  "close_price": 3000.0,
+  "average_trade_price": 3071.1,
+  "last_trade_time": 1785403189,
+  "last_update_time": 1785403598,
+  "last_trade_qty": 65,
+  "total_buy_quantity": 6370,
+  "total_sell_quantity": 5590,
+  "volume_traded_today": 130,
+  "open_interest": 9555,
+  "net_change": 120.4,
+  "net_change_percent": 4.01,
+  "upper_circuit_limit": 3638.3,
+  "lower_circuit_limit": 2361.7,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 399243.0,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 130,
+      "price": 3119.5,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 195,
+      "price": 3148.75,
+      "orders": 3
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58073",
+  "trading_symbol": "NIFTYNXT5026AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 72601.6,
+  "open_price": 72330.0,
+  "high_price": 72800.0,
+  "low_price": 72330.0,
+  "close_price": 72658.2,
+  "average_trade_price": 72571.69,
+  "last_trade_time": 1785403024,
+  "last_update_time": 1785403598,
+  "last_trade_qty": 25,
+  "total_buy_quantity": 1575,
+  "total_sell_quantity": 1600,
+  "volume_traded_today": 1575,
+  "open_interest": 16075,
+  "net_change": -56.6,
+  "net_change_percent": -0.08,
+  "upper_circuit_limit": 79924.0,
+  "lower_circuit_limit": 65392.4,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 114300411.75,
+  "market_lot": 25,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 75,
+      "price": 72526.0,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 25,
+      "price": 72595.6,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58073",
+  "trading_symbol": "NIFTYNXT5026AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 72601.6,
+  "open_price": 72330.0,
+  "high_price": 72800.0,
+  "low_price": 72330.0,
+  "close_price": 72658.2,
+  "average_trade_price": 72571.69,
+  "last_trade_time": 1785403024,
+  "last_update_time": 1785403598,
+  "last_trade_qty": 25,
+  "total_buy_quantity": 1575,
+  "total_sell_quantity": 1600,
+  "volume_traded_today": 1575,
+  "open_interest": 16075,
+  "net_change": -56.6,
+  "net_change_percent": -0.08,
+  "upper_circuit_limit": 79924.0,
+  "lower_circuit_limit": 65392.4,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 114300411.75,
+  "market_lot": 25,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 75,
+      "price": 72526.0,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 25,
+      "price": 72595.6,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_cm",
+  "instrument_token": "2885",
+  "trading_symbol": "RELIANCE-EQ",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 1291.4,
+  "open_price": 1279.8,
+  "high_price": 1297.0,
+  "low_price": 1275.3,
+  "close_price": 1275.9,
+  "average_trade_price": 1289.02,
+  "last_trade_time": 1785403598,
+  "last_update_time": 1785403599,
+  "last_trade_qty": 40,
+  "total_buy_quantity": 704076,
+  "total_sell_quantity": 1067740,
+  "volume_traded_today": 7741321,
+  "open_interest": 0,
+  "net_change": 15.5,
+  "net_change_percent": 1.21,
+  "upper_circuit_limit": 1403.4,
+  "lower_circuit_limit": 1148.4,
+  "yearly_high": 1611.8,
+  "yearly_low": 1249.8,
+  "total_traded_value": 9978717595.42,
+  "market_lot": 1,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 80,
+      "price": 1291.2,
+      "orders": 3
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 265,
+      "price": 1291.4,
+      "orders": 6
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_cm",
+  "instrument_token": "2885",
+  "trading_symbol": "RELIANCE-EQ",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 1291.4,
+  "open_price": 1279.8,
+  "high_price": 1297.0,
+  "low_price": 1275.3,
+  "close_price": 1275.9,
+  "average_trade_price": 1289.02,
+  "last_trade_time": 1785403598,
+  "last_update_time": 1785403599,
+  "last_trade_qty": 40,
+  "total_buy_quantity": 704076,
+  "total_sell_quantity": 1067740,
+  "volume_traded_today": 7741321,
+  "open_interest": 0,
+  "net_change": 15.5,
+  "net_change_percent": 1.21,
+  "upper_circuit_limit": 1403.4,
+  "lower_circuit_limit": 1148.4,
+  "yearly_high": 1611.8,
+  "yearly_low": 1249.8,
+  "total_traded_value": 9978717595.42,
+  "market_lot": 1,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 80,
+      "price": 1291.2,
+      "orders": 3
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 265,
+      "price": 1291.4,
+      "orders": 6
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58067",
+  "trading_symbol": "BANKNIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 57255.0,
+  "open_price": 57125.0,
+  "high_price": 57350.0,
+  "low_price": 56925.0,
+  "close_price": 57344.4,
+  "average_trade_price": 57110.63,
+  "last_trade_time": 1785403592,
+  "last_update_time": 1785403599,
+  "last_trade_qty": 30,
+  "total_buy_quantity": 59970,
+  "total_sell_quantity": 71400,
+  "volume_traded_today": 476670,
+  "open_interest": 2137860,
+  "net_change": -89.4,
+  "net_change_percent": -0.16,
+  "upper_circuit_limit": 63078.8,
+  "lower_circuit_limit": 51610.0,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 27222924002.1,
+  "market_lot": 30,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 270,
+      "price": 57250.0,
+      "orders": 4
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 30,
+      "price": 57255.0,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58067",
+  "trading_symbol": "BANKNIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 57255.0,
+  "open_price": 57125.0,
+  "high_price": 57350.0,
+  "low_price": 56925.0,
+  "close_price": 57344.4,
+  "average_trade_price": 57110.63,
+  "last_trade_time": 1785403592,
+  "last_update_time": 1785403599,
+  "last_trade_qty": 30,
+  "total_buy_quantity": 59970,
+  "total_sell_quantity": 71400,
+  "volume_traded_today": 476670,
+  "open_interest": 2137860,
+  "net_change": -89.4,
+  "net_change_percent": -0.16,
+  "upper_circuit_limit": 63078.8,
+  "lower_circuit_limit": 51610.0,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 27222924002.1,
+  "market_lot": 30,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 270,
+      "price": 57250.0,
+      "orders": 4
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 30,
+      "price": 57255.0,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58071",
+  "trading_symbol": "MIDCPNIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 14680.0,
+  "open_price": 14690.0,
+  "high_price": 14778.45,
+  "low_price": 14630.0,
+  "close_price": 14729.85,
+  "average_trade_price": 14701.48,
+  "last_trade_time": 1785403593,
+  "last_update_time": 1785403599,
+  "last_trade_qty": 120,
+  "total_buy_quantity": 42840,
+  "total_sell_quantity": 48600,
+  "volume_traded_today": 178440,
+  "open_interest": 1870320,
+  "net_change": -49.85,
+  "net_change_percent": -0.34,
+  "upper_circuit_limit": 16202.8,
+  "lower_circuit_limit": 13256.9,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 2623332091.2,
+  "market_lot": 120,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 480,
+      "price": 14680.85,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 120,
+      "price": 14689.95,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58071",
+  "trading_symbol": "MIDCPNIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 14680.0,
+  "open_price": 14690.0,
+  "high_price": 14778.45,
+  "low_price": 14630.0,
+  "close_price": 14729.85,
+  "average_trade_price": 14701.48,
+  "last_trade_time": 1785403593,
+  "last_update_time": 1785403599,
+  "last_trade_qty": 120,
+  "total_buy_quantity": 42840,
+  "total_sell_quantity": 48600,
+  "volume_traded_today": 178440,
+  "open_interest": 1870320,
+  "net_change": -49.85,
+  "net_change_percent": -0.34,
+  "upper_circuit_limit": 16202.8,
+  "lower_circuit_limit": 13256.9,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 2623332091.2,
+  "market_lot": 120,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 480,
+      "price": 14680.85,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 120,
+      "price": 14689.95,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61172",
+  "trading_symbol": "NIFTY26AUG21300PE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 6.75,
+  "open_price": 6.2,
+  "high_price": 6.95,
+  "low_price": 6.2,
+  "close_price": 6.85,
+  "average_trade_price": 6.64,
+  "last_trade_time": 1785401447,
+  "last_update_time": 1785403599,
+  "last_trade_qty": 65,
+  "total_buy_quantity": 52910,
+  "total_sell_quantity": 13910,
+  "volume_traded_today": 2275,
+  "open_interest": 56290,
+  "net_change": -0.1,
+  "net_change_percent": -1.46,
+  "upper_circuit_limit": 26.85,
+  "lower_circuit_limit": 0.05,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 15106.0,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 260,
+      "price": 6.4,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 715,
+      "price": 7.2,
+      "orders": 3
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61172",
+  "trading_symbol": "NIFTY26AUG21300PE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 6.75,
+  "open_price": 6.2,
+  "high_price": 6.95,
+  "low_price": 6.2,
+  "close_price": 6.85,
+  "average_trade_price": 6.64,
+  "last_trade_time": 1785401447,
+  "last_update_time": 1785403599,
+  "last_trade_qty": 65,
+  "total_buy_quantity": 52910,
+  "total_sell_quantity": 13910,
+  "volume_traded_today": 2275,
+  "open_interest": 56290,
+  "net_change": -0.1,
+  "net_change_percent": -1.46,
+  "upper_circuit_limit": 26.85,
+  "lower_circuit_limit": 0.05,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 15106.0,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 260,
+      "price": 6.4,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 715,
+      "price": 7.2,
+      "orders": 3
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58070",
+  "trading_symbol": "FINNIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 26311.3,
+  "open_price": 26120.2,
+  "high_price": 26334.6,
+  "low_price": 26120.1,
+  "close_price": 26346.4,
+  "average_trade_price": 26242.42,
+  "last_trade_time": 1785403394,
+  "last_update_time": 1785403599,
+  "last_trade_qty": 60,
+  "total_buy_quantity": 13380,
+  "total_sell_quantity": 12060,
+  "volume_traded_today": 4440,
+  "open_interest": 27660,
+  "net_change": -35.1,
+  "net_change_percent": -0.13,
+  "upper_circuit_limit": 28981.0,
+  "lower_circuit_limit": 23711.8,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 116516344.8,
+  "market_lot": 60,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 120,
+      "price": 26283.4,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 60,
+      "price": 26309.7,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58070",
+  "trading_symbol": "FINNIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 26311.3,
+  "open_price": 26120.2,
+  "high_price": 26334.6,
+  "low_price": 26120.1,
+  "close_price": 26346.4,
+  "average_trade_price": 26242.42,
+  "last_trade_time": 1785403394,
+  "last_update_time": 1785403599,
+  "last_trade_qty": 60,
+  "total_buy_quantity": 13380,
+  "total_sell_quantity": 12060,
+  "volume_traded_today": 4440,
+  "open_interest": 27660,
+  "net_change": -35.1,
+  "net_change_percent": -0.13,
+  "upper_circuit_limit": 28981.0,
+  "lower_circuit_limit": 23711.8,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 116516344.8,
+  "market_lot": 60,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 120,
+      "price": 26283.4,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 60,
+      "price": 26309.7,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61174",
+  "trading_symbol": "NIFTY26AUG21350PE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 6.05,
+  "open_price": 6.4,
+  "high_price": 7.55,
+  "low_price": 5.6,
+  "close_price": 6.15,
+  "average_trade_price": 6.58,
+  "last_trade_time": 1785392940,
+  "last_update_time": 1785403599,
+  "last_trade_qty": 130,
+  "total_buy_quantity": 44070,
+  "total_sell_quantity": 10790,
+  "volume_traded_today": 1690,
+  "open_interest": 1820,
+  "net_change": -0.1,
+  "net_change_percent": -1.63,
+  "upper_circuit_limit": 26.15,
+  "lower_circuit_limit": 0.05,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 11120.2,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 260,
+      "price": 5.9,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 195,
+      "price": 7.2,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61174",
+  "trading_symbol": "NIFTY26AUG21350PE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 6.05,
+  "open_price": 6.4,
+  "high_price": 7.55,
+  "low_price": 5.6,
+  "close_price": 6.15,
+  "average_trade_price": 6.58,
+  "last_trade_time": 1785392940,
+  "last_update_time": 1785403599,
+  "last_trade_qty": 130,
+  "total_buy_quantity": 44070,
+  "total_sell_quantity": 10790,
+  "volume_traded_today": 1690,
+  "open_interest": 1820,
+  "net_change": -0.1,
+  "net_change_percent": -1.63,
+  "upper_circuit_limit": 26.15,
+  "lower_circuit_limit": 0.05,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 11120.2,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 260,
+      "price": 5.9,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 195,
+      "price": 7.2,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58072",
+  "trading_symbol": "NIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 24349.8,
+  "open_price": 24265.6,
+  "high_price": 24397.0,
+  "low_price": 24250.0,
+  "close_price": 24311.5,
+  "average_trade_price": 24319.12,
+  "last_trade_time": 1785403595,
+  "last_update_time": 1785403599,
+  "last_trade_qty": 195,
+  "total_buy_quantity": 500825,
+  "total_sell_quantity": 429260,
+  "volume_traded_today": 2201745,
+  "open_interest": 13220415,
+  "net_change": 38.3,
+  "net_change_percent": 0.16,
+  "upper_circuit_limit": 26742.6,
+  "lower_circuit_limit": 21880.4,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 53544500864.4,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 195,
+      "price": 24345.0,
+      "orders": 3
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 455,
+      "price": 24350.0,
+      "orders": 7
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58072",
+  "trading_symbol": "NIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 24349.8,
+  "open_price": 24265.6,
+  "high_price": 24397.0,
+  "low_price": 24250.0,
+  "close_price": 24311.5,
+  "average_trade_price": 24319.12,
+  "last_trade_time": 1785403595,
+  "last_update_time": 1785403599,
+  "last_trade_qty": 195,
+  "total_buy_quantity": 500825,
+  "total_sell_quantity": 429260,
+  "volume_traded_today": 2201745,
+  "open_interest": 13220415,
+  "net_change": 38.3,
+  "net_change_percent": 0.16,
+  "upper_circuit_limit": 26742.6,
+  "lower_circuit_limit": 21880.4,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 53544500864.4,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 195,
+      "price": 24345.0,
+      "orders": 3
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 455,
+      "price": 24350.0,
+      "orders": 7
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61593",
+  "trading_symbol": "NIFTY26AUG24000CE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 507.1,
+  "open_price": 462.4,
+  "high_price": 548.45,
+  "low_price": 444.25,
+  "close_price": 487.55,
+  "average_trade_price": 493.64,
+  "last_trade_time": 1785403587,
+  "last_update_time": 1785403599,
+  "last_trade_qty": 260,
+  "total_buy_quantity": 51870,
+  "total_sell_quantity": 68250,
+  "volume_traded_today": 1393210,
+  "open_interest": 6361550,
+  "net_change": 19.55,
+  "net_change_percent": 4.01,
+  "upper_circuit_limit": 894.1,
+  "lower_circuit_limit": 81.0,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 687744184.4,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 325,
+      "price": 505.8,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 65,
+      "price": 507.45,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61593",
+  "trading_symbol": "NIFTY26AUG24000CE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 507.1,
+  "open_price": 462.4,
+  "high_price": 548.45,
+  "low_price": 444.25,
+  "close_price": 487.55,
+  "average_trade_price": 493.64,
+  "last_trade_time": 1785403587,
+  "last_update_time": 1785403599,
+  "last_trade_qty": 260,
+  "total_buy_quantity": 51870,
+  "total_sell_quantity": 68250,
+  "volume_traded_today": 1393210,
+  "open_interest": 6361550,
+  "net_change": 19.55,
+  "net_change_percent": 4.01,
+  "upper_circuit_limit": 894.1,
+  "lower_circuit_limit": 81.0,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 687744184.4,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 325,
+      "price": 505.8,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 65,
+      "price": 507.45,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61148",
+  "trading_symbol": "NIFTY26AUG21200CE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 3120.4,
+  "open_price": 3021.8,
+  "high_price": 3120.4,
+  "low_price": 3021.8,
+  "close_price": 3000.0,
+  "average_trade_price": 3071.1,
+  "last_trade_time": 1785403189,
+  "last_update_time": 1785403599,
+  "last_trade_qty": 65,
+  "total_buy_quantity": 6370,
+  "total_sell_quantity": 5460,
+  "volume_traded_today": 130,
+  "open_interest": 9555,
+  "net_change": 120.4,
+  "net_change_percent": 4.01,
+  "upper_circuit_limit": 3638.3,
+  "lower_circuit_limit": 2361.7,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 399243.0,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 65,
+      "price": 3119.55,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 195,
+      "price": 3148.3,
+      "orders": 3
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61148",
+  "trading_symbol": "NIFTY26AUG21200CE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 3120.4,
+  "open_price": 3021.8,
+  "high_price": 3120.4,
+  "low_price": 3021.8,
+  "close_price": 3000.0,
+  "average_trade_price": 3071.1,
+  "last_trade_time": 1785403189,
+  "last_update_time": 1785403599,
+  "last_trade_qty": 65,
+  "total_buy_quantity": 6370,
+  "total_sell_quantity": 5460,
+  "volume_traded_today": 130,
+  "open_interest": 9555,
+  "net_change": 120.4,
+  "net_change_percent": 4.01,
+  "upper_circuit_limit": 3638.3,
+  "lower_circuit_limit": 2361.7,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 399243.0,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 65,
+      "price": 3119.55,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 195,
+      "price": 3148.3,
+      "orders": 3
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58073",
+  "trading_symbol": "NIFTYNXT5026AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 72601.6,
+  "open_price": 72330.0,
+  "high_price": 72800.0,
+  "low_price": 72330.0,
+  "close_price": 72658.2,
+  "average_trade_price": 72571.69,
+  "last_trade_time": 1785403024,
+  "last_update_time": 1785403599,
+  "last_trade_qty": 25,
+  "total_buy_quantity": 1575,
+  "total_sell_quantity": 1600,
+  "volume_traded_today": 1575,
+  "open_interest": 16075,
+  "net_change": -56.6,
+  "net_change_percent": -0.08,
+  "upper_circuit_limit": 79924.0,
+  "lower_circuit_limit": 65392.4,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 114300411.75,
+  "market_lot": 25,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 75,
+      "price": 72526.0,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 25,
+      "price": 72595.6,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58073",
+  "trading_symbol": "NIFTYNXT5026AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 72601.6,
+  "open_price": 72330.0,
+  "high_price": 72800.0,
+  "low_price": 72330.0,
+  "close_price": 72658.2,
+  "average_trade_price": 72571.69,
+  "last_trade_time": 1785403024,
+  "last_update_time": 1785403599,
+  "last_trade_qty": 25,
+  "total_buy_quantity": 1575,
+  "total_sell_quantity": 1600,
+  "volume_traded_today": 1575,
+  "open_interest": 16075,
+  "net_change": -56.6,
+  "net_change_percent": -0.08,
+  "upper_circuit_limit": 79924.0,
+  "lower_circuit_limit": 65392.4,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 114300411.75,
+  "market_lot": 25,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 75,
+      "price": 72526.0,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 25,
+      "price": 72595.6,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_cm",
+  "instrument_token": "2885",
+  "trading_symbol": "RELIANCE-EQ",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 1291.3,
+  "open_price": 1279.8,
+  "high_price": 1297.0,
+  "low_price": 1275.3,
+  "close_price": 1275.9,
+  "average_trade_price": 1289.02,
+  "last_trade_time": 1785403599,
+  "last_update_time": 1785403599,
+  "last_trade_qty": 20,
+  "total_buy_quantity": 703489,
+  "total_sell_quantity": 1068945,
+  "volume_traded_today": 7741511,
+  "open_interest": 0,
+  "net_change": 15.4,
+  "net_change_percent": 1.21,
+  "upper_circuit_limit": 1403.4,
+  "lower_circuit_limit": 1148.4,
+  "yearly_high": 1611.8,
+  "yearly_low": 1249.8,
+  "total_traded_value": 9978962509.22,
+  "market_lot": 1,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 88,
+      "price": 1291.0,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 144,
+      "price": 1291.3,
+      "orders": 2
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_cm",
+  "instrument_token": "2885",
+  "trading_symbol": "RELIANCE-EQ",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 1291.3,
+  "open_price": 1279.8,
+  "high_price": 1297.0,
+  "low_price": 1275.3,
+  "close_price": 1275.9,
+  "average_trade_price": 1289.02,
+  "last_trade_time": 1785403599,
+  "last_update_time": 1785403599,
+  "last_trade_qty": 20,
+  "total_buy_quantity": 703489,
+  "total_sell_quantity": 1068945,
+  "volume_traded_today": 7741511,
+  "open_interest": 0,
+  "net_change": 15.4,
+  "net_change_percent": 1.21,
+  "upper_circuit_limit": 1403.4,
+  "lower_circuit_limit": 1148.4,
+  "yearly_high": 1611.8,
+  "yearly_low": 1249.8,
+  "total_traded_value": 9978962509.22,
+  "market_lot": 1,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 88,
+      "price": 1291.0,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 144,
+      "price": 1291.3,
+      "orders": 2
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58067",
+  "trading_symbol": "BANKNIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 57255.0,
+  "open_price": 57125.0,
+  "high_price": 57350.0,
+  "low_price": 56925.0,
+  "close_price": 57344.4,
+  "average_trade_price": 57110.64,
+  "last_trade_time": 1785403599,
+  "last_update_time": 1785403599,
+  "last_trade_qty": 30,
+  "total_buy_quantity": 60810,
+  "total_sell_quantity": 69870,
+  "volume_traded_today": 476700,
+  "open_interest": 2137920,
+  "net_change": -89.4,
+  "net_change_percent": -0.16,
+  "upper_circuit_limit": 63078.8,
+  "lower_circuit_limit": 51610.0,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 27224642088.0,
+  "market_lot": 30,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 270,
+      "price": 57250.0,
+      "orders": 4
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 90,
+      "price": 57260.0,
+      "orders": 2
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58067",
+  "trading_symbol": "BANKNIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 57255.0,
+  "open_price": 57125.0,
+  "high_price": 57350.0,
+  "low_price": 56925.0,
+  "close_price": 57344.4,
+  "average_trade_price": 57110.64,
+  "last_trade_time": 1785403599,
+  "last_update_time": 1785403599,
+  "last_trade_qty": 30,
+  "total_buy_quantity": 60810,
+  "total_sell_quantity": 69870,
+  "volume_traded_today": 476700,
+  "open_interest": 2137920,
+  "net_change": -89.4,
+  "net_change_percent": -0.16,
+  "upper_circuit_limit": 63078.8,
+  "lower_circuit_limit": 51610.0,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 27224642088.0,
+  "market_lot": 30,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 270,
+      "price": 57250.0,
+      "orders": 4
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 90,
+      "price": 57260.0,
+      "orders": 2
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58071",
+  "trading_symbol": "MIDCPNIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 14680.0,
+  "open_price": 14690.0,
+  "high_price": 14778.45,
+  "low_price": 14630.0,
+  "close_price": 14729.85,
+  "average_trade_price": 14701.48,
+  "last_trade_time": 1785403593,
+  "last_update_time": 1785403600,
+  "last_trade_qty": 120,
+  "total_buy_quantity": 41400,
+  "total_sell_quantity": 48840,
+  "volume_traded_today": 178440,
+  "open_interest": 1870320,
+  "net_change": -49.85,
+  "net_change_percent": -0.34,
+  "upper_circuit_limit": 16202.8,
+  "lower_circuit_limit": 13256.9,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 2623332091.2,
+  "market_lot": 120,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 480,
+      "price": 14680.85,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 120,
+      "price": 14689.95,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58071",
+  "trading_symbol": "MIDCPNIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 14680.0,
+  "open_price": 14690.0,
+  "high_price": 14778.45,
+  "low_price": 14630.0,
+  "close_price": 14729.85,
+  "average_trade_price": 14701.48,
+  "last_trade_time": 1785403593,
+  "last_update_time": 1785403600,
+  "last_trade_qty": 120,
+  "total_buy_quantity": 41400,
+  "total_sell_quantity": 48840,
+  "volume_traded_today": 178440,
+  "open_interest": 1870320,
+  "net_change": -49.85,
+  "net_change_percent": -0.34,
+  "upper_circuit_limit": 16202.8,
+  "lower_circuit_limit": 13256.9,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 2623332091.2,
+  "market_lot": 120,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 480,
+      "price": 14680.85,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 120,
+      "price": 14689.95,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_cm",
+  "instrument_token": "22",
+  "trading_symbol": "ACC-EQ",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 1351.4,
+  "open_price": 1370.8,
+  "high_price": 1370.8,
+  "low_price": 1345.3,
+  "close_price": 1370.8,
+  "average_trade_price": 1351.66,
+  "last_trade_time": 1785403600,
+  "last_update_time": 1785403600,
+  "last_trade_qty": 1,
+  "total_buy_quantity": 33666,
+  "total_sell_quantity": 47464,
+  "volume_traded_today": 128186,
+  "open_interest": 0,
+  "net_change": -19.4,
+  "net_change_percent": -1.42,
+  "upper_circuit_limit": 1644.9,
+  "lower_circuit_limit": 1096.7,
+  "yearly_high": 1987.0,
+  "yearly_low": 1251.7,
+  "total_traded_value": 173263888.76,
+  "market_lot": 1,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 2,
+      "price": 1351.0,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 7,
+      "price": 1351.4,
+      "orders": 3
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_cm",
+  "instrument_token": "22",
+  "trading_symbol": "ACC-EQ",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 1351.4,
+  "open_price": 1370.8,
+  "high_price": 1370.8,
+  "low_price": 1345.3,
+  "close_price": 1370.8,
+  "average_trade_price": 1351.66,
+  "last_trade_time": 1785403600,
+  "last_update_time": 1785403600,
+  "last_trade_qty": 1,
+  "total_buy_quantity": 33666,
+  "total_sell_quantity": 47464,
+  "volume_traded_today": 128186,
+  "open_interest": 0,
+  "net_change": -19.4,
+  "net_change_percent": -1.42,
+  "upper_circuit_limit": 1644.9,
+  "lower_circuit_limit": 1096.7,
+  "yearly_high": 1987.0,
+  "yearly_low": 1251.7,
+  "total_traded_value": 173263888.76,
+  "market_lot": 1,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 2,
+      "price": 1351.0,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 7,
+      "price": 1351.4,
+      "orders": 3
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58070",
+  "trading_symbol": "FINNIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 26311.3,
+  "open_price": 26120.2,
+  "high_price": 26334.6,
+  "low_price": 26120.1,
+  "close_price": 26346.4,
+  "average_trade_price": 26242.42,
+  "last_trade_time": 1785403394,
+  "last_update_time": 1785403600,
+  "last_trade_qty": 60,
+  "total_buy_quantity": 13380,
+  "total_sell_quantity": 12060,
+  "volume_traded_today": 4440,
+  "open_interest": 27660,
+  "net_change": -35.1,
+  "net_change_percent": -0.13,
+  "upper_circuit_limit": 28981.0,
+  "lower_circuit_limit": 23711.8,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 116516344.8,
+  "market_lot": 60,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 120,
+      "price": 26283.4,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 60,
+      "price": 26309.7,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58070",
+  "trading_symbol": "FINNIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 26311.3,
+  "open_price": 26120.2,
+  "high_price": 26334.6,
+  "low_price": 26120.1,
+  "close_price": 26346.4,
+  "average_trade_price": 26242.42,
+  "last_trade_time": 1785403394,
+  "last_update_time": 1785403600,
+  "last_trade_qty": 60,
+  "total_buy_quantity": 13380,
+  "total_sell_quantity": 12060,
+  "volume_traded_today": 4440,
+  "open_interest": 27660,
+  "net_change": -35.1,
+  "net_change_percent": -0.13,
+  "upper_circuit_limit": 28981.0,
+  "lower_circuit_limit": 23711.8,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 116516344.8,
+  "market_lot": 60,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 120,
+      "price": 26283.4,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 60,
+      "price": 26309.7,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58072",
+  "trading_symbol": "NIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 24349.8,
+  "open_price": 24265.6,
+  "high_price": 24397.0,
+  "low_price": 24250.0,
+  "close_price": 24311.5,
+  "average_trade_price": 24319.12,
+  "last_trade_time": 1785403595,
+  "last_update_time": 1785403600,
+  "last_trade_qty": 195,
+  "total_buy_quantity": 499655,
+  "total_sell_quantity": 431340,
+  "volume_traded_today": 2201745,
+  "open_interest": 13220415,
+  "net_change": 38.3,
+  "net_change_percent": 0.16,
+  "upper_circuit_limit": 26742.6,
+  "lower_circuit_limit": 21880.4,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 53544500864.4,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 195,
+      "price": 24345.0,
+      "orders": 3
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 455,
+      "price": 24350.0,
+      "orders": 7
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58072",
+  "trading_symbol": "NIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 24349.8,
+  "open_price": 24265.6,
+  "high_price": 24397.0,
+  "low_price": 24250.0,
+  "close_price": 24311.5,
+  "average_trade_price": 24319.12,
+  "last_trade_time": 1785403595,
+  "last_update_time": 1785403600,
+  "last_trade_qty": 195,
+  "total_buy_quantity": 499655,
+  "total_sell_quantity": 431340,
+  "volume_traded_today": 2201745,
+  "open_interest": 13220415,
+  "net_change": 38.3,
+  "net_change_percent": 0.16,
+  "upper_circuit_limit": 26742.6,
+  "lower_circuit_limit": 21880.4,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 53544500864.4,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 195,
+      "price": 24345.0,
+      "orders": 3
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 455,
+      "price": 24350.0,
+      "orders": 7
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61593",
+  "trading_symbol": "NIFTY26AUG24000CE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 507.1,
+  "open_price": 462.4,
+  "high_price": 548.45,
+  "low_price": 444.25,
+  "close_price": 487.55,
+  "average_trade_price": 493.64,
+  "last_trade_time": 1785403587,
+  "last_update_time": 1785403600,
+  "last_trade_qty": 260,
+  "total_buy_quantity": 52000,
+  "total_sell_quantity": 68250,
+  "volume_traded_today": 1393210,
+  "open_interest": 6361550,
+  "net_change": 19.55,
+  "net_change_percent": 4.01,
+  "upper_circuit_limit": 894.1,
+  "lower_circuit_limit": 81.0,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 687744184.4,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 260,
+      "price": 505.65,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 65,
+      "price": 507.35,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61593",
+  "trading_symbol": "NIFTY26AUG24000CE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 507.1,
+  "open_price": 462.4,
+  "high_price": 548.45,
+  "low_price": 444.25,
+  "close_price": 487.55,
+  "average_trade_price": 493.64,
+  "last_trade_time": 1785403587,
+  "last_update_time": 1785403600,
+  "last_trade_qty": 260,
+  "total_buy_quantity": 52000,
+  "total_sell_quantity": 68250,
+  "volume_traded_today": 1393210,
+  "open_interest": 6361550,
+  "net_change": 19.55,
+  "net_change_percent": 4.01,
+  "upper_circuit_limit": 894.1,
+  "lower_circuit_limit": 81.0,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 687744184.4,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 260,
+      "price": 505.65,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 65,
+      "price": 507.35,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61148",
+  "trading_symbol": "NIFTY26AUG21200CE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 3120.4,
+  "open_price": 3021.8,
+  "high_price": 3120.4,
+  "low_price": 3021.8,
+  "close_price": 3000.0,
+  "average_trade_price": 3071.1,
+  "last_trade_time": 1785403189,
+  "last_update_time": 1785403600,
+  "last_trade_qty": 65,
+  "total_buy_quantity": 6305,
+  "total_sell_quantity": 5330,
+  "volume_traded_today": 130,
+  "open_interest": 9555,
+  "net_change": 120.4,
+  "net_change_percent": 4.01,
+  "upper_circuit_limit": 3638.3,
+  "lower_circuit_limit": 2361.7,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 399243.0,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 130,
+      "price": 3119.5,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 65,
+      "price": 3147.3,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "61148",
+  "trading_symbol": "NIFTY26AUG21200CE",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 3120.4,
+  "open_price": 3021.8,
+  "high_price": 3120.4,
+  "low_price": 3021.8,
+  "close_price": 3000.0,
+  "average_trade_price": 3071.1,
+  "last_trade_time": 1785403189,
+  "last_update_time": 1785403600,
+  "last_trade_qty": 65,
+  "total_buy_quantity": 6305,
+  "total_sell_quantity": 5330,
+  "volume_traded_today": 130,
+  "open_interest": 9555,
+  "net_change": 120.4,
+  "net_change_percent": 4.01,
+  "upper_circuit_limit": 3638.3,
+  "lower_circuit_limit": 2361.7,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 399243.0,
+  "market_lot": 65,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 130,
+      "price": 3119.5,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 65,
+      "price": 3147.3,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58073",
+  "trading_symbol": "NIFTYNXT5026AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 72601.6,
+  "open_price": 72330.0,
+  "high_price": 72800.0,
+  "low_price": 72330.0,
+  "close_price": 72658.2,
+  "average_trade_price": 72571.69,
+  "last_trade_time": 1785403024,
+  "last_update_time": 1785403600,
+  "last_trade_qty": 25,
+  "total_buy_quantity": 1575,
+  "total_sell_quantity": 1600,
+  "volume_traded_today": 1575,
+  "open_interest": 16075,
+  "net_change": -56.6,
+  "net_change_percent": -0.08,
+  "upper_circuit_limit": 79924.0,
+  "lower_circuit_limit": 65392.4,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 114300411.75,
+  "market_lot": 25,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 75,
+      "price": 72526.0,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 25,
+      "price": 72595.6,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58073",
+  "trading_symbol": "NIFTYNXT5026AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 72601.6,
+  "open_price": 72330.0,
+  "high_price": 72800.0,
+  "low_price": 72330.0,
+  "close_price": 72658.2,
+  "average_trade_price": 72571.69,
+  "last_trade_time": 1785403024,
+  "last_update_time": 1785403600,
+  "last_trade_qty": 25,
+  "total_buy_quantity": 1575,
+  "total_sell_quantity": 1600,
+  "volume_traded_today": 1575,
+  "open_interest": 16075,
+  "net_change": -56.6,
+  "net_change_percent": -0.08,
+  "upper_circuit_limit": 79924.0,
+  "lower_circuit_limit": 65392.4,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 114300411.75,
+  "market_lot": 25,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 75,
+      "price": 72526.0,
+      "orders": 2
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 25,
+      "price": 72595.6,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_cm",
+  "instrument_token": "2885",
+  "trading_symbol": "RELIANCE-EQ",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 1291.3,
+  "open_price": 1279.8,
+  "high_price": 1297.0,
+  "low_price": 1275.3,
+  "close_price": 1275.9,
+  "average_trade_price": 1289.02,
+  "last_trade_time": 1785403600,
+  "last_update_time": 1785403600,
+  "last_trade_qty": 1,
+  "total_buy_quantity": 703823,
+  "total_sell_quantity": 1068975,
+  "volume_traded_today": 7741516,
+  "open_interest": 0,
+  "net_change": 15.4,
+  "net_change_percent": 1.21,
+  "upper_circuit_limit": 1403.4,
+  "lower_circuit_limit": 1148.4,
+  "yearly_high": 1611.8,
+  "yearly_low": 1249.8,
+  "total_traded_value": 9978968954.32,
+  "market_lot": 1,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 1,
+      "price": 1291.2,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 144,
+      "price": 1291.3,
+      "orders": 2
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_cm",
+  "instrument_token": "2885",
+  "trading_symbol": "RELIANCE-EQ",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 1291.3,
+  "open_price": 1279.8,
+  "high_price": 1297.0,
+  "low_price": 1275.3,
+  "close_price": 1275.9,
+  "average_trade_price": 1289.02,
+  "last_trade_time": 1785403600,
+  "last_update_time": 1785403600,
+  "last_trade_qty": 1,
+  "total_buy_quantity": 703823,
+  "total_sell_quantity": 1068975,
+  "volume_traded_today": 7741516,
+  "open_interest": 0,
+  "net_change": 15.4,
+  "net_change_percent": 1.21,
+  "upper_circuit_limit": 1403.4,
+  "lower_circuit_limit": 1148.4,
+  "yearly_high": 1611.8,
+  "yearly_low": 1249.8,
+  "total_traded_value": 9978968954.32,
+  "market_lot": 1,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 1,
+      "price": 1291.2,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 144,
+      "price": 1291.3,
+      "orders": 2
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58067",
+  "trading_symbol": "BANKNIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 57255.0,
+  "open_price": 57125.0,
+  "high_price": 57350.0,
+  "low_price": 56925.0,
+  "close_price": 57344.4,
+  "average_trade_price": 57110.64,
+  "last_trade_time": 1785403599,
+  "last_update_time": 1785403600,
+  "last_trade_qty": 30,
+  "total_buy_quantity": 60420,
+  "total_sell_quantity": 69900,
+  "volume_traded_today": 476700,
+  "open_interest": 2137920,
+  "net_change": -89.4,
+  "net_change_percent": -0.16,
+  "upper_circuit_limit": 63078.8,
+  "lower_circuit_limit": 51610.0,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 27224642088.0,
+  "market_lot": 30,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 270,
+      "price": 57250.0,
+      "orders": 4
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 90,
+      "price": 57260.0,
+      "orders": 2
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58067",
+  "trading_symbol": "BANKNIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 57255.0,
+  "open_price": 57125.0,
+  "high_price": 57350.0,
+  "low_price": 56925.0,
+  "close_price": 57344.4,
+  "average_trade_price": 57110.64,
+  "last_trade_time": 1785403599,
+  "last_update_time": 1785403600,
+  "last_trade_qty": 30,
+  "total_buy_quantity": 60420,
+  "total_sell_quantity": 69900,
+  "volume_traded_today": 476700,
+  "open_interest": 2137920,
+  "net_change": -89.4,
+  "net_change_percent": -0.16,
+  "upper_circuit_limit": 63078.8,
+  "lower_circuit_limit": 51610.0,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 27224642088.0,
+  "market_lot": 30,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 270,
+      "price": 57250.0,
+      "orders": 4
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 90,
+      "price": 57260.0,
+      "orders": 2
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58071",
+  "trading_symbol": "MIDCPNIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 14680.85,
+  "open_price": 14690.0,
+  "high_price": 14778.45,
+  "low_price": 14630.0,
+  "close_price": 14729.85,
+  "average_trade_price": 14701.46,
+  "last_trade_time": 1785403600,
+  "last_update_time": 1785403601,
+  "last_trade_qty": 120,
+  "total_buy_quantity": 39360,
+  "total_sell_quantity": 48720,
+  "volume_traded_today": 178680,
+  "open_interest": 1870320,
+  "net_change": -49.0,
+  "net_change_percent": -0.33,
+  "upper_circuit_limit": 16202.8,
+  "lower_circuit_limit": 13256.9,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 2626856872.8,
+  "market_lot": 120,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 240,
+      "price": 14680.85,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 120,
+      "price": 14689.9,
+      "orders": 1
+    }
+  ]
+}
+
+[WebSocket Message Received]
+{
+  "exchange_segment": "nse_fo",
+  "instrument_token": "58071",
+  "trading_symbol": "MIDCPNIFTY26AUGFUT",
+  "type": "scrip",
+  "level": 4,
+  "last_traded_price": 14680.85,
+  "open_price": 14690.0,
+  "high_price": 14778.45,
+  "low_price": 14630.0,
+  "close_price": 14729.85,
+  "average_trade_price": 14701.46,
+  "last_trade_time": 1785403600,
+  "last_update_time": 1785403601,
+  "last_trade_qty": 120,
+  "total_buy_quantity": 39360,
+  "total_sell_quantity": 48720,
+  "volume_traded_today": 178680,
+  "open_interest": 1870320,
+  "net_change": -49.0,
+  "net_change_percent": -0.33,
+  "upper_circuit_limit": 16202.8,
+  "lower_circuit_limit": 13256.9,
+  "yearly_high": 0.0,
+  "yearly_low": 0.0,
+  "total_traded_value": 2626856872.8,
+  "market_lot": 120,
+  "precision": 2,
+  "multiplier": 1,
+  "auction": false,
+  "buy": [
+    {
+      "quantity": 240,
+      "price": 14680.85,
+      "orders": 1
+    }
+  ],
+  "sell": [
+    {
+      "quantity": 120,
+      "price": 14689.9,
+      "orders": 1
+    }
+  ]
+}
