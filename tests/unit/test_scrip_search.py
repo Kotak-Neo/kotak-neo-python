@@ -162,6 +162,51 @@ def test_scrip_search_option_type_filter(api_client, requests_mock):
     assert all(r["pOptionType"] == "ce" for r in result)
 
 
+# A futures row (pOptionType == "XX") alongside the CE/PE option rows.
+_FO_CSV_WITH_FUT = (
+    "pSymbol,pTrdSymbol,pExchSeg,pSymbolName,pOptionType,dStrikePrice;,pExpiryDate,pInstType\n"
+    "1,NIFTY24JUN22000CE,nse_fo,NIFTY,CE,2200000,1403222400,OPTIDX\n"
+    "2,NIFTY24JUN22500PE,nse_fo,NIFTY,PE,2250000,1403222400,OPTIDX\n"
+    "3,NIFTY24JUNFUT,nse_fo,NIFTY,XX,0,1403222400,FUTIDX\n"
+)
+
+
+def test_scrip_search_option_type_fut_maps_to_xx(api_client, requests_mock):
+    """option_type='FUT' is an SDK-only alias -- it must match rows where
+    pOptionType is the wire value 'XX' (futures contracts), not 'FUT'
+    itself, since the scrip-master CSV never contains 'FUT'."""
+    _mock_fo(api_client, requests_mock, csv=_FO_CSV_WITH_FUT)
+    result = ScripSearch(api_client).scrip_search(
+        symbol="nifty",
+        exchange_segment="nse_fo",
+        expiry=None,
+        option_type="FUT",
+        strike_price=None,
+        ignore_50multiple=True,
+    )
+    assert isinstance(result, list)
+    assert len(result) == 1
+    assert result[0]["pOptionType"] == "xx"
+    assert result[0]["pTrdSymbol"] == "NIFTY24JUNFUT"
+
+
+def test_scrip_search_option_type_fut_combined_with_ce(api_client, requests_mock):
+    """A comma-separated option_type mixing 'FUT' with a real option type
+    ('CE') must match both the XX row and the CE row."""
+    _mock_fo(api_client, requests_mock, csv=_FO_CSV_WITH_FUT)
+    result = ScripSearch(api_client).scrip_search(
+        symbol="nifty",
+        exchange_segment="nse_fo",
+        expiry=None,
+        option_type="CE,FUT",
+        strike_price=None,
+        ignore_50multiple=True,
+    )
+    assert isinstance(result, list)
+    returned_types = {r["pOptionType"] for r in result}
+    assert returned_types == {"ce", "xx"}
+
+
 def test_scrip_search_strike_price_greater_than(api_client, requests_mock):
     """strike_price '>NNN' filter."""
     _mock_fo(api_client, requests_mock)

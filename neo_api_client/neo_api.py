@@ -590,7 +590,10 @@ class NeoAPI:
                 of the other parameters without a TypeError.
             symbol (str): The symbol to search for. This argument is optional.
             expiry (str): The expiry date to search for, in the format YYYYMM. This argument is optional.
-            option_type (str): The option type to search for (either "CE" or "PE"). This argument is optional.
+            option_type (str): The option type to search for — "CE", "PE", or "FUT" for
+                futures contracts (mapped internally to the scrip-master's "XX" value,
+                since futures rows don't carry "CE"/"PE"). Comma-separated for multiple,
+                e.g. "CE,PE". This argument is optional.
             strike_price (str): The strike price to search for. This argument is optional.
             ignore_50multiple (bool): Whether to ignore strike prices that are not multiples of 50. This argument is optional.
 

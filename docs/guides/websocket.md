@@ -112,6 +112,10 @@ Every subscribe/unsubscribe call **batches all tokens into a single frame**.
 
 Each has a matching `unsubscribe_*` method. A one-time snapshot is available via
 `snapshot(tokens, intent="scrips")` (intents: `scrips`, `scrips_lite`, `depth`, `index`).
+Like `subscribe_scrips()` etc., `snapshot()` also waits for its subscribe
+acknowledgement (up to `ack_wait_timeout`) before returning, so a snapshot
+call can't leave the live feed's withholding window open behind it (see
+[Trading symbol](#trading-symbol)).
 
 ### LTP (single instrument)
 
@@ -252,21 +256,31 @@ async for message in ws:
 
 Details:
 
-- While a subscribe acknowledgement is outstanding, incoming messages are
-  decoded but their **delivery is withheld** — instead of queuing every one
+- While a subscribe acknowledgement is outstanding, only messages for
+  instruments whose `trading_symbol` is still unknown are withheld —
+  instruments already resolved by an earlier subscribe keep streaming
+  immediately, unaffected by a later, unrelated subscribe call. Withheld
+  messages are decoded but not delivered; instead of queuing every one
   (which would deliver a backlog of stale ticks once the ack lands), the
-  client keeps only the **latest message per
-  `"<exchange_segment>|<instrument_token>"`** in an in-memory map; each new
-  message for the same instrument overwrites the previous one. As soon as
-  the ack arrives, every held-back instrument's latest message is delivered
-  in one go, enriched with its now-known `trading_symbol` — never a message
-  with `trading_symbol=None` from a mapping that was about to arrive
-  anyway. The window is bounded by `ack_wait_timeout` (default 5.0s, set via
-  `SFeedWebSocket(..., ack_wait_timeout=...)`); if it elapses without an
-  ack, the same flush happens anyway (with `trading_symbol=None` for
-  instruments the map has no entry for), and normal per-message delivery
-  resumes. Use `ws.pending_message_count` to see how many instruments are
-  currently withheld.
+  client keeps only the **latest message per `(instrument, message
+  type/level)`** in an in-memory map — each new message for the same key
+  overwrites the previous one. In-between ticks during the wait are
+  discarded on purpose: the latest tick per key is preserved, not every
+  tick, matching a live feed where an out-of-date price is superseded the
+  moment a newer one arrives. Market-open/close events are never withheld
+  (they'd otherwise collide on one shared key and a later "closed" could
+  erase an earlier "open"). As soon as the ack arrives, every held-back
+  key's latest message is delivered in one go, enriched with its now-known
+  `trading_symbol` — never a message with `trading_symbol=None` from a
+  mapping that was about to arrive anyway. The window is bounded by
+  `ack_wait_timeout` (default 5.0s, set via `SFeedWebSocket(...,
+  ack_wait_timeout=...)`) **per subscribe call** — two overlapping
+  subscribes each get their own timeout, so one arriving early doesn't
+  release the other's still-unresolved instruments early. If the timeout
+  elapses without an ack, the same release happens anyway (with
+  `trading_symbol=None` for instruments the map has no entry for), and
+  normal per-message delivery resumes. Use `ws.pending_message_count` to
+  see how many keys are currently withheld.
 - `subscribe_scrips()` (and the other `subscribe_*` methods) wait for the
   acknowledgement before returning (up to `ack_wait_timeout`), so
   `ws.trading_symbols` is already populated by the time the call completes.

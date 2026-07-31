@@ -42,6 +42,11 @@ try:
     client.search_scrip(
         exchange_segment="nse_cm", symbol="YESBANK", expiry="", option_type="", strike_price=""
     )
+
+    # Futures contract: use option_type="FUT" (SDK-only alias for pOptionType == "XX")
+    client.search_scrip(
+        exchange_segment="nse_fo", symbol="NIFTY", expiry="", option_type="FUT", strike_price=""
+    )
 except Exception as e:
     print("Exception when calling scrip search api->scrip_search: %s\n" % e)
 ```
@@ -52,7 +57,7 @@ except Exception as e:
 | *exchange_segment*  | Mandatory. Unlike `place_order`/`margin_required`, generic aliases are resolved here: `nse_cm`/`NSE`/`nse`, `bse_cm`/`BSE`/`bse`, `nse_fo`/`NFO`/`nfo`, `bse_fo`/`BFO`/`bfo`, `mcx_fo`/`MCX`/`mcx`. Currency derivatives (`CDS`/`cds`/`cde_fo`) and BSE currency derivatives (`BCD`/`bcd`/`bcs-fo`) are not supported and return an error. | Str            |
 | *symbol*            |                                 | Str            |
 | *expiry*            | User can search multiple expiry - DDMMMYYYY, ex. 28JUN2023 | Str [optional] |
-| *option_type*       | User can search option_type - CE/PE     | Str [optional] |
+| *option_type*       | User can search option_type - `CE`/`PE`/`FUT` (comma-separated for multiple, e.g. `CE,PE`). `FUT` is an SDK-only alias for futures contracts — the scrip-master CSV marks these rows `XX` in `pOptionType` (not `CE`/`PE`), so the SDK maps `FUT` → `XX` internally before filtering. | Str [optional] |
 | *strike_price*      | User can search strike_price - For ex. 45000, 40000-45000, >40000, <45000   | Str [optional] |
 | *ignore_50multiple* | Whether to ignore strike prices that are not multiples of 50.               | bool [optional, default `True`] |
 

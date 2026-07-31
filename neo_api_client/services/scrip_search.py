@@ -97,7 +97,14 @@ class ScripSearch:
 
                 if option_type:
                     option_type = str(option_type).lower()
-                    option_type = option_type.split(",")
+                    # "fut" is a Python-SDK-only alias: futures contracts in
+                    # the *_fo.csv scrip-master files carry "XX" (not "CE"/
+                    # "PE") in pOptionType, so map the friendlier "FUT" to
+                    # the wire value "xx" (already lowercased above) before
+                    # filtering.
+                    option_type = [
+                        "xx" if part == "fut" else part for part in option_type.split(",")
+                    ]
                     df["pOptionType"] = df["pOptionType"].str.lower()
                     mask = df["pOptionType"].isin(option_type)
                     df = df[mask]

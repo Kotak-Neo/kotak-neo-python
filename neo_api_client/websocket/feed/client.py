@@ -135,21 +135,33 @@ class SFeedWebSocket:
             ack_wait_timeout: Seconds to wait for the server's subscribe
                 acknowledgement (message_code 1109, carrying the
                 trading_symbols map) after sending a subscribe frame.
-                Default 5.0. While an ack is outstanding, incoming messages
-                are decoded but their **delivery is withheld**; only the
-                latest message per ``"<exchange_segment>|<instrument_token>"``
-                is kept (each new one for the same key overwrites the
-                previous), since this is a live price feed and an
-                out-of-date tick is worthless once a newer one for the same
-                instrument has arrived. As soon as the ack lands, every
-                held-back key's latest message is delivered — enriched with
-                its now-known ``trading_symbol`` — and the live feed
-                resumes normal per-message delivery. If no ack arrives
-                within the timeout, the same flush happens anyway (with
-                ``trading_symbol=None`` for keys the map has no entry for)
-                so the feed never stalls indefinitely on a missing ack.
-                ``subscribe_scrips()`` (etc.) also waits up to this long
-                before returning.
+                Default 5.0. While an ack is outstanding, messages for
+                instruments whose ``trading_symbol`` is still unknown are
+                decoded but their **delivery is withheld**; instruments
+                already resolved (from an earlier subscribe) keep streaming
+                immediately, unaffected. Withheld messages are kept one per
+                ``(instrument, message type/level)`` key — each new message
+                for the same key overwrites the previous one, so only the
+                latest survives; market-open/close events are never
+                withheld, since a later "closed" would otherwise erase an
+                earlier "open" instead of both being delivered. In-between
+                ticks during the wait are discarded on purpose — the latest
+                tick per key is preserved, not every tick — matching a live
+                feed where an out-of-date price is superseded the moment a
+                newer one arrives; this is not a delta feed, and callers
+                that need every individual tick (e.g. for tick-by-tick
+                volume/trade-count analytics) should not rely on this
+                window. As soon as the ack lands, every held-back key's
+                latest message is delivered — enriched with its now-known
+                ``trading_symbol`` — and normal per-message delivery resumes
+                for that instrument. If no ack arrives within the timeout,
+                the same release happens anyway (with ``trading_symbol=None``
+                for keys the map has no entry for) so the feed never stalls
+                indefinitely on a missing ack — this applies per subscribe
+                call, so two overlapping subscribes each get their own
+                timeout rather than one release affecting the other's
+                unresolved instruments. ``subscribe_scrips()`` (etc.) also
+                waits up to this long before returning.
         """
         self.access_token = access_token
         self.sid = sid
@@ -193,11 +205,21 @@ class SFeedWebSocket:
         # While True, _handle_binary_frame withholds delivery of incoming
         # messages (decoding them, but not enqueuing/calling on_message).
         # Set by _send_subscribe (a subscribe was just sent, ack_symbol
-        # requested) and cleared once the ack is processed — or once
-        # ack_deadline passes, so a lost/delayed ack can't block the live
-        # feed forever.
+        # requested) and cleared once every outstanding ack is accounted
+        # for (see _acks_outstanding) — or once ack_deadline passes, so a
+        # lost/delayed ack can't block the live feed forever.
         self._ack_pending = False
         self._ack_deadline: float | None = None
+        # Number of subscribe acks sent but not yet resolved (received, or
+        # individually timed out via _wait_for_subscribe_ack). Two
+        # subscribe calls in flight at once (e.g. the reconnect path, which
+        # sends one per feed intent) means two outstanding acks; only when
+        # the count reaches zero do we know every in-flight subscribe's
+        # trading_symbols have either arrived or been given up on — ending
+        # the withholding window on the *first* reply back would flush
+        # messages for the *other*, still-unacknowledged subscribe with
+        # trading_symbol=None.
+        self._acks_outstanding = 0
         # Latest decoded message per "<exchange_segment>|<instrument_token>"
         # key, for messages that arrived while an ack was outstanding. Since
         # this is a live price feed, an out-of-date tick from several
@@ -229,12 +251,19 @@ class SFeedWebSocket:
     async def __anext__(self) -> SFeedMessage:
         if not self._connected:
             raise NotConnectedError("WebSocket is not connected")
-        try:
-            return await asyncio.wait_for(self._message_queue.get(), timeout=1.0)
-        except asyncio.TimeoutError:
-            if not self._connected:
-                raise StopAsyncIteration from None
-            return await self.__anext__()
+        # A loop, not recursion: on an idle connection with no incoming
+        # messages, asyncio.wait_for times out every second indefinitely.
+        # A recursive `return await self.__anext__()` here would add one
+        # stack frame per timeout and eventually crash with RecursionError
+        # after enough uninterrupted silence (the exact number of timeouts
+        # before that happens is Python-version/environment-dependent) --
+        # this loop keeps the stack flat instead, so it can run indefinitely.
+        while True:
+            try:
+                return await asyncio.wait_for(self._message_queue.get(), timeout=1.0)
+            except asyncio.TimeoutError:
+                if not self._connected:
+                    raise StopAsyncIteration from None
 
     @property
     def is_connected(self) -> bool:
@@ -297,6 +326,7 @@ class SFeedWebSocket:
         # to the connection being opened now.
         self._ack_pending = False
         self._ack_deadline = None
+        self._acks_outstanding = 0
         self._pending_latest_by_key = {}
 
         ssl_context = None
@@ -455,12 +485,19 @@ class SFeedWebSocket:
             # later ack doesn't spuriously satisfy an earlier wait that
             # already timed out.
             self._subscribe_ack_event.set()
-            # The map is now up to date -- release the latest withheld
-            # message per instrument (enriched) before resuming normal,
-            # per-message delivery.
-            self._ack_pending = False
-            self._ack_deadline = None
-            self._flush_pending_latest_messages()
+            self._acks_outstanding = max(0, self._acks_outstanding - 1)
+            if self._acks_outstanding == 0:
+                # Only the LAST outstanding ack ends the withholding window.
+                # Releasing on the first of several in-flight subscribes
+                # (e.g. the reconnect path, which sends one subscribe per
+                # feed intent back-to-back with no wait between them) would
+                # flush the other batch's messages before ITS
+                # trading_symbols have arrived, delivering them with
+                # trading_symbol=None -- exactly what this feature exists
+                # to prevent.
+                self._ack_pending = False
+                self._ack_deadline = None
+                self._flush_pending_latest_messages()
 
     def _trading_symbol_for(self, message: SFeedMessage) -> str | None:
         """Look up the trading symbol for a decoded message, if known."""
@@ -495,17 +532,43 @@ class SFeedWebSocket:
         for message in pending.values():
             self._deliver_message(message)
 
+    def _pending_key(self, message: SFeedMessage) -> str | None:
+        """Parking-space key for a withheld message, or ``None`` to mean
+        "never withhold this — deliver it immediately".
+
+        Keyed by exchange+instrument *and* message type/level, not just
+        exchange+instrument: the same instrument can be subscribed at
+        multiple levels at once (e.g. touch-line and full depth), and each
+        level's updates are distinct data, not interchangeable prices — so
+        they must not overwrite each other in the "latest wins" map.
+
+        ``market_status`` messages (market open/close) are never withheld:
+        they share one key per exchange (their ``instrument_token`` is
+        always empty), so "latest wins" would silently drop an "open"
+        notice if a "close" notice for the same exchange arrived later in
+        the same withholding window — turning a real state transition into
+        a single, wrong-looking event. Unlike price ticks, an event isn't
+        superseded by a later event; both matter.
+        """
+        if message.type == "market_status":
+            return None
+        level = getattr(message, "level", message.type)
+        return f"{message.exchange_segment}|{message.instrument_token}|{message.type}|{level}"
+
     def _handle_binary_frame(self, frame: bytes) -> None:
         """Split a binary batch into packets, decode each, and deliver.
 
         While a subscribe acknowledgement is outstanding (``_ack_pending``),
-        decoded messages are **not delivered** immediately. Instead, only the
-        latest message per ``"<exchange_segment>|<instrument_token>"`` key is
-        kept in ``_pending_latest_by_key`` — each new message for the same
-        key overwrites the previous one, so at most one (the freshest) tick
-        per instrument is ever held. This is a live price feed: an
-        out-of-date tick is worthless once a newer one for the same
-        instrument has arrived, so there is no value in queuing a backlog.
+        decoded messages are **not delivered** immediately, *except* for
+        messages this client already has a resolved ``trading_symbol`` for
+        (see ``_pending_key``) and messages that are never withheld
+        (``market_status`` events — see ``_pending_key``). Everything else is
+        kept in ``_pending_latest_by_key``, one entry per (instrument, message
+        type/level) — each new message for the same key overwrites the
+        previous one, so at most one (the freshest) tick per key is ever
+        held. This is a live price feed: an out-of-date tick is worthless
+        once a newer one for the same key has arrived, so there is no value
+        in queuing a backlog.
 
         As soon as the ack lands (in ``_handle_text_frame``) or
         ``ack_wait_timeout`` passes without one, every held-back key's
@@ -517,15 +580,23 @@ class SFeedWebSocket:
             message = self._decode_packet(packet)
             if message is None:
                 continue
-            if self._ack_pending:
+            if self._ack_pending and self._trading_symbol_for(message) is None:
                 if self._ack_deadline_passed():
+                    # Backstop: forcibly end the window regardless of how
+                    # many acks are still outstanding. Normally
+                    # _wait_for_subscribe_ack's own timeout (fix for the
+                    # quiet-feed case) gets there first; this only matters
+                    # if a future frame's deadline check fires before that
+                    # wait resolves.
                     self._ack_pending = False
                     self._ack_deadline = None
+                    self._acks_outstanding = 0
                     self._flush_pending_latest_messages()
                 else:
-                    key = f"{message.exchange_segment}|{message.instrument_token}"
-                    self._pending_latest_by_key[key] = message
-                    continue
+                    key = self._pending_key(message)
+                    if key is not None:
+                        self._pending_latest_by_key[key] = message
+                        continue
             self._deliver_message(message)
 
     async def _handle_disconnect(self) -> None:
@@ -568,9 +639,14 @@ class SFeedWebSocket:
         Data frames delivered by the receive loop while this ack is
         outstanding are held back (see ``_handle_binary_frame`` /
         ``_ack_pending``) so they aren't decoded and delivered with
-        ``trading_symbol=None`` before the map is ready.
+        ``trading_symbol=None`` before the map is ready. Each call increments
+        ``_acks_outstanding``; the withholding window only ends once every
+        subscribe sent so far has been resolved (ack received, or timed out
+        via ``_wait_for_subscribe_ack``) — see ``_handle_text_frame`` and
+        ``_wait_for_subscribe_ack``.
         """
         self._subscribe_ack_event.clear()
+        self._acks_outstanding += 1
         self._ack_pending = True
         self._ack_deadline = time.monotonic() + self.ack_wait_timeout
         await self._ws.send(
@@ -597,12 +673,28 @@ class SFeedWebSocket:
         called *after* ``self._subscriptions`` bookkeeping is updated, so a
         disconnect/reconnect racing this wait still has the correct
         subscription set to resend.
+
+        If the wait times out, releases this subscribe's share of the
+        withholding window immediately (see ``_acks_outstanding``) instead
+        of relying on ``_handle_binary_frame``'s deadline check, which only
+        runs when a *future* frame happens to arrive. On a quiet/thinly
+        traded instrument, no such frame may ever come, and anything parked
+        so far would otherwise be withheld forever. The deadline check in
+        ``_handle_binary_frame`` stays in place as a second line of
+        defence for paths that don't wait here (e.g. ``snapshot()`` calling
+        this same method covers itself, but a raw ``_send_subscribe``
+        caller that skips this method entirely would not).
         """
-        if self._receive_task is not None:
-            with contextlib.suppress(asyncio.TimeoutError):
-                await asyncio.wait_for(
-                    self._subscribe_ack_event.wait(), timeout=self.ack_wait_timeout
-                )
+        if self._receive_task is None:
+            return
+        try:
+            await asyncio.wait_for(self._subscribe_ack_event.wait(), timeout=self.ack_wait_timeout)
+        except asyncio.TimeoutError:
+            self._acks_outstanding = max(0, self._acks_outstanding - 1)
+            if self._acks_outstanding == 0:
+                self._ack_pending = False
+                self._ack_deadline = None
+                self._flush_pending_latest_messages()
 
     async def _send_unsubscribe(self, event: str, tokens: list[WsToken]) -> None:
         """Send a batched unsubscribe frame (no ``json`` field, per spec)."""
@@ -713,6 +805,14 @@ class SFeedWebSocket:
             await self._send_subscribe(event, tokens)
         except Exception as e:
             raise SubscriptionError(f"Failed to snapshot ({intent}): {e}") from e
+
+        # _send_subscribe (reused here for its ack_symbol plumbing) arms the
+        # withholding window the same way a real subscribe does. Unlike
+        # subscribe_scrips() etc., snapshot() has no separate bookkeeping
+        # step to run first, so wait for the ack right away -- otherwise
+        # the live feed would stay paused behind this snapshot until some
+        # unrelated future frame happens to trip the deadline check.
+        await self._wait_for_subscribe_ack()
 
     async def close(self) -> None:
         """Close the socket and clean up."""

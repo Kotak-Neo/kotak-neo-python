@@ -30,6 +30,8 @@ _AUTH_OK = json.dumps({
 })
 
 _MINI_BODY = struct.Struct("<IqIqIiiIBI")
+_MP_BODY = struct.Struct("<IqqqqqIIIIIqIIIIhiIdiIIIIIBI")
+_DEPTH_ROW = struct.Struct("<qii")
 
 
 def _market_status_frame():
@@ -54,6 +56,51 @@ def _mini_frame(token, last_traded_price_paise):
         HEADER_SIZE + len(body), MSG_MARKET_PICTURE, 1, 1, 0, 0, 0
     )
     return header + body
+
+
+def _depth_frame(token, level=4, buy_n=1, sell_n=1):
+    """A level-4/8/16 (touch line / depth / full depth) frame for `token`,
+    decodes to a distinct SFeedScrip -- same instrument as _mini_frame's
+    SFeedScripLite, but a different message type/level."""
+    body = _MP_BODY.pack(
+        token,
+        1000,  # total_buy_qty
+        2000,  # total_sell_qty
+        50000,  # volume_traded_today
+        1234567890,  # last_trade_time
+        1234567891,  # last_update_time
+        150000,  # open_price
+        149000,  # close_price
+        151000,  # high_price
+        148000,  # low_price
+        150050,  # last_traded_price
+        10,  # last_trade_qty
+        150025,  # avg_trade_price
+        0,  # _indicative_close
+        buy_n,
+        sell_n,
+        0,  # _trading_status
+        123,  # net_chg_percent
+        500,  # open_interest
+        1234567.0,  # total_traded_value
+        105,  # net_chg
+        165000,  # upper_circuit
+        135000,  # lower_circuit
+        200000,  # yearly_high
+        100000,  # yearly_low
+        1,  # market_lot
+        2,  # precision
+        1,  # multiplier
+    )
+    fixed = body.ljust(144 - HEADER_SIZE, b"\x00")
+    rows = b""
+    for i in range(buy_n + sell_n):
+        rows += _DEPTH_ROW.pack(100 + i, 150000 + i * 100, 5 + i)
+    payload = fixed + rows
+    header = struct.Struct("<HHbBBBB").pack(
+        HEADER_SIZE + len(payload), MSG_MARKET_PICTURE, 1, level, 0, 0, 0
+    )
+    return header + payload
 
 
 class FakeAsyncWS:
@@ -424,7 +471,7 @@ def test_anext_stops_iteration_when_disconnected_after_timeout():
     asyncio.run(run())
 
 
-def test_anext_recurses_after_timeout_then_returns():
+def test_anext_loops_after_timeout_then_returns():
     async def run():
         ws = SFeedWebSocket(url="wss://fake/feed")
         ws._connected = True
@@ -437,6 +484,42 @@ def test_anext_recurses_after_timeout_then_returns():
         return await ws.__anext__()
 
     assert asyncio.run(run()) == "late"
+
+
+def test_anext_survives_many_timeouts_without_recursion_error(monkeypatch):
+    """A single __anext__() call must loop, not recurse, through repeated
+    timeouts -- a recursive implementation adds one stack frame per timeout
+    and eventually raises RecursionError on a long-idle connection (see
+    review finding #6). The exact iteration count that trips
+    RecursionError is Python-version/environment-dependent (async stack
+    accounting differs from plain sync recursion), so this forces enough
+    timeouts to reliably exceed it either way, and asserts the call still
+    succeeds normally rather than crashing.
+    """
+
+    async def run():
+        ws = SFeedWebSocket(url="wss://fake/feed")
+        ws._connected = True
+
+        # Real asyncio.wait_for with a 1.0s timeout would make this test
+        # take hours; shrink the timeout only within the client module so
+        # each "no data yet" cycle is fast.
+        real_wait_for = asyncio.wait_for
+        call_count = 0
+        target = 60_000  # comfortably past where a recursive impl fails here
+
+        async def fast_wait_for(aw, timeout):
+            nonlocal call_count
+            call_count += 1
+            if call_count >= target:
+                ws._message_queue.put_nowait("done")
+            return await real_wait_for(aw, timeout=0.0001)
+
+        monkeypatch.setattr(_client_mod.asyncio, "wait_for", fast_wait_for)
+
+        return await ws.__anext__()
+
+    assert asyncio.run(run()) == "done"
 
 
 def test_is_connected_true_when_socket_has_no_state_or_closed():
@@ -783,7 +866,7 @@ def test_binary_frame_stamps_trading_symbol_on_enqueued_message(monkeypatch):
 
 
 def test_data_frame_ahead_of_ack_is_withheld_then_delivered_enriched(monkeypatch):
-    """A data frame that arrives on the wire BEFORE its subscribe ack must
+    """A price tick that arrives on the wire BEFORE its subscribe ack must
     still be delivered eventually, enriched with the correct trading_symbol
     -- not dropped, and not delivered early with trading_symbol=None.
     """
@@ -791,10 +874,10 @@ def test_data_frame_ahead_of_ack_is_withheld_then_delivered_enriched(monkeypatch
     async def run():
         ack = json.dumps({
             "message_code": 1109,
-            "trading_symbols": {"nse_cm|": "MARKET-STATUS"},
+            "trading_symbols": {"nse_cm|2885": "RELIANCE-EQ"},
         })
-        # The market-status frame arrives on the wire BEFORE the ack.
-        fake = FakeAsyncWS(incoming=[_AUTH_OK, _market_status_frame(), ack])
+        # The price tick arrives on the wire BEFORE the ack.
+        fake = FakeAsyncWS(incoming=[_AUTH_OK, _mini_frame(2885, 150050), ack])
         _patch_connect(monkeypatch, fake)
         ws = SFeedWebSocket(url="wss://fake/feed")
         await ws.connect()
@@ -806,7 +889,7 @@ def test_data_frame_ahead_of_ack_is_withheld_then_delivered_enriched(monkeypatch
         return msg
 
     msg = asyncio.run(run())
-    assert msg.trading_symbol == "MARKET-STATUS"
+    assert msg.trading_symbol == "RELIANCE-EQ"
 
 
 def test_binary_frame_withheld_while_ack_pending_only_latest_per_key_kept(monkeypatch):
@@ -875,6 +958,156 @@ def test_binary_frame_delivered_immediately_after_ack_deadline_passes(monkeypatc
 
     msg = asyncio.run(run())
     assert msg.trading_symbol is None  # no ack ever populated the map
+
+
+def test_dual_feed_same_instrument_both_delivered_during_ack_wait(monkeypatch):
+    """Subscribing the same instrument to two different feed levels (e.g.
+    touch line + full depth) must not let one overwrite the other in the
+    withholding map -- both are distinct data, not interchangeable prices
+    (see review finding #1). A market-status event sharing the same
+    exchange (empty instrument_token) must also survive independently and
+    never be collapsed by 'latest wins' with a later status change."""
+
+    async def run():
+        fake = FakeAsyncWS(incoming=[_AUTH_OK])
+        _patch_connect(monkeypatch, fake)
+        ws = SFeedWebSocket(url="wss://fake/feed")
+        await ws.connect()
+
+        ws._ack_pending = True
+        ws._ack_deadline = time.monotonic() + 5.0
+
+        # Same instrument (nse_cm|11536), two different feed types.
+        ws._handle_binary_frame(_mini_frame(11536, 150050))  # scrip_lite
+        ws._handle_binary_frame(_depth_frame(11536, level=4))  # scrip (touch line)
+        assert ws.pending_message_count == 2  # distinct keys, neither overwritten
+
+        # A market-open event, then a market-close event -- both must be
+        # kept, not collapsed into just the close.
+        open_frame = struct.Struct("<HHbBBBB").pack(HEADER_SIZE, 6511, 1, 0, 0, 0, 0)
+        close_frame = struct.Struct("<HHbBBBB").pack(HEADER_SIZE, 6521, 1, 0, 0, 0, 0)
+        ws._handle_binary_frame(open_frame)
+        ws._handle_binary_frame(close_frame)
+
+        # Events are delivered immediately (never withheld), so both should
+        # already be in the queue; the two price/depth messages are still
+        # parked awaiting the ack.
+        assert ws.pending_message_count == 2
+        delivered_types = set()
+        for _ in range(2):
+            msg = await asyncio.wait_for(ws._message_queue.get(), timeout=1.0)
+            delivered_types.add((msg.type, msg.status))
+
+        ack = json.dumps({
+            "message_code": 1109,
+            "trading_symbols": {
+                "nse_cm|11536": "RELIANCE-EQ",
+            },
+        })
+        ws._handle_text_frame(ack)
+        assert ws.pending_message_count == 0
+
+        remaining = []
+        for _ in range(2):
+            remaining.append(await asyncio.wait_for(ws._message_queue.get(), timeout=1.0))
+
+        await ws.close()
+        return delivered_types, remaining
+
+    delivered_types, remaining = asyncio.run(run())
+    assert delivered_types == {("market_status", "open"), ("market_status", "close")}
+    remaining_types = {msg.type for msg in remaining}
+    assert remaining_types == {"scrip", "scrip_lite"}
+    assert all(msg.trading_symbol == "RELIANCE-EQ" for msg in remaining)
+
+
+def test_overlapping_subscribes_second_batch_not_released_by_first_ack(monkeypatch):
+    """Two subscribe calls in flight at once (e.g. the reconnect path, which
+    sends one subscribe per feed intent back-to-back with no wait between
+    them) must not have the FIRST ack to arrive release the SECOND,
+    not-yet-acknowledged batch's messages -- those would go out with
+    trading_symbol=None, which is exactly what withholding exists to
+    prevent (see review finding #5)."""
+
+    async def run():
+        fake = FakeAsyncWS(incoming=[_AUTH_OK])
+        _patch_connect(monkeypatch, fake)
+        ws = SFeedWebSocket(url="wss://fake/feed")
+        await ws.connect()
+
+        # Simulate two subscribe calls in flight before either ack arrives,
+        # exactly like _handle_disconnect's resubscribe loop.
+        await ws._send_subscribe("subscribeScrips", [WsToken("nse_cm", "11536")])
+        await ws._send_subscribe("subscribeScripsLite", [WsToken("nse_cm", "22")])
+        assert ws._acks_outstanding == 2
+
+        # A message for the second batch's instrument arrives while both
+        # acks are still outstanding.
+        ws._handle_binary_frame(_mini_frame(22, 200000))
+        assert ws.pending_message_count == 1
+
+        # Only the FIRST ack arrives (for the first subscribe's instrument).
+        first_ack = json.dumps({
+            "message_code": 1109,
+            "trading_symbols": {"nse_cm|11536": "RELIANCE-EQ"},
+        })
+        ws._handle_text_frame(first_ack)
+
+        # The window must still be open -- one ack is still outstanding, so
+        # the second batch's message must NOT have been released yet.
+        assert ws._ack_pending is True
+        assert ws.pending_message_count == 1
+
+        # The second ack now arrives, resolving the last outstanding one.
+        second_ack = json.dumps({
+            "message_code": 1109,
+            "trading_symbols": {"nse_cm|22": "ACC-EQ"},
+        })
+        ws._handle_text_frame(second_ack)
+        assert ws._ack_pending is False
+        assert ws.pending_message_count == 0
+
+        msg = await asyncio.wait_for(ws._message_queue.get(), timeout=1.0)
+        await ws.close()
+        return msg
+
+    msg = asyncio.run(run())
+    # The second batch's message must carry its real symbol, not None.
+    assert msg.trading_symbol == "ACC-EQ"
+
+
+def test_wait_for_subscribe_ack_timeout_keeps_window_open_if_others_outstanding(
+    monkeypatch,
+):
+    """If one subscribe's own wait times out but another subscribe's ack is
+    still outstanding, the withholding window must stay open -- only the
+    LAST outstanding ack (received or individually timed out) may end it."""
+
+    async def run():
+        fake = FakeAsyncWS(incoming=[_AUTH_OK])
+        _patch_connect(monkeypatch, fake)
+        ws = SFeedWebSocket(url="wss://fake/feed", ack_wait_timeout=0.02)
+        await ws.connect()
+
+        # Two subscribes in flight; neither ack will ever arrive.
+        await ws._send_subscribe("subscribeScrips", [WsToken("nse_cm", "11536")])
+        await ws._send_subscribe("subscribeScripsLite", [WsToken("nse_cm", "22")])
+        assert ws._acks_outstanding == 2
+
+        # Only ONE of the two waits resolves (times out) here.
+        await ws._wait_for_subscribe_ack()
+        assert ws._acks_outstanding == 1
+        # One ack is still outstanding -- the window must remain open.
+        assert ws._ack_pending is True
+
+        # The second (and last) wait times out too, now ending the window.
+        await ws._wait_for_subscribe_ack()
+        assert ws._acks_outstanding == 0
+        assert ws._ack_pending is False
+
+        await ws.close()
+
+    asyncio.run(run())
 
 
 def test_unsubscribe_removes_trading_symbol_entry(monkeypatch):
