@@ -448,8 +448,10 @@ print("Step 2 - CSV file download: plain GET to the resolved file URL, no header
 # search_scrip() caches the downloaded scrip-master CSV on disk for the rest
 # of the calendar day (see neo_api_client.utils.scrip_cache); print the exact
 # path it reads from / writes to for this exchange_segment, and whether it's
-# already cached from an earlier run today.
-_search_scrip_segment = "mcx_fo"
+# already cached from an earlier run today. Cached under the canonical
+# segment name ("bse_fo"), not the alias passed below ("bfo") -- the SDK
+# resolves the alias before touching the cache.
+_search_scrip_segment = "bse_fo"
 _scrip_cache_path = scrip_cache._cache_path(_search_scrip_segment, date.today())
 print(f"\n[SEARCH SCRIP CACHE FILE] {_scrip_cache_path}")
 print(
@@ -459,19 +461,15 @@ print(
 search_scrip_response = runner.run_test(
     "SEARCH SCRIP",
     lambda: runner.client.search_scrip(
-        exchange_segment="mcx_fo",
-        symbol="gold",
-        expiry="31AUG2026",
-        option_type="CE",
-        strike_price="140000",
+        exchange_segment="bfo",
+        symbol="sensex",
+        option_type="fut",
         ignore_50multiple=False,
     ),
     request_params={
-        "exchange_segment": "mcx_fo",
-        "symbol": "gold",
-        "expiry": "31AUG2026",
-        "option_type": "CE",
-        "strike_price": "140000",
+        "exchange_segment": "bfo",
+        "symbol": "sensex",
+        "option_type": "fut",
         "ignore_50multiple": False,
     },
 )
