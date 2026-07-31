@@ -209,7 +209,7 @@ the base URL is unavailable (`totp_validate()` not completed).
 
 ## Related
 
-- **[Subscribe](./subscribe.md)** / **[Unsubscribe](./unsubscribe.md)** — market-data SFeed feed
+- **[Market Feed (Subscribe/Unsubscribe)](./market_feed.md)** — market-data SFeed feed
 - **[SFeed WebSocket Guide](../../guides/websocket.md)** — market-data client reference
 
 [[Back to top]](#) [[Back to functions]](../README.md) [[Back to README]](../../../README.md)

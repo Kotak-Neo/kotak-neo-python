@@ -47,7 +47,18 @@ code --install-extension ms-python.vscode-pylance
 - Auto-imports
 - Type information
 
-### 3. Python Indent
+### 3. Ruff (Recommended)
+
+```bash
+code --install-extension charliermarsh.ruff
+```
+
+**Features:**
+- Lint/format using this project's actual toolchain (see `pyproject.toml`) — not flake8/black/pylint
+- Inline diagnostics
+- Format-on-save support
+
+### 4. Python Indent
 
 ```bash
 code --install-extension KevinRose.vsc-python-indent
@@ -57,7 +68,7 @@ code --install-extension KevinRose.vsc-python-indent
 - Correct Python indentation
 - Smart dedenting
 
-### 4. autoDocstring
+### 5. autoDocstring
 
 ```bash
 code --install-extension njpwerner.autodocstring
@@ -67,7 +78,7 @@ code --install-extension njpwerner.autodocstring
 - Generate docstrings automatically
 - Multiple formats (Google, NumPy, Sphinx)
 
-### 5. GitLens
+### 6. GitLens
 
 ```bash
 code --install-extension eamodio.gitlens
@@ -78,7 +89,7 @@ code --install-extension eamodio.gitlens
 - Commit history
 - File history
 
-### 6. Error Lens
+### 7. Error Lens
 
 ```bash
 code --install-extension usernamehw.errorlens
@@ -94,24 +105,24 @@ code --install-extension usernamehw.errorlens
 
 Create `.vscode/settings.json`:
 
+This project lints and formats with [ruff](https://docs.astral.sh/ruff/) (see
+`pyproject.toml`), not flake8/black/pylint — install the `charliermarsh.ruff`
+extension (see [Essential Extensions](#essential-extensions) below) alongside
+the settings here for inline linting and format-on-save.
+
 **For Windows:**
 ```json
 {
     "python.defaultInterpreterPath": "${workspaceFolder}\\venv\\Scripts\\python.exe",
-    "python.linting.enabled": true,
-    "python.linting.pylintEnabled": false,
-    "python.linting.flake8Enabled": true,
-    "python.linting.flake8Args": [
-        "--max-line-length=100",
-        "--ignore=E203,W503"
-    ],
-    "python.formatting.provider": "black",
-    "python.formatting.blackArgs": [
-        "--line-length=100"
-    ],
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
         "source.organizeImports": true
+    },
+    "[python]": {
+        "editor.tabSize": 4,
+        "editor.insertSpaces": true,
+        "editor.rulers": [100],
+        "editor.defaultFormatter": "charliermarsh.ruff"
     },
     "python.testing.pytestEnabled": true,
     "python.testing.unittestEnabled": false,
@@ -128,11 +139,6 @@ Create `.vscode/settings.json`:
     "files.watcherExclude": {
         "**/__pycache__/**": true,
         "**/venv/**": true
-    },
-    "[python]": {
-        "editor.tabSize": 4,
-        "editor.insertSpaces": true,
-        "editor.rulers": [100]
     }
 }
 ```
@@ -141,20 +147,15 @@ Create `.vscode/settings.json`:
 ```json
 {
     "python.defaultInterpreterPath": "${workspaceFolder}/venv/bin/python",
-    "python.linting.enabled": true,
-    "python.linting.pylintEnabled": false,
-    "python.linting.flake8Enabled": true,
-    "python.linting.flake8Args": [
-        "--max-line-length=100",
-        "--ignore=E203,W503"
-    ],
-    "python.formatting.provider": "black",
-    "python.formatting.blackArgs": [
-        "--line-length=100"
-    ],
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
         "source.organizeImports": true
+    },
+    "[python]": {
+        "editor.tabSize": 4,
+        "editor.insertSpaces": true,
+        "editor.rulers": [100],
+        "editor.defaultFormatter": "charliermarsh.ruff"
     },
     "python.testing.pytestEnabled": true,
     "python.testing.unittestEnabled": false,
@@ -172,11 +173,6 @@ Create `.vscode/settings.json`:
     "files.watcherExclude": {
         "**/__pycache__/**": true,
         "**/venv/**": true
-    },
-    "[python]": {
-        "editor.tabSize": 4,
-        "editor.insertSpaces": true,
-        "editor.rulers": [100]
     }
 }
 ```
@@ -269,7 +265,8 @@ Create `.vscode/tasks.json`:
             "command": "${config:python.defaultInterpreterPath}",
             "args": [
                 "-m",
-                "black",
+                "ruff",
+                "format",
                 "."
             ],
             "group": "build",
@@ -284,7 +281,8 @@ Create `.vscode/tasks.json`:
             "command": "${config:python.defaultInterpreterPath}",
             "args": [
                 "-m",
-                "flake8",
+                "ruff",
+                "check",
                 "."
             ],
             "group": "build",
@@ -374,7 +372,6 @@ Add Neo API snippets:
             "",
             "client = NeoAPI(",
             "    consumer_key=config(\"NEO_CONSUMER_KEY\"),",
-            "    consumer_secret=config(\"NEO_CONSUMER_SECRET\"),",
             "    environment=\"prod\"",
             ")",
             "$0"
@@ -384,15 +381,18 @@ Add Neo API snippets:
     "Neo Login": {
         "prefix": "neo-login",
         "body": [
-            "# Login",
-            "client.login(",
-            "    mobilenumber=config(\"NEO_MOBILE_NUMBER\"),",
-            "    password=config(\"NEO_PASSWORD\")",
+            "import pyotp",
+            "",
+            "# Step 1: Login with TOTP",
+            "totp_code = pyotp.TOTP(config(\"NEO_TOTP_SECRET\")).now()",
+            "client.totp_login(",
+            "    mobile_number=config(\"NEO_MOBILE_NUMBER\"),",
+            "    ucc=config(\"NEO_UCC\"),",
+            "    totp=totp_code,",
             ")",
             "",
-            "# 2FA",
-            "otp = input(\"Enter OTP: \")",
-            "client.session_2fa(OTP=otp)",
+            "# Step 2: Validate with MPIN to complete authentication",
+            "client.totp_validate(mpin=config(\"NEO_MPIN\"))",
             "$0"
         ],
         "description": "Neo API login flow"
@@ -487,8 +487,10 @@ Add Neo API snippets:
 
 ### Install Linters
 
+`ruff` and `mypy` ship with the SDK's dev dependencies (`pip install -e ".[dev]"`);
+install standalone only if you're linting a bare venv:
 ```bash
-pip install flake8 black mypy
+pip install ruff mypy
 ```
 
 ### Format on Save
@@ -561,15 +563,12 @@ Already configured in `settings.json`:
 
 **Solution:**
 ```bash
-# Ensure linter is installed in venv
-pip install flake8
-
-# Enable in settings
-{
-    "python.linting.enabled": true,
-    "python.linting.flake8Enabled": true
-}
+# Ensure ruff is installed in venv
+pip install ruff
 ```
+Then confirm the `charliermarsh.ruff` extension is installed and enabled — it
+picks up lint/format config from `pyproject.toml` automatically, no
+`settings.json` linting flags required.
 
 ### Issue: Debugger Not Stopping at Breakpoints
 

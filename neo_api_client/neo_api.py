@@ -573,7 +573,7 @@ class NeoAPI:
 
     def search_scrip(
         self,
-        exchange_segment: str,
+        exchange_segment: str = "",
         symbol: str = "",
         expiry: str | None = None,
         option_type: str | None = None,
@@ -584,7 +584,10 @@ class NeoAPI:
         Search for a scrip based on the given parameters.
 
         Args:
-            exchange_segment (str): The exchange segment to search in. This argument is mandatory.
+            exchange_segment (str): The exchange segment to search in. Mandatory — if
+                omitted or blank, returns a client-side validation error (see below)
+                rather than raising, so it can be called by keyword with any subset
+                of the other parameters without a TypeError.
             symbol (str): The symbol to search for. This argument is optional.
             expiry (str): The expiry date to search for, in the format YYYYMM. This argument is optional.
             option_type (str): The option type to search for (either "CE" or "PE"). This argument is optional.

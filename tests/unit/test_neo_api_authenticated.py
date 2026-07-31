@@ -624,6 +624,19 @@ def test_search_scrip_missing_exchange_segment(authenticated_client):
     assert "error" in result
 
 
+def test_search_scrip_omitted_exchange_segment_returns_error_not_typeerror(authenticated_client):
+    """search_scrip() called by keyword without exchange_segment at all (e.g.
+    only expiry/option_type/strike_price/ignore_50multiple) must return the
+    same validation error as an explicit blank value, not raise TypeError."""
+    result = authenticated_client.search_scrip(
+        expiry="",
+        option_type="",
+        strike_price="",
+        ignore_50multiple=True,
+    )
+    assert "error" in result
+
+
 def test_scrip_master_success(authenticated_client, requests_mock):
     """scrip_master() success path returns file paths."""
     url = authenticated_client.configuration.get_url_details("scrip_master")

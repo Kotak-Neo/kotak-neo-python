@@ -91,8 +91,8 @@ pip install build
 # Build the package
 python -m build
 
-# Install from the generated wheel
-pip install dist/kotakneoapi-2.2.0-py3-none-any.whl
+# Install from the generated wheel (check dist/ for the actual filename/version)
+pip install dist/kotakneoapi-*-py3-none-any.whl
 ```
 
 ## Virtual Environment (Recommended)

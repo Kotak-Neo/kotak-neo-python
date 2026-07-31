@@ -55,8 +55,7 @@ client.totp_validate(mpin="123456")
 - [Search Scrip](./market_data/search_scrip.md) - Search for instruments
 
 ### 5. WebSocket (SFeed, async/await — v2.2.0+)
-- [Subscribe](./websocket/subscribe.md) - Subscribe to live market feed
-- [Unsubscribe](./websocket/unsubscribe.md) - Unsubscribe from feed
+- [Market Feed](./websocket/market_feed.md) - Subscribe/unsubscribe to live market data
 - [Order Feed](./websocket/order_feed.md) - Stream order-lifecycle & position updates
 - [SFeed WebSocket Guide](../guides/websocket.md) - Full async client reference & migration
 

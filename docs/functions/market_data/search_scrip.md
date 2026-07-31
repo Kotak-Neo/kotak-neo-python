@@ -14,6 +14,18 @@ client.search_scrip(
 
 > **Note:** Unlike most trading/portfolio methods, `search_scrip()` does not require a completed 2FA (TOTP) session — only `consumer_key` is required, since the underlying API authenticates via the `Authorization` header alone.
 
+> **Note:** `exchange_segment` is mandatory but defaults to `""` — calling `search_scrip()` by keyword with only some of the other parameters (e.g. `search_scrip(expiry="", option_type="", strike_price="", ignore_50multiple=True)`, omitting `exchange_segment` entirely) returns a client-side validation error instead of raising `TypeError: missing 1 required positional argument`:
+> ```json
+> {
+>     "error": [
+>         {
+>             "code": "10300",
+>             "message": "Validation Errors! Exchange Segment is Mandate to proceed further"
+>         }
+>     ]
+> }
+> ```
+
 > **Note:** The scrip-master CSV for the requested `exchange_segment` is cached on disk for the rest of the calendar day it was downloaded (TTL expires at midnight local time, default location `~/.kotak_neo/scrip_cache`, overridable via the `NEO_SCRIP_CACHE_DIR` environment variable). Repeat searches on the same day for the same segment reuse the cached file instead of re-downloading it.
 
 ### Example

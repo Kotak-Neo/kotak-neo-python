@@ -117,7 +117,7 @@ Detailed documentation for all SDK functions with examples and real API response
 - [Quotes](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/market_data/quotes.md) | [Scrip Master](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/market_data/scrip_master.md) | [Search Scrip](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/market_data/search_scrip.md)
 
 **WebSocket**
-- Market data (SFeed): [Subscribe](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/websocket/subscribe.md) | [Unsubscribe](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/websocket/unsubscribe.md)
+- Market data (SFeed): [Market Feed (Subscribe/Unsubscribe)](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/websocket/market_feed.md)
 - Order & positions: [Order Feed](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/websocket/order_feed.md)
 - Full guide: [SFeed WebSocket](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/guides/websocket.md)
 
