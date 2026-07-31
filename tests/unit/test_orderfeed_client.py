@@ -116,7 +116,7 @@ def test_parse_order_message_maps_all_fields():
     msg = _ws()._parse_message(frame)
     assert isinstance(msg, OrderUpdate)
     d = msg.data
-    assert d.order_no == "260216000308219"
+    assert d.order_id == "260216000308219"
     assert d.order_status == "complete"
     assert d.average_price == "35.88"
     assert d.quantity == 1
@@ -234,7 +234,7 @@ def test_connect_sends_payload_and_streams(monkeypatch):
 
     msg1, msg2, closed = asyncio.run(run())
     assert isinstance(msg1, OrderUpdate)
-    assert msg1.data.order_no == "1"
+    assert msg1.data.order_id == "1"
     assert msg1.data.order_status == "open"
     assert msg1.data.symbol == "ITBEES"
     assert msg2 == "plain-text-frame"
@@ -557,7 +557,7 @@ def test_receive_loop_invokes_on_raw_and_on_message(monkeypatch):
 def test_parse_bytes_json_frame():
     msg = _ws()._parse_message(b'{"type":"order","data":{"nOrdNo":"1"}}')
     assert isinstance(msg, OrderUpdate)
-    assert msg.data.order_no == "1"
+    assert msg.data.order_id == "1"
 
 
 def test_parse_invalid_utf8_bytes_returned_as_is():
@@ -675,7 +675,7 @@ def test_parse_dict_input_passed_through_as_order():
     # A frame already decoded to a dict (not str/bytes) is handled directly.
     msg = _ws()._parse_message({"type": "order", "data": {"nOrdNo": "9"}})
     assert isinstance(msg, OrderUpdate)
-    assert msg.data.order_no == "9"
+    assert msg.data.order_id == "9"
 
 
 def test_receive_loop_exits_when_connection_flips_closed():

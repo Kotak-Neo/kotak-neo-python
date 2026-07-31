@@ -428,7 +428,7 @@ async def main():
     async with client.create_order_feed() as feed:
         async for msg in feed:
             if isinstance(msg, OrderUpdate):
-                print(msg.data.order_no, msg.data.order_status)
+                print(msg.data.order_id, msg.data.order_status)
             elif isinstance(msg, PositionUpdate):
                 print(msg.data.symbol)
 

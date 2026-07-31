@@ -45,7 +45,7 @@ class OrderData(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True, extra="allow")
 
-    order_no: str | None = Field(None, alias="nOrdNo")  # internal order number
+    order_id: str | None = Field(None, alias="nOrdNo")  # internal order number/ID
     exchange_order_id: str | None = Field(None, alias="exOrdId")  # exchange order ID
     order_status: str | None = Field(None, alias="ordSt")  # order status
     average_price: str | None = Field(None, alias="avgPrc")  # average traded price

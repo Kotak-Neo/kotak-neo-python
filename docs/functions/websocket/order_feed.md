@@ -46,7 +46,7 @@ async def main():
     async with client.create_order_feed() as feed:
         async for message in feed:
             if isinstance(message, OrderUpdate):
-                print(f"order {message.data.order_no} -> {message.data.order_status}")
+                print(f"order {message.data.order_id} -> {message.data.order_status}")
                 if message.data.order_status == OrderStatus.COMPLETE:
                     print("order fully executed")
             elif isinstance(message, PositionUpdate):
@@ -132,7 +132,7 @@ new values, which are surfaced as-is.
 
 | Attribute                    | Wire alias | Notes                          |
 |------------------------------|------------|--------------------------------|
-| `order_no`                   | `nOrdNo`   | Internal order number          |
+| `order_id`                   | `nOrdNo`   | Internal order number/ID — same identifier as `order_id` in `order_report()`/`order_history()`/`modify_order()`/`cancel_order()` |
 | `exchange_order_id`          | `exOrdId`  | Exchange order ID              |
 | `order_status`               | `ordSt`    | Order status (see above)       |
 | `average_price`              | `avgPrc`   | Average traded price           |
