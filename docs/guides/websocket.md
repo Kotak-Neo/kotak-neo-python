@@ -252,22 +252,24 @@ async for message in ws:
 
 Details:
 
-- While a subscribe acknowledgement is outstanding, incoming data frames are
-  **discarded**, not delivered — this is a live market price feed, so a tick
-  decoded before its trading_symbol mapping was known cannot be held back
-  and delivered later; that would put a stale price out of order relative
-  to newer ticks arriving once the ack lands, which is worse than a brief
-  gap. The window is bounded by `ack_wait_timeout` (default 5.0s, set via
-  `SFeedWebSocket(..., ack_wait_timeout=...)`); once the ack arrives (or the
-  timeout elapses without one), frames are decoded and delivered normally
-  again. Use `ws.dropped_frame_count` to monitor how many frames were
-  discarded this way.
+- While a subscribe acknowledgement is outstanding, incoming messages are
+  decoded but their **delivery is withheld** — instead of queuing every one
+  (which would deliver a backlog of stale ticks once the ack lands), the
+  client keeps only the **latest message per
+  `"<exchange_segment>|<instrument_token>"`** in an in-memory map; each new
+  message for the same instrument overwrites the previous one. As soon as
+  the ack arrives, every held-back instrument's latest message is delivered
+  in one go, enriched with its now-known `trading_symbol` — never a message
+  with `trading_symbol=None` from a mapping that was about to arrive
+  anyway. The window is bounded by `ack_wait_timeout` (default 5.0s, set via
+  `SFeedWebSocket(..., ack_wait_timeout=...)`); if it elapses without an
+  ack, the same flush happens anyway (with `trading_symbol=None` for
+  instruments the map has no entry for), and normal per-message delivery
+  resumes. Use `ws.pending_message_count` to see how many instruments are
+  currently withheld.
 - `subscribe_scrips()` (and the other `subscribe_*` methods) wait for the
   acknowledgement before returning (up to `ack_wait_timeout`), so
   `ws.trading_symbols` is already populated by the time the call completes.
-  If the ack doesn't arrive in that window, the subscribe call still returns
-  normally, and frames resume being delivered (with `trading_symbol=None`
-  for tokens the map has no entry for) rather than dropping forever.
 - `trading_symbol` is `None` for any token the server didn't return a
   symbol for, or if no ack arrived before `ack_wait_timeout` elapsed.
 - The mapping is keyed by `"<exchange_segment>|<instrument_token>"`. You can

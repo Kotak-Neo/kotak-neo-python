@@ -20,6 +20,7 @@ from neo_api_client.websocket.feed.exceptions import NotConnectedError  # noqa: 
 from neo_api_client.websocket.feed.protocol import (  # noqa: E402
     HEADER_SIZE,
     MSG_MARKET_OPEN,
+    MSG_MARKET_PICTURE,
 )
 
 _AUTH_OK = json.dumps({
@@ -28,9 +29,31 @@ _AUTH_OK = json.dumps({
     "exchanges": {"nse_cm": {"value": 1, "divider": 100}},
 })
 
+_MINI_BODY = struct.Struct("<IqIqIiiIBI")
+
 
 def _market_status_frame():
     return struct.Struct("<HHbBBBB").pack(HEADER_SIZE, MSG_MARKET_OPEN, 1, 0, 0, 0, 0)
+
+
+def _mini_frame(token, last_traded_price_paise):
+    """A level-1 (mini touch line) frame for `token`, decodes to nse_cm|<token>."""
+    body = _MINI_BODY.pack(
+        token,
+        1234567890,  # last_trade_time
+        last_traded_price_paise,
+        10,  # last_trade_qty
+        149900,  # close_price
+        123,  # net_chg_percent
+        150,  # net_chg
+        1,  # market_lot
+        2,  # precision
+        1,  # multiplier
+    )
+    header = struct.Struct("<HHbBBBB").pack(
+        HEADER_SIZE + len(body), MSG_MARKET_PICTURE, 1, 1, 0, 0, 0
+    )
+    return header + body
 
 
 class FakeAsyncWS:
@@ -759,15 +782,10 @@ def test_binary_frame_stamps_trading_symbol_on_enqueued_message(monkeypatch):
     assert msg.trading_symbol == "MARKET-STATUS"
 
 
-def test_data_frame_ahead_of_ack_is_discarded_not_delivered_stale(monkeypatch):
-    """A data frame that arrives on the wire BEFORE its subscribe ack must be
-    discarded, not delivered with a stale/unenriched trading_symbol.
-
-    This is a live price feed: delivering a tick decoded before the
-    trading_symbols map was ready -- even if "fixed up" and delivered later
-    -- would put a stale price out of order relative to newer ticks that
-    arrive once the ack lands. Dropping it is correct; the queue must stay
-    empty for it.
+def test_data_frame_ahead_of_ack_is_withheld_then_delivered_enriched(monkeypatch):
+    """A data frame that arrives on the wire BEFORE its subscribe ack must
+    still be delivered eventually, enriched with the correct trading_symbol
+    -- not dropped, and not delivered early with trading_symbol=None.
     """
 
     async def run():
@@ -782,21 +800,20 @@ def test_data_frame_ahead_of_ack_is_discarded_not_delivered_stale(monkeypatch):
         await ws.connect()
 
         await ws.subscribe_scrips([WsToken("nse_cm", "2885")])
-        await asyncio.sleep(0.05)
 
-        queue_empty = ws._message_queue.empty()
-        dropped = ws.dropped_frame_count
+        msg = await asyncio.wait_for(ws._message_queue.get(), timeout=1.0)
         await ws.close()
-        return queue_empty, dropped
+        return msg
 
-    queue_empty, dropped = asyncio.run(run())
-    assert queue_empty is True  # the pre-ack frame was never delivered
-    assert dropped == 1
+    msg = asyncio.run(run())
+    assert msg.trading_symbol == "MARKET-STATUS"
 
 
-def test_binary_frame_discarded_while_ack_pending(monkeypatch):
-    """_handle_binary_frame discards frames while _ack_pending is set,
-    counting them via dropped_frame_count, rather than queuing them."""
+def test_binary_frame_withheld_while_ack_pending_only_latest_per_key_kept(monkeypatch):
+    """While an ack is outstanding, only the LATEST message per instrument
+    key is retained (each new one overwrites the previous) -- not queued as
+    a backlog. Once the ack lands, exactly that latest message is delivered,
+    enriched with the correct trading_symbol."""
 
     async def run():
         fake = FakeAsyncWS(incoming=[_AUTH_OK])
@@ -808,31 +825,35 @@ def test_binary_frame_discarded_while_ack_pending(monkeypatch):
         ws._ack_pending = True
         ws._ack_deadline = time.monotonic() + 5.0
 
-        ws._handle_binary_frame(_market_status_frame())
+        # Two ticks for the SAME instrument (nse_cm|11536): stale then fresh.
+        ws._handle_binary_frame(_mini_frame(11536, 100000))  # stale: 1000.00
         assert ws._message_queue.empty()
-        assert ws.dropped_frame_count == 1
+        assert ws.pending_message_count == 1
 
-        # The ack arrives: resumes normal decode/deliver for the next frame.
-        ws._trading_symbols = {}
+        ws._handle_binary_frame(_mini_frame(11536, 150050))  # fresh: 1500.50
+        assert ws._message_queue.empty()
+        assert ws.pending_message_count == 1  # overwritten, not appended
+
+        # The ack arrives: the latest (fresh) message is flushed, enriched.
         ack = json.dumps({
             "message_code": 1109,
-            "trading_symbols": {"nse_cm|": "MARKET-STATUS"},
+            "trading_symbols": {"nse_cm|11536": "RELIANCE-EQ"},
         })
         ws._handle_text_frame(ack)
         assert ws._ack_pending is False
+        assert ws.pending_message_count == 0
 
-        ws._handle_binary_frame(_market_status_frame())
         msg = await asyncio.wait_for(ws._message_queue.get(), timeout=1.0)
         await ws.close()
         return msg
 
     msg = asyncio.run(run())
-    assert msg.trading_symbol == "MARKET-STATUS"
-    # Only the pre-ack frame was dropped; the post-ack one was delivered.
+    assert msg.trading_symbol == "RELIANCE-EQ"
+    assert msg.last_traded_price == 1500.50  # the fresh tick, not the stale one
 
 
-def test_binary_frame_delivered_after_ack_deadline_passes(monkeypatch):
-    """If the ack never arrives, frames stop being discarded once
+def test_binary_frame_delivered_immediately_after_ack_deadline_passes(monkeypatch):
+    """If the ack never arrives, messages stop being withheld once
     ack_deadline passes -- the feed must not go silent indefinitely."""
 
     async def run():
@@ -847,7 +868,7 @@ def test_binary_frame_delivered_after_ack_deadline_passes(monkeypatch):
         ws._handle_binary_frame(_market_status_frame())
 
         assert ws._ack_pending is False
-        assert ws.dropped_frame_count == 0
+        assert ws.pending_message_count == 0
         msg = await asyncio.wait_for(ws._message_queue.get(), timeout=1.0)
         await ws.close()
         return msg
