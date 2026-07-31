@@ -463,13 +463,13 @@ search_scrip_response = runner.run_test(
     lambda: runner.client.search_scrip(
         exchange_segment="bfo",
         symbol="sensex",
-        option_type="fut",
+        expiry="27AUG2026",
         ignore_50multiple=False,
     ),
     request_params={
         "exchange_segment": "bfo",
         "symbol": "sensex",
-        "option_type": "fut",
+        "expiry": "27AUG2026",
         "ignore_50multiple": False,
     },
 )
