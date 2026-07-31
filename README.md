@@ -6,6 +6,11 @@ Official Python SDK for Kotak Neo Trading APIs - a modern, well-tested trading c
 [![PyPI Version](https://img.shields.io/badge/pypi-v2.2.8-green.svg)](https://pypi.org/project/kotakneoapi/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/LICENSE)
 
+> **This is the actively maintained SDK**, superseding
+> [`kotak-neo-api-v2`](https://github.com/Kotak-Neo/kotak-neo-api-v2) (now legacy).
+> Already on `kotak-neo-api-v2`? See the
+> **[Migration Guide](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/guides/MIGRATION.md)**.
+
 ## Features
 
 ✅ **Authentication** - TOTP-based secure login with 2FA  

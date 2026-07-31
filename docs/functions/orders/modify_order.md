@@ -45,7 +45,15 @@ client.totp_validate(mpin="")
 
 try:
     # Modify an existing order
-    client.modify_order(order_id="", price="", order_type="", quantity="", validity="", amo="")
+    client.modify_order(
+        order_id="",
+        price="",
+        order_type="",
+        quantity="",
+        validity="",
+        trigger_price="0",
+        amo="",
+    )
 
 except Exception as e:
     print("Exception when calling OrderApi->modify_order: %s\n" % e)

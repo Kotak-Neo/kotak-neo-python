@@ -2,11 +2,13 @@ import asyncio
 import json
 import time
 import traceback
+from datetime import date
 
 import pyotp
 from decouple import config
 
 from neo_api_client import NeoAPI
+from neo_api_client.utils import scrip_cache
 from neo_api_client.websocket.feed import WsToken
 
 # Header keys that carry secrets; masked when printed so credentials aren't
@@ -429,17 +431,55 @@ runner.run_test(
 # SEARCH SCRIP
 # ---------------------------
 
-runner.run_test(
+# search_scrip() builds its own headers (Authorization + Content-Type) for the
+# scrip_master lookup it makes internally, but the CSV file download that
+# follows is a plain unauthenticated GET straight to the file's URL (no Kotak
+# API headers) -- print both explicitly since search_scrip() itself doesn't
+# use the SDK's shared httpx.Client, so the request-hook logging above never
+# fires for it.
+print("\n[SEARCH SCRIP REQUEST HEADERS]")
+print("Step 1 - scrip_master lookup:")
+print(
+    f"    Authorization: {_mask_header('authorization', runner.client.api_client.configuration.consumer_key)}"
+)
+print("    Content-Type: application/x-www-form-urlencoded")
+print("Step 2 - CSV file download: plain GET to the resolved file URL, no headers")
+
+# search_scrip() caches the downloaded scrip-master CSV on disk for the rest
+# of the calendar day (see neo_api_client.utils.scrip_cache); print the exact
+# path it reads from / writes to for this exchange_segment, and whether it's
+# already cached from an earlier run today.
+_search_scrip_segment = "mcx_fo"
+_scrip_cache_path = scrip_cache._cache_path(_search_scrip_segment, date.today())
+print(f"\n[SEARCH SCRIP CACHE FILE] {_scrip_cache_path}")
+print(
+    "cached:", "yes (reused, no download)" if _scrip_cache_path.exists() else "no (will download)"
+)
+
+search_scrip_response = runner.run_test(
     "SEARCH SCRIP",
     lambda: runner.client.search_scrip(
-        exchange_segment="nse_cm",
-        symbol="RELIANCE",
+        exchange_segment="mcx_fo",
+        symbol="gold",
+        expiry="31AUG2026",
+        option_type="CE",
+        strike_price="140000",
+        ignore_50multiple=False,
     ),
     request_params={
-        "exchange_segment": "nse_cm",
-        "symbol": "RELIANCE",
+        "exchange_segment": "mcx_fo",
+        "symbol": "gold",
+        "expiry": "31AUG2026",
+        "option_type": "CE",
+        "strike_price": "140000",
+        "ignore_50multiple": False,
     },
 )
+
+print("\n[SEARCH SCRIP OUTPUT]")
+if isinstance(search_scrip_response, list):
+    print(f"Matched {len(search_scrip_response)} scrip(s):")
+print(json.dumps(search_scrip_response, indent=2, default=str))
 
 # ---------------------------
 # ORDER MANAGEMENT (Place → Modify → Cancel)
