@@ -1,7 +1,7 @@
-# Migration Guide — v2.0.2 → v2.2.9
+# Migration Guide — v2.0.2 → v2.3.0
 
 This guide helps you upgrade the **Kotak Neo Python SDK** (`neo_api_client`) from
-**v2.0.2** to **v2.2.9**.
+**v2.0.2** to **v2.3.0**.
 
 The package import name is unchanged (`neo_api_client`), so your `import`
 statements keep working. However, several APIs changed in ways that **require
@@ -21,7 +21,7 @@ even if you skim the rest.
 
 ## 1. Installation & requirements
 
-| | v2.0.2 | v2.2.9 |
+| | v2.0.2 | v2.3.0 |
 |---|---|---|
 | Python | 3.7+ | **3.10 – 3.14** |
 | HTTP transport | `requests` | **`httpx` (HTTP/2)** |
@@ -94,7 +94,7 @@ a clear error for invalid input, instead of forwarding it to the exchange.
 ### 3.1 Product type — only `CNC`, `NRML`, `MIS`, `MTF`
 
 ```python
-# v2.2.9: allowed product values
+# v2.3.0: allowed product values
 client.place_order(..., product="CNC")  # or "NRML", "MIS", or "MTF"
 ```
 
@@ -169,7 +169,7 @@ the order lives on.
 ### 3.5 Price — must be positive for `L`/`SL` orders
 
 ```python
-# v2.2.9: price=0 is now rejected for Limit and Stop-Loss-Limit orders
+# v2.3.0: price=0 is now rejected for Limit and Stop-Loss-Limit orders
 client.place_order(..., order_type="L", price="0")  # raises ApiValueError
 client.place_order(..., order_type="L", price="1500")  # OK — a real limit price
 client.place_order(..., order_type="MKT", price="0")  # still OK — market orders ignore price
@@ -199,7 +199,7 @@ none of them are required by the backend for a modify request, and the
 gone. Drop them from any call:
 
 ```python
-# Before (v2.2.9, "quick-modify" path)
+# Before (v2.3.0, "quick-modify" path)
 client.modify_order(
     order_id="250101000000001",
     price="1450",
@@ -360,7 +360,7 @@ Calling `subscribe` / `un_subscribe` / `subscribe_to_orderfeed` now raises
 ## 6. WebSocket — from callbacks to async/await
 
 The biggest code change. v2.0.2 used a callback model (assign `on_message`,
-`on_error`, then call `subscribe`). v2.2.9 uses a modern **async/await** client
+`on_error`, then call `subscribe`). v2.3.0 uses a modern **async/await** client
 with typed Pydantic messages.
 
 ### 6.1 Market data (LTP, option chain, depth)
@@ -377,7 +377,7 @@ client.on_error = lambda e: print(e)
 client.subscribe(instrument_tokens=[{"instrument_token": "11536", "exchange_segment": "nse_cm"}])
 ```
 
-**After (v2.2.9):**
+**After (v2.3.0):**
 
 ```python
 import asyncio
