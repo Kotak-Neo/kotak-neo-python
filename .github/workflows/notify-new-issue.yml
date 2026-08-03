@@ -1,0 +1,94 @@
+name: Notify on New Issue
+
+on:
+  issues:
+    types: [opened, reopened]
+
+jobs:
+  notify-teams:
+    name: Post to MS Teams
+    runs-on: ubuntu-24.04
+    # Skip silently if the webhook secret isn't configured yet, rather than
+    # failing the run — lets this workflow be merged before the secret exists.
+    if: ${{ secrets.TEAMS_WEBHOOK_URL != '' }}
+
+    steps:
+      - name: Send Teams notification
+        env:
+          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          REPO_NAME: ${{ github.repository }}
+        run: |
+          # Build the Teams "MessageCard" payload with jq so special
+          # characters (quotes, newlines) in the issue title/body are
+          # escaped correctly rather than breaking the JSON.
+          BODY_PREVIEW=$(echo "$ISSUE_BODY" | head -c 500)
+          PAYLOAD=$(jq -n \
+            --arg title "New issue #${ISSUE_NUMBER}: ${ISSUE_TITLE}" \
+            --arg repo "$REPO_NAME" \
+            --arg author "$ISSUE_AUTHOR" \
+            --arg url "$ISSUE_URL" \
+            --arg preview "$BODY_PREVIEW" \
+            '{
+              "@type": "MessageCard",
+              "@context": "http://schema.org/extensions",
+              "summary": $title,
+              "themeColor": "0078D7",
+              "title": $title,
+              "sections": [
+                {
+                  "facts": [
+                    { "name": "Repository", "value": $repo },
+                    { "name": "Opened by", "value": $author }
+                  ],
+                  "text": $preview
+                }
+              ],
+              "potentialAction": [
+                {
+                  "@type": "OpenUri",
+                  "name": "View Issue",
+                  "targets": [ { "os": "default", "uri": $url } ]
+                }
+              ]
+            }')
+
+          curl -sf -H "Content-Type: application/json" \
+            -d "$PAYLOAD" \
+            "$TEAMS_WEBHOOK_URL"
+
+  notify-email:
+    name: Send email notification
+    runs-on: ubuntu-24.04
+    # Skip silently if SMTP secrets aren't configured yet.
+    if: ${{ secrets.SMTP_HOST != '' }}
+
+    steps:
+      - name: Send email
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.SMTP_HOST }}
+          server_port: ${{ secrets.SMTP_PORT }}
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          # secrets.SMTP_USERNAME may be blank for a relay that allows
+          # unauthenticated internal senders; action-send-mail treats an
+          # empty username/password as "no auth", so this is safe either way.
+          subject: "[${{ github.repository }}] New issue #${{ github.event.issue.number }}: ${{ github.event.issue.title }}"
+          # Comma-separated list of recipients, stored as a secret so the
+          # addresses aren't visible in this (public) workflow file.
+          to: ${{ secrets.NOTIFY_EMAIL_TO }}
+          from: ${{ secrets.SMTP_FROM }}
+          body: |
+            A new issue was opened on ${{ github.repository }}.
+
+            Title: ${{ github.event.issue.title }}
+            Opened by: ${{ github.event.issue.user.login }}
+            URL: ${{ github.event.issue.html_url }}
+
+            ---
+            ${{ github.event.issue.body }}
