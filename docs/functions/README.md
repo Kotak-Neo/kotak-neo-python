@@ -142,6 +142,9 @@ Average API latency (production environment):
 |----------|-------------|
 | TOTP Login | 367 ms |
 | TOTP Validate | 134 ms |
+| Place Order | 139 ms |
+| Modify Order | 176 ms |
+| Cancel Order | 102 ms |
 | Quotes | 289 ms |
 | Order Report | 71 ms |
 | Trade Report | 67 ms |
@@ -150,7 +153,7 @@ Average API latency (production environment):
 | Limits | 77 ms |
 | Margin Required | 110 ms |
 | Scrip Master | 1250 ms |
-| Search Scrip | 2176 ms |
+| Search Scrip | 153 ms |
 
 ## Support
 
