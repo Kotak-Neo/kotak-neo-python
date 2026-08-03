@@ -443,8 +443,6 @@ docs/
 │   ├── pycharm.md             # PyCharm setup (if exists)
 │   ├── jupyter.md             # Jupyter setup (if exists)
 │   └── cli.md                 # CLI-only setup (if exists)
-│
-└── PUBLISHING.md              # PyPI publishing guide
 ```
 
 ---
@@ -454,7 +452,6 @@ docs/
 ### Official Documentation
 - 🔗 [Main README](../README.md)
 - 🔗 [API Functions Documentation](functions/README.md)
-- 🔗 [Publishing Guide](PUBLISHING.md)
 
 ### Python Resources
 - 🔗 [Python Downloads](https://www.python.org/downloads/)

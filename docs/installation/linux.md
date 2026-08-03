@@ -679,7 +679,6 @@ pip install -r requirements.txt
 - [SDK Documentation](../../README.md)
 - [VS Code Setup Guide](vscode.md)
 - [PyCharm Setup Guide](pycharm.md)
-- [Publishing Guide](../guides/PUBLISHING.md)
 - [Kotak Neo API Docs](https://developers.kotaksecurities.com/)
 
 ## Getting Help

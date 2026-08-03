@@ -250,7 +250,6 @@ pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org kotakn
 - [Main README](../../README.md)
 - [API Documentation](../functions/README.md)
 - [All Guides](../guides/README.md)
-- [Publishing Guide](../guides/PUBLISHING.md)
 
 ### Platform-Specific
 - [Windows Installation](windows.md)

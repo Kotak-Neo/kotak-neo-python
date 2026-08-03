@@ -138,10 +138,6 @@ Detailed documentation for all SDK functions with examples and real API response
 - **[Local Installation](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/installation/local-install.md)** - Current method (before PyPI publish)
 - **[Platform-Specific Guides](https://github.com/Kotak-Neo/kotak-neo-python/tree/main/docs/installation)** - Windows, macOS, Linux, VS Code
 
-**Publishing & Distribution:**
-- **[TestPyPI Upload Guide](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/guides/TESTPYPI_UPLOAD_GUIDE.md)** - Upload to TestPyPI for testing
-- **[Publishing Guide](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/guides/PUBLISHING.md)** - Publish to production PyPI
-
 **API Documentation:**
 - **[Complete API Reference](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/README.md)** - All SDK functions
 - **[SFeed WebSocket Guide](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/guides/websocket.md)** - Async streaming client, protocol & migration

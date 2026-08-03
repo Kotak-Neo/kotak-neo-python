@@ -57,50 +57,6 @@ Complete reference for installing the Kotak Neo Python SDK across different plat
 
 ---
 
-### For Maintainers & Publishers
-
-#### [TestPyPI Upload Guide](TESTPYPI_UPLOAD_GUIDE.md) ⭐ **START HERE**
-Step-by-step guide for uploading your package to TestPyPI for testing before production release.
-
-**Topics Covered:**
-- Building package distributions
-- Getting TestPyPI API tokens
-- Uploading to TestPyPI
-- Testing installation
-- Troubleshooting common issues
-- Security best practices
-
-**Who should read:**
-- First-time publishers
-- Maintainers preparing for release
-- Anyone wanting to test package distribution
-
-**Current Status:**
-✅ Package built and validated, ready to upload!
-
----
-
-#### [Publishing Guide](PUBLISHING.md)
-Complete guide for building and publishing the package to PyPI (production).
-
-**Topics Covered:**
-- Pre-publication checklist
-- Building distribution files
-- TestPyPI testing workflow
-- Production PyPI publishing
-- Version management
-- CI/CD automation
-- Security best practices
-- Post-publication steps
-
-**Who should read:**
-- Package maintainers
-- Release managers
-- Contributors preparing releases
-- DevOps engineers setting up CI/CD
-
----
-
 ## Quick Links
 
 ### Installation & Setup
@@ -110,11 +66,6 @@ Complete guide for building and publishing the package to PyPI (production).
 - **[macOS Guide](../installation/macos.md)** - macOS with Homebrew
 - **[Linux Guide](../installation/linux.md)** - Ubuntu/CentOS/Arch
 - **[VS Code Setup](../installation/vscode.md)** - IDE configuration
-
-### Publishing & Distribution
-- **[TestPyPI Upload](TESTPYPI_UPLOAD_GUIDE.md)** - Testing release (current)
-- **[Publishing Guide](PUBLISHING.md)** - Production release
-- **[PyPI Best Practices](PUBLISHING.md#security-best-practices)** - Security guidelines
 
 ### Upgrading
 - **[Migration Guide (v2.0.2 → v2.3.0)](MIGRATION.md)** - Upgrade existing code
@@ -141,12 +92,6 @@ Complete guide for building and publishing the package to PyPI (production).
 **...set up my development environment**
 → [Local Installation Guide](../installation/local-install.md)
 
-**...publish to TestPyPI (testing)**
-→ [TestPyPI Upload Guide](TESTPYPI_UPLOAD_GUIDE.md)
-
-**...publish to production PyPI**
-→ [Publishing Guide](PUBLISHING.md)
-
 **...upgrade from an older version (v2.0.2)**
 → [Migration Guide](MIGRATION.md), then run the [migration scanner](../scripts/migrate_from_v2.py) against your code
 
@@ -166,9 +111,7 @@ docs/
 │   ├── README.md                    # This file
 │   ├── MIGRATION.md                 # v2.0.2 → v2.3.0 upgrade guide
 │   ├── websocket.md         # Async SFeed WebSocket guide
-│   ├── INSTALLATION_REFERENCE.md    # Complete installation guide
-│   ├── TESTPYPI_UPLOAD_GUIDE.md    # TestPyPI publishing
-│   └── PUBLISHING.md                # PyPI publishing
+│   └── INSTALLATION_REFERENCE.md    # Complete installation guide
 │
 ├── installation/                    # Platform-specific guides
 │   ├── README.md
@@ -215,9 +158,7 @@ Found an issue or want to improve a guide?
 
 - **2026-08-03**: Added automated migration scanner (`docs/scripts/migrate_from_v2.py`)
 - **2026-07-01**: Added SFeed WebSocket Guide; legacy callback WebSocket removed in v2.2.0
-- **2026-06-26**: Added TestPyPI Upload Guide
 - **2026-06-25**: Created Installation Reference Guide
-- **2026-06-25**: Created Publishing Guide
 - **2026-06-25**: Organized guides into dedicated folder
 
 ---
