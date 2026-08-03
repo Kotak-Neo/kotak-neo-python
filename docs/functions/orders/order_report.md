@@ -1,17 +1,17 @@
 # **Order_Report**
 
-Get all order details, or a single order by its order number.<br/>
+Get all order details, or a single order by its order ID.<br/>
 ```python
 # Full order book
 client.order_report()
 
-# A single order by its Nest order number (order_no)
+# A single order by its Nest order ID
 client.order_report(order_id="250720000007242")
 ```
 
 | Parameter  | Type | Required | Description                                                          |
 |------------|------|----------|----------------------------------------------------------------------|
-| `order_id` | str  | No       | Nest order number. When provided, fetches that single order from `/quick/user/orders/<order_no>`. When omitted, the full order book is returned. |
+| `order_id` | str  | No       | Nest order ID. When provided, fetches that single order from `/quick/user/orders/<order_id>`. When omitted, the full order book is returned. |
 
 ### Example
 
@@ -28,7 +28,7 @@ try:
     # Get all order details
     client.order_report()
 
-    # Or fetch a single order by its order number
+    # Or fetch a single order by its order ID
     client.order_report(order_id="250720000007242")
 except Exception as e:
     print("Exception when order report API->order_report: %s\n" % e)

@@ -55,7 +55,7 @@ pip install -e ".[dev]"
    - Authentication will fail without this token
 2. **Register for TOTP**: Visit API Dashboard (Neo App/Web → more tab → trade API), on top right menu bar click "TOTP Registration" → Register for TOTP → Scan QR code with authenticator app (Google Authenticator, Authy, etc.)
 
-### Authentication
+### Getting started with quick order placement
 
 ```python
 from neo_api_client import NeoAPI
