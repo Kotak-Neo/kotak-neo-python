@@ -134,8 +134,7 @@ Detailed documentation for all SDK functions with examples and real API response
 
 **Installation:**
 - **[Installation Overview](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/installation/README.md)** - All installation options
-- **[Installation Reference](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/guides/INSTALLATION_REFERENCE.md)** - Complete platform guide
-- **[Local Installation](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/installation/local-install.md)** - Current method (before PyPI publish)
+- **[Local Installation](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/installation/local-install.md)** - Install from source (for contributors)
 - **[Platform-Specific Guides](https://github.com/Kotak-Neo/kotak-neo-python/tree/main/docs/installation)** - Windows, macOS, Linux, VS Code
 
 **API Documentation:**

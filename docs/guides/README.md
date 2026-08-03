@@ -39,28 +39,10 @@ Modern async/await streaming client for live market data (v2.2.0+).
 
 ---
 
-#### [Installation Reference Guide](INSTALLATION_REFERENCE.md)
-Complete reference for installing the Kotak Neo Python SDK across different platforms.
-
-**Topics Covered:**
-- Platform-specific installation (Windows, macOS, Linux)
-- IDE setup (VS Code, PyCharm, Jupyter)
-- Installation decision tree
-- Quick reference matrix
-- Troubleshooting by platform
-
-**Who should read:**
-- New users choosing installation method
-- Developers setting up development environment
-- Contributors preparing for development
-- System administrators deploying to servers
-
----
-
 ## Quick Links
 
 ### Installation & Setup
-- **[Installation Reference](INSTALLATION_REFERENCE.md)** - Complete platform guide
+- **[Installation Overview](../installation/README.md)** - All installation options
 - **[Local Installation](../installation/local-install.md)** - Current method (dev)
 - **[Windows Guide](../installation/windows.md)** - Windows 10/11
 - **[macOS Guide](../installation/macos.md)** - macOS with Homebrew
@@ -87,7 +69,7 @@ Complete reference for installing the Kotak Neo Python SDK across different plat
 ### I want to...
 
 **...install the SDK**
-→ [Installation Reference Guide](INSTALLATION_REFERENCE.md)
+→ [Installation Overview](../installation/README.md)
 
 **...set up my development environment**
 → [Local Installation Guide](../installation/local-install.md)
@@ -99,7 +81,7 @@ Complete reference for installing the Kotak Neo Python SDK across different plat
 → [API Functions Documentation](../functions/README.md)
 
 **...troubleshoot installation**
-→ [Installation Reference - Troubleshooting](INSTALLATION_REFERENCE.md#troubleshooting-guides)
+→ [Installation Overview - Common Issues](../installation/README.md#-common-issues)
 
 ---
 
@@ -110,8 +92,7 @@ docs/
 ├── guides/                          # 📖 You are here
 │   ├── README.md                    # This file
 │   ├── MIGRATION.md                 # v2.0.2 → v2.3.0 upgrade guide
-│   ├── websocket.md         # Async SFeed WebSocket guide
-│   └── INSTALLATION_REFERENCE.md    # Complete installation guide
+│   └── websocket.md                 # Async SFeed WebSocket guide
 │
 ├── installation/                    # Platform-specific guides
 │   ├── README.md
@@ -156,9 +137,8 @@ Found an issue or want to improve a guide?
 
 ## Recent Updates
 
-- **2026-08-03**: Added automated migration scanner (`docs/scripts/migrate_from_v2.py`)
+- **2026-08-03**: Added automated migration scanner (`docs/scripts/migrate_from_v2.py`); removed the redundant/stale Installation Reference Guide (see [docs/installation/](../installation/README.md) instead)
 - **2026-07-01**: Added SFeed WebSocket Guide; legacy callback WebSocket removed in v2.2.0
-- **2026-06-25**: Created Installation Reference Guide
 - **2026-06-25**: Organized guides into dedicated folder
 
 ---
