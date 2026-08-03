@@ -8,12 +8,23 @@ jobs:
   notify-teams:
     name: Post to MS Teams
     runs-on: ubuntu-24.04
-    # Skip silently if the webhook secret isn't configured yet, rather than
-    # failing the run — lets this workflow be merged before the secret exists.
-    if: ${{ secrets.TEAMS_WEBHOOK_URL != '' }}
 
     steps:
+      - name: Check Teams webhook configured
+        id: check
+        env:
+          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+        run: |
+          if [ -n "$TEAMS_WEBHOOK_URL" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Send Teams notification
+        # Skip silently if the webhook secret isn't configured yet, rather than
+        # failing the run — lets this workflow be merged before the secret exists.
+        if: steps.check.outputs.configured == 'true'
         env:
           TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
           ISSUE_TITLE: ${{ github.event.issue.title }}
@@ -64,11 +75,22 @@ jobs:
   notify-email:
     name: Send email notification
     runs-on: ubuntu-24.04
-    # Skip silently if SMTP secrets aren't configured yet.
-    if: ${{ secrets.SMTP_HOST != '' }}
 
     steps:
+      - name: Check SMTP configured
+        id: check
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+        run: |
+          if [ -n "$SMTP_HOST" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Send email
+        # Skip silently if SMTP secrets aren't configured yet.
+        if: steps.check.outputs.configured == 'true'
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: ${{ secrets.SMTP_HOST }}
