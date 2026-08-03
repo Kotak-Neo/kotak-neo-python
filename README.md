@@ -53,7 +53,7 @@ pip install -e ".[dev]"
 1. **Get Consumer Key (REQUIRED)**: Login to Kotak NEO app/web → **More** tab → **Trade API** card → Generate application → Copy the token
    - This token is used in the Authorization header for all API requests
    - Authentication will fail without this token
-2. **Register for TOTP**: Visit https://www.kotaksecurities.com/platform/kotak-neo-trade-api/ → Register for TOTP → Scan QR code with authenticator app (Google Authenticator, Authy, etc.)
+2. **Register for TOTP**: Visit API Dashboard (Neo App/Web → more tab → trade API), on top right menu bar click "TOTP Registration" → Register for TOTP → Scan QR code with authenticator app (Google Authenticator, Authy, etc.)
 
 ### Authentication
 
