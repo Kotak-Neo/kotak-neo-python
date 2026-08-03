@@ -42,7 +42,7 @@ class NeoAPI:
         api_client (ApiClient): The API client instance.
 
     Authentication Flow:
-        1. Get consumer_key from NEO app (Invest → Trade API → Generate application)
+        1. Get consumer_key from NEO app (More → Trade API → Generate application)
         2. Initialize NeoAPI with consumer_key
         3. Call totp_login() with mobile, UCC, and TOTP code
         4. Call totp_validate() with MPIN to get trading access
@@ -83,7 +83,7 @@ class NeoAPI:
 
         Parameters:
             consumer_key (str): **REQUIRED** - Consumer key token from NEO app Trade API card.
-                How to get: Login to NEO app/web → Invest tab → Trade API → Generate application → Copy token.
+                How to get: Login to NEO app/web → More tab → Trade API → Generate application → Copy token.
                 This token is used in the Authorization header for all API requests.
                 Without this, authentication will fail.
             environment (str): The environment to connect to. Default: 'prod' (production).

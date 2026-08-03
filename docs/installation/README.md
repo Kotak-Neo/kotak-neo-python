@@ -28,7 +28,7 @@ Complete installation guides for kotakneoapi SDK across different platforms and 
 **Before Installation:**
 1. **Get Consumer Key (REQUIRED)**
    - Login to Kotak NEO app/web
-   - Go to **Invest** tab → **Trade API** card
+   - Go to **More** tab → **Trade API** card
    - Click **Generate application**
    - Copy the token (needed for authentication)
 
@@ -177,7 +177,7 @@ NEO_MPIN=123456
 
 **NEO_CONSUMER_KEY** (REQUIRED)
 1. Login to Kotak NEO app/web
-2. Go to **Invest** → **Trade API**
+2. Go to **More** → **Trade API**
 3. Click **Generate application**
 4. Copy the token
 

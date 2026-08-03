@@ -6,7 +6,7 @@ TOTP login is the first step in TOTP authentication flow where the view token is
 
 ### 1. Get Consumer Key
 - Login to Kotak NEO app/web
-- Navigate to **Invest** tab → **Trade API** card
+- Navigate to **More** tab → **Trade API** card
 - Click **Generate application**
 - Copy the token shown with the default application
 - Use this token as `consumer_key` when initializing `NeoAPI`

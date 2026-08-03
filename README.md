@@ -50,7 +50,7 @@ pip install -e ".[dev]"
 
 ### Prerequisites
 
-1. **Get Consumer Key (REQUIRED)**: Login to Kotak NEO app/web → **Invest** tab → **Trade API** card → Generate application → Copy the token
+1. **Get Consumer Key (REQUIRED)**: Login to Kotak NEO app/web → **More** tab → **Trade API** card → Generate application → Copy the token
    - This token is used in the Authorization header for all API requests
    - Authentication will fail without this token
 2. **Register for TOTP**: Visit https://www.kotaksecurities.com/platform/kotak-neo-trade-api/ → Register for TOTP → Scan QR code with authenticator app (Google Authenticator, Authy, etc.)
@@ -247,7 +247,7 @@ Create a `.env` file for credentials (copy from `.env.example`):
 
 ```bash
 # Consumer Key from NEO app (REQUIRED - Used in Authorization header)
-# Get it: NEO app → Invest → Trade API → Generate application → Copy token
+# Get it: NEO app → More → Trade API → Generate application → Copy token
 NEO_CONSUMER_KEY=your-consumer-key-token
 
 # Your registered mobile number with country code
@@ -265,7 +265,7 @@ NEO_MPIN=123456
 ```
 
 **How to get credentials:**
-- **Consumer Key**: NEO app → Invest → Trade API → Generate application → Copy token
+- **Consumer Key**: NEO app → More → Trade API → Generate application → Copy token
 - **UCC**: NEO app → Profile section
 - **TOTP Secret**: https://www.kotaksecurities.com/platform/kotak-neo-trade-api/ → Register for TOTP → Note the secret from QR code setup
 

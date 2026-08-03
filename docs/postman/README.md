@@ -15,7 +15,7 @@ used by the `kotak-neo-python` SDK, for manual testing.
 1. Open Postman → **Import** → drop both JSON files.
 2. Select the **Kotak Neo - PROD** environment (top-right).
 3. Fill in these variables (Environment → edit):
-   - `consumer_key` — token from Kotak Neo app → Invest → Trade API
+   - `consumer_key` — token from Kotak Neo app → More → Trade API
    - `mobile_number` — `+91XXXXXXXXXX`
    - `ucc` — your UCC
    - `totp` — current 6-digit code from your authenticator app
