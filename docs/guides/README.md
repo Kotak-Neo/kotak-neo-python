@@ -10,6 +10,7 @@ Comprehensive guides for developers, maintainers, and contributors.
 Step-by-step guide for upgrading from the previous SDK version.
 
 **Topics Covered:**
+- Automated migration scanner (`docs/scripts/migrate_from_v2.py`)
 - Authentication (`consumer_key` + TOTP) confirmation
 - Stricter order validation (product `CNC`/`NRML`/`MIS`/`MTF`, per-segment validity)
 - Error handling: exceptions instead of silent `{"Error": ...}` dicts
@@ -117,6 +118,7 @@ Complete guide for building and publishing the package to PyPI (production).
 
 ### Upgrading
 - **[Migration Guide (v2.0.2 → v2.3.0)](MIGRATION.md)** - Upgrade existing code
+- **[Migration Scanner](../scripts/migrate_from_v2.py)** - Automated script that flags v2-only calls in your code
 
 ### API Documentation
 - **[API Functions](../functions/README.md)** - Complete API reference
@@ -146,7 +148,7 @@ Complete guide for building and publishing the package to PyPI (production).
 → [Publishing Guide](PUBLISHING.md)
 
 **...upgrade from an older version (v2.0.2)**
-→ [Migration Guide](MIGRATION.md)
+→ [Migration Guide](MIGRATION.md), then run the [migration scanner](../scripts/migrate_from_v2.py) against your code
 
 **...learn the API**
 → [API Functions Documentation](../functions/README.md)
@@ -175,6 +177,9 @@ docs/
 │   ├── macos.md
 │   ├── linux.md
 │   └── vscode.md
+│
+├── scripts/                         # Standalone helper scripts
+│   └── migrate_from_v2.py           # v2 -> v2.3.0 migration scanner (read-only)
 │
 └── functions/                       # API documentation
     ├── README.md
@@ -208,6 +213,7 @@ Found an issue or want to improve a guide?
 
 ## Recent Updates
 
+- **2026-08-03**: Added automated migration scanner (`docs/scripts/migrate_from_v2.py`)
 - **2026-07-01**: Added SFeed WebSocket Guide; legacy callback WebSocket removed in v2.2.0
 - **2026-06-26**: Added TestPyPI Upload Guide
 - **2026-06-25**: Created Installation Reference Guide

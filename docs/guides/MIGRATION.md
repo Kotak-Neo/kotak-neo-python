@@ -17,6 +17,50 @@ even if you skim the rest.
 > 4. A few methods were removed (`cancel_cover_order`, `cancel_bracket_order`); `place_order()`/`modify_order()`/`trade_report()`/`limits()` had parameters removed (see §5, §7).
 > 5. Error handling for REST calls (`place_order`, `modify_order`, etc.) is **not** switching to exceptions — keep checking `if "Error" in result` (see §4).
 
+Before going through this guide by hand, run the automated scanner below against
+your codebase — it finds most of the issues covered in this document for you.
+
+---
+
+## 0. Automated scan: `docs/scripts/migrate_from_v2.py`
+
+The SDK repo ships a read-only scanner that walks your project's `.py` files
+looking for exactly the v2 → v2.3.0 breakages described in this guide —
+removed methods, dropped keyword arguments, and unsafe positional `NeoAPI(...)`
+construction. It **never modifies your files**; it only prints
+`file:line` findings so you can fix each one with full context.
+
+```bash
+# From a clone of kotak-neo-python
+python docs/scripts/migrate_from_v2.py /path/to/your/project
+
+# Or scan specific files
+python docs/scripts/migrate_from_v2.py bot.py strategies/momentum.py
+```
+
+Example output:
+
+```
+[ERROR] bot.py:3: NeoAPI(...): Constructor positional order changed: v2 was
+(environment, access_token, neo_fin_key, consumer_key); kotakneoapi is
+(consumer_key, environment, access_token, neo_fin_key). ...
+[ERROR] bot.py:21: cancel_cover_order(...): Removed in kotakneoapi. ...
+[WARNING] bot.py:8: place_order(...): parameter(s) [stop_loss_value, tag] no
+longer exist in kotakneoapi and will raise TypeError. ...
+
+2 error(s), 1 warning(s) across 1 file(s).
+```
+
+The exit code is `1` if any error-level finding was reported, `0` otherwise —
+suitable for a pre-migration CI check or a pre-commit gate while you're
+migrating a large codebase incrementally.
+
+The scanner does **not** catch everything — in particular it can't verify the
+new order-validation rules (§3, e.g. rejected `CO`/`BO` products or order-type
+aliases) since those depend on runtime values, not call syntax. Treat a clean
+scan as "no known mechanical breakages", not "fully migrated" — still read
+§3 and test against `environment="uat"` before going live.
+
 ---
 
 ## 1. Installation & requirements
@@ -483,6 +527,7 @@ See **[Order Feed](../functions/websocket/order_feed.md)**.
 
 ## 8. Upgrade checklist
 
+- [ ] Run `python docs/scripts/migrate_from_v2.py <your project>` and work through its findings (see §0).
 - [ ] Bump Python to 3.10+ and `pip install --upgrade kotakneoapi`.
 - [ ] Remove any exact transitive pins carried over from v2.0.2.
 - [ ] Confirm auth uses `consumer_key` + `totp_login(mobile_number=...)` + `totp_validate(mpin=...)`.
@@ -502,6 +547,7 @@ See **[Order Feed](../functions/websocket/order_feed.md)**.
 
 ## Need help?
 
+- **Automated migration scanner:** [docs/scripts/migrate_from_v2.py](../scripts/migrate_from_v2.py) (see §0)
 - **Full API reference:** [docs/functions/README.md](../functions/README.md)
 - **WebSocket guide:** [docs/guides/websocket.md](./websocket.md)
 - **Issues:** https://github.com/Kotak-Neo/kotak-neo-python/issues

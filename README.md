@@ -130,6 +130,7 @@ Detailed documentation for all SDK functions with examples and real API response
 
 **Upgrading:**
 - **[Migration Guide (v2.0.2 → v2.3.0)](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/guides/MIGRATION.md)** - Upgrade existing code to the latest version
+- **[Migration Scanner](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/scripts/migrate_from_v2.py)** - Run against your project to auto-detect v2-only calls before you start migrating by hand
 
 **Installation:**
 - **[Installation Overview](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/installation/README.md)** - All installation options
