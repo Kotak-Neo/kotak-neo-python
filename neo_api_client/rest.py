@@ -183,8 +183,8 @@ class RESTClientObject:
             headers["Content-Type"] = "application/json"
 
         # SDK developers only: in the internal UAT environment, attach an
-        # X-Forwarded-For header (from NEO_UAT_X_FORWARDED_FOR) to bypass the
-        # static-IP restriction. Never applied in production.
+        # optional X-Forwarded-For header (from NEO_UAT_X_FORWARDED_FOR).
+        # Never applied in production.
         host = str(getattr(self.configuration, "host", "") or "").lower().strip()
         xff = getattr(self.configuration, "uat_x_forwarded_for", None)
         if host == "uat" and xff and "X-Forwarded-For" not in headers:

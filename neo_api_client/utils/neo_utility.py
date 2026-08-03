@@ -43,8 +43,8 @@ class NeoUtility:
         self.base_url = None
         self.totp_session_id = None
         self.consumer_key = consumer_key
-        # SDK developers only: an X-Forwarded-For value used to bypass the
-        # static-IP restriction on the internal UAT environment. Read from the
+        # SDK developers only: an optional X-Forwarded-For value attached to
+        # requests in the internal UAT environment. Read from the
         # NEO_UAT_X_FORWARDED_FOR variable (see .env.dev.example). Only applied
         # when host == "uat"; ignored (and irrelevant) in production.
         self.uat_x_forwarded_for = config("NEO_UAT_X_FORWARDED_FOR", default=None)

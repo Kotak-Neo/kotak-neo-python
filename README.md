@@ -366,9 +366,9 @@ python tests/e2e/smoke_test.py
 ```
 
 > **SDK contributors:** the smoke/integration test runners can target an internal
-> environment via the `NEO_ENVIRONMENT` variable. Copy `.env.dev.example` to `.env`
-> for that setup. This is not needed by normal SDK users — the client always uses
-> production by default.
+> environment via the `NEO_ENVIRONMENT` variable. Ask an internal maintainer for
+> the dev `.env` template for that setup. This is not needed by normal SDK users —
+> the client always uses production by default.
 
 ### Code Quality
 

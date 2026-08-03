@@ -15,7 +15,7 @@ class APITestRunner:
 
         # SDK developers only: NEO_ENVIRONMENT selects the backend for test runs
         # (defaults to the internal UAT environment). Not used by normal SDK
-        # consumers, who always run against production. See .env.dev.example.
+        # consumers, who always run against production.
         environment = config("NEO_ENVIRONMENT", default="uat")
 
         self.client = NeoAPI(
