@@ -12,13 +12,12 @@ TOTP login is the first step in TOTP authentication flow where the view token is
 - Use this token as `consumer_key` when initializing `NeoAPI`
 
 ### 2. Register for TOTP (One-time setup)
-- Visit https://www.kotaksecurities.com/platform/kotak-neo-trade-api/
-- Click **Register for TOTP**
-- Verify mobile with OTP
-- Select account for TOTP registration
-- Scan QR code with authenticator app (Google Authenticator, Authy, etc.)
+- In API Dashboard (Neo App/Web → more tab → trade API), on top right menu bar click "TOTP Registration"
+- Download Google Authenticator or Microsoft Authenticator from app store
+- Scan the QR code/ copy the setup key displayed on screen
 - Save the secret key from QR code (for automated TOTP generation)
-- Submit TOTP to complete registration
+- Enter the 6-digit TOTP code shown in the authenticator app
+- Confirm when you see "TOTP successfully registered"
 
 ## Usage
 
