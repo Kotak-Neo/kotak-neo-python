@@ -32,7 +32,5 @@ body:
       description: Check with `pip show kotakneoapi` if you're not sure.
       options:
         - "2.3.0"
-        - "Other / not listed"
-        - "Not sure"
     validations:
       required: false

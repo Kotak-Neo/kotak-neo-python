@@ -16,7 +16,6 @@ body:
       description: Check with `pip show kotakneoapi` if you're not sure.
       options:
         - "2.3.0"
-        - "Other / not listed (specify below)"
     validations:
       required: true
 
@@ -85,9 +84,7 @@ body:
     id: additional-context
     attributes:
       label: Additional context
-      description: >-
-        Anything else that might be relevant (network, timing, frequency, related API calls before this one, etc.).
-        If you picked "Other / not listed" above for SDK version, specify the exact version here.
+      description: Anything else that might be relevant (network, timing, frequency, related API calls before this one, etc.)
     validations:
       required: false
 
