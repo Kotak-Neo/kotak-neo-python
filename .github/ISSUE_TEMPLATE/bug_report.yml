@@ -24,13 +24,13 @@ body:
     id: python-version
     attributes:
       label: Python version
+      description: The SDK supports Python 3.10–3.14. If you're on a different version, please upgrade before reporting.
       options:
         - "3.10"
         - "3.11"
         - "3.12"
         - "3.13"
         - "3.14"
-        - "Other / not listed (specify below)"
     validations:
       required: true
 
@@ -39,8 +39,8 @@ body:
     attributes:
       label: Environment
       options:
-        - prod
-        - uat
+        - Prod
+        - UAT
         - Not sure
     validations:
       required: true
@@ -87,7 +87,7 @@ body:
       label: Additional context
       description: >-
         Anything else that might be relevant (network, timing, frequency, related API calls before this one, etc.).
-        If you picked "Other / not listed" above for SDK or Python version, specify the exact version here.
+        If you picked "Other / not listed" above for SDK version, specify the exact version here.
     validations:
       required: false
 
