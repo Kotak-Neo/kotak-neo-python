@@ -267,7 +267,7 @@ NEO_MPIN=123456
 **How to get credentials:**
 - **Consumer Key**: NEO app → More → Trade API → Generate application → Copy token
 - **UCC**: NEO app → Profile section
-- **TOTP Secret**: https://www.kotaksecurities.com/platform/kotak-neo-trade-api/ → Register for TOTP → Note the secret from QR code setup
+- **TOTP Secret**: https://www.kotakneo.com/platform/kotak-neo-trade-api/ → Register for TOTP → Note the secret from QR code setup
 
 ## Performance Benchmarks
 
