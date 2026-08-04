@@ -25,10 +25,14 @@ body:
     validations:
       required: false
 
-  - type: input
+  - type: dropdown
     id: sdk-version
     attributes:
       label: SDK version
-      placeholder: e.g. 2.2.7
+      description: Check with `pip show kotakneoapi` if you're not sure.
+      options:
+        - "2.3.0"
+        - "Other / not listed"
+        - "Not sure"
     validations:
       required: false

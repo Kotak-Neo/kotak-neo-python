@@ -9,20 +9,28 @@ body:
         Thanks for taking the time to report this! Please fill in as much detail as you can —
         it helps us reproduce and fix the issue faster.
 
-  - type: input
+  - type: dropdown
     id: sdk-version
     attributes:
       label: SDK version
-      description: Output of `pip show kotakneoapi` or the version pinned in your requirements.
-      placeholder: e.g. 2.2.7
+      description: Check with `pip show kotakneoapi` if you're not sure.
+      options:
+        - "2.3.0"
+        - "Other / not listed (specify below)"
     validations:
       required: true
 
-  - type: input
+  - type: dropdown
     id: python-version
     attributes:
       label: Python version
-      placeholder: e.g. 3.11.6
+      options:
+        - "3.10"
+        - "3.11"
+        - "3.12"
+        - "3.13"
+        - "3.14"
+        - "Other / not listed (specify below)"
     validations:
       required: true
 
@@ -77,7 +85,9 @@ body:
     id: additional-context
     attributes:
       label: Additional context
-      description: Anything else that might be relevant (network, timing, frequency, related API calls before this one, etc.)
+      description: >-
+        Anything else that might be relevant (network, timing, frequency, related API calls before this one, etc.).
+        If you picked "Other / not listed" above for SDK or Python version, specify the exact version here.
     validations:
       required: false
 
