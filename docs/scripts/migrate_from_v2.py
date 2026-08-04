@@ -79,11 +79,134 @@ DROPPED_KWARGS: dict[str, set[str]] = {
         "dd",
         "market_protection",
         "filled_quantity",
+        "isVerify",
     },
     "cancel_order": set(),  # amo/isVerify both kept; no drops.
     "trade_report": {"order_id"},  # trade_report() now takes no filter.
     "limits": {"segment", "exchange", "product"},  # limits() now takes none.
+    "margin_required": set(),  # signature unchanged between versions.
 }
+
+# Values that v2 silently resolved to a canonical code but kotakneoapi now
+# rejects outright (ApiValueError), for parameters checked by string-literal
+# value rather than by keyword name. Keyed by (method, parameter) so the same
+# parameter name in a different method isn't checked against the wrong set.
+# Only exact literal matches are checked — this can't see values computed at
+# runtime (f-strings, variables, config lookups).
+REMOVED_LITERAL_VALUES: dict[tuple[str, str], dict[str, str]] = {
+    ("place_order", "exchange_segment"): {
+        v: (
+            f"'{v}' is no longer resolved to a canonical exchange segment in "
+            "kotakneoapi — only the exact codes nse_cm, bse_cm, nse_fo, "
+            "bse_fo, mcx_fo are accepted. Generic aliases are rejected "
+            "because they're ambiguous (e.g. 'BSE' could mean bse_cm or "
+            "bse_fo)."
+        )
+        for v in ("NSE", "nse", "BSE", "bse", "NFO", "nfo", "BFO", "bfo", "MCX", "mcx")
+    }
+    | {
+        v: (
+            f"'{v}' (currency derivatives) is not accepted by place_order in "
+            "kotakneoapi at all — this segment isn't supported for order "
+            "placement, under any spelling."
+        )
+        for v in ("CDS", "cds", "cde_fo", "BCD", "bcd", "bcs-fo")
+    },
+    ("place_order", "product"): {
+        v: (
+            f"'{v}' is no longer accepted by place_order in kotakneoapi — "
+            "only the exact codes CNC, NRML, MIS, MTF are accepted. Bracket "
+            "(BO) and Cover (CO) orders are no longer supported at all; "
+            "other aliases (e.g. 'Normal', 'Cash and Carry') are rejected, "
+            "not resolved."
+        )
+        for v in (
+            "Normal",
+            "INTRADAY",
+            "intraday",
+            "CO",
+            "co",
+            "Cover Order",
+            "BO",
+            "bo",
+            "Bracket Order",
+        )
+    },
+    ("place_order", "order_type"): {
+        v: (
+            f"'{v}' is no longer resolved to a canonical order type in "
+            "kotakneoapi — only the exact codes L, MKT, SL, SL-M are "
+            "accepted. Multi-leg types (Spread/2L/3L) are no longer "
+            "supported at all."
+        )
+        for v in (
+            "Limit",
+            "Market",
+            "Stop loss limit",
+            "Stop loss market",
+            "Spread",
+            "SP",
+            "sp",
+            "2L",
+            "2l",
+            "Two Leg",
+            "3L",
+            "3l",
+            "Three leg",
+        )
+    },
+    ("place_order", "validity"): {
+        v: (
+            f"'{v}' is no longer accepted by place_order in kotakneoapi — "
+            "only DAY and IOC are accepted (DAY only for mcx_fo)."
+        )
+        for v in ("GTC", "EOS", "GTD")
+    },
+    ("modify_order", "order_type"): {
+        v: (
+            f"'{v}' is no longer resolved to a canonical order type in "
+            "kotakneoapi — only the exact codes L, MKT, SL, SL-M are "
+            "accepted."
+        )
+        for v in ("Limit", "Market", "Stop loss limit", "Stop loss market")
+    },
+    ("modify_order", "validity"): {
+        v: (
+            f"'{v}' is no longer accepted by modify_order in kotakneoapi — "
+            "only DAY and IOC are accepted."
+        )
+        for v in ("GTC", "EOS", "GTD")
+    },
+    ("margin_required", "exchange_segment"): {
+        v: (
+            f"'{v}' is no longer resolved to a canonical exchange segment by "
+            "margin_required in kotakneoapi — only nse_cm, bse_cm, nse_fo, "
+            "bse_fo, mcx_fo are accepted."
+        )
+        for v in ("NSE", "nse", "BSE", "bse", "NFO", "nfo", "BFO", "bfo", "MCX", "mcx")
+    },
+    ("margin_required", "order_type"): {
+        v: (
+            f"'{v}' is no longer resolved to a canonical order type by "
+            "margin_required in kotakneoapi — only L, MKT, SL, SL-M are "
+            "accepted."
+        )
+        for v in ("Limit", "Market")
+    },
+}
+
+# (order_type_param, price_param) pairs, keyed by method, where price="0" (or
+# blank) used to reach the exchange for L/SL orders and is now rejected
+# client-side. Only checked when order_type is a literal in this set AND
+# price is a literal "0" in the same call.
+ZERO_PRICE_REJECTED_ORDER_TYPES = {"L", "SL"}
+ZERO_PRICE_NOTE = (
+    "price=\"0\" is no longer accepted for order_type '{order_type}' in "
+    "kotakneoapi — L/SL orders now require a real positive price "
+    "client-side (previously this reached the exchange and could result in "
+    "an unintended fill at a nonsense price). MKT/SL-M orders are "
+    "unaffected."
+)
 
 # Positional-argument-order changes. Any positional call to these is unsafe
 # to auto-fix because argument N in v2 may not be argument N in the new SDK.
@@ -96,6 +219,45 @@ POSITIONAL_ORDER_CHANGED: dict[str, str] = {
         "Call with keyword arguments to avoid silently swapping values."
     ),
 }
+
+# Top-level classes exported by v2's neo_api_client package that don't exist
+# in kotakneoapi at all — importing any of these raises ImportError.
+REMOVED_IMPORTS: dict[str, str] = {
+    "NeoWebSocket": (
+        "Removed in kotakneoapi — importing this raises ImportError. It was "
+        "the low-level callback-based WebSocket class; use the async "
+        "SFeedWebSocket instead, e.g. `client.create_websocket()` (see "
+        "neo_api_client.websocket.feed.SFeedWebSocket)."
+    ),
+    "HSWebSocket": (
+        "Removed in kotakneoapi — importing this raises ImportError. It was "
+        "part of the legacy low-level WebSocket implementation with no "
+        "direct replacement; use the async SFeedWebSocket via "
+        "`client.create_websocket()` instead."
+    ),
+    "HSIWebSocket": (
+        "Removed in kotakneoapi — importing this raises ImportError. It was "
+        "part of the legacy low-level WebSocket implementation with no "
+        "direct replacement; use the async SFeedWebSocket via "
+        "`client.create_websocket()` instead."
+    ),
+}
+
+# NeoAPI attributes that existed in v2 to hold WebSocket callbacks. In
+# kotakneoapi they're still initialized to None in __init__ (so assigning to
+# them doesn't raise), but nothing ever reads them again — the async
+# SFeedWebSocket/OrderFeedWebSocket clients don't use this callback pattern
+# at all. Assigning to these is a silent no-op, not an error, which is worse
+# than a crash for migration purposes.
+LEGACY_CALLBACK_ATTRS = {"on_message", "on_error", "on_open", "on_close"}
+LEGACY_CALLBACK_NOTE = (
+    "Assigning to `{attr}` is a silent no-op in kotakneoapi — this attribute "
+    "is still initialized to None but nothing reads it anymore (the legacy "
+    "callback-based WebSocket was replaced by the async SFeedWebSocket / "
+    "OrderFeedWebSocket clients). Your callback will never be called. "
+    "Migrate to `async with client.create_websocket() as ws:` / "
+    "`async for message in ws:` instead."
+)
 
 PACKAGE_NAME_NOTE = (
     "PyPI package name changed: `pip install neo-api-client` -> "
@@ -126,6 +288,19 @@ def _kwarg_names(node: ast.Call) -> set[str]:
     return {kw.arg for kw in node.keywords if kw.arg is not None}
 
 
+def _kwarg_literal_strings(node: ast.Call) -> dict[str, str]:
+    """Map keyword-argument name to its value, for string-literal values only."""
+    values = {}
+    for kw in node.keywords:
+        if (
+            kw.arg is not None
+            and isinstance(kw.value, ast.Constant)
+            and isinstance(kw.value.value, str)
+        ):
+            values[kw.arg] = kw.value.value
+    return values
+
+
 class MigrationVisitor(ast.NodeVisitor):
     # Method names are matched regardless of the receiver, since resolving
     # "is this variable actually a NeoAPI instance" reliably would need type
@@ -136,6 +311,37 @@ class MigrationVisitor(ast.NodeVisitor):
     def __init__(self, file: Path) -> None:
         self.file = file
         self.findings: list[Finding] = []
+
+    def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
+        if node.module == "neo_api_client":
+            for alias in node.names:
+                if alias.name in REMOVED_IMPORTS:
+                    self.findings.append(
+                        Finding(
+                            self.file,
+                            node.lineno,
+                            "error",
+                            f"import {alias.name}: {REMOVED_IMPORTS[alias.name]}",
+                        )
+                    )
+        self.generic_visit(node)
+
+    def visit_Attribute(self, node: ast.Attribute) -> None:
+        if (
+            node.attr in LEGACY_CALLBACK_ATTRS
+            and isinstance(node.ctx, ast.Store)
+            and isinstance(node.value, ast.Name)
+        ):
+            self.findings.append(
+                Finding(
+                    self.file,
+                    node.lineno,
+                    "warning",
+                    f"{node.value.id}.{node.attr} = ...: "
+                    + LEGACY_CALLBACK_NOTE.format(attr=node.attr),
+                )
+            )
+        self.generic_visit(node)
 
     def visit_Call(self, node: ast.Call) -> None:
         name = _call_name(node)
@@ -181,6 +387,39 @@ class MigrationVisitor(ast.NodeVisitor):
                         f"on this call.",
                     )
                 )
+
+        if name is not None and isinstance(node.func, ast.Attribute):
+            literals = _kwarg_literal_strings(node)
+
+            for param, value in literals.items():
+                removed = REMOVED_LITERAL_VALUES.get((name, param))
+                if removed and value in removed:
+                    self.findings.append(
+                        Finding(
+                            self.file,
+                            node.lineno,
+                            "error",
+                            f'{name}({param}="{value}", ...): {removed[value]}',
+                        )
+                    )
+
+            if name in {"place_order", "modify_order"}:
+                order_type = literals.get("order_type")
+                price = literals.get("price")
+                if (
+                    order_type in ZERO_PRICE_REJECTED_ORDER_TYPES
+                    and price is not None
+                    and price.strip() in ("", "0", "0.0")
+                ):
+                    self.findings.append(
+                        Finding(
+                            self.file,
+                            node.lineno,
+                            "error",
+                            f'{name}(order_type="{order_type}", price="{price}", ...): '
+                            + ZERO_PRICE_NOTE.format(order_type=order_type),
+                        )
+                    )
 
         self.generic_visit(node)
 

@@ -26,9 +26,11 @@ your codebase — it finds most of the issues covered in this document for you.
 
 The SDK repo ships a read-only scanner that walks your project's `.py` files
 looking for exactly the v2 → v2.3.0 breakages described in this guide —
-removed methods, dropped keyword arguments, and unsafe positional `NeoAPI(...)`
-construction. It **never modifies your files**; it only prints
-`file:line` findings so you can fix each one with full context.
+removed methods and imports, dropped keyword arguments, unsafe positional
+`NeoAPI(...)` construction, rejected `exchange_segment`/`product`/`order_type`/
+`validity` alias literals (§3), `price="0"` on `L`/`SL` orders, and legacy
+WebSocket callback usage (§6). It **never modifies your files**; it only
+prints `file:line` findings so you can fix each one with full context.
 
 ```bash
 # From a clone of kotak-neo-python
@@ -55,11 +57,14 @@ The exit code is `1` if any error-level finding was reported, `0` otherwise —
 suitable for a pre-migration CI check or a pre-commit gate while you're
 migrating a large codebase incrementally.
 
-The scanner does **not** catch everything — in particular it can't verify the
-new order-validation rules (§3, e.g. rejected `CO`/`BO` products or order-type
-aliases) since those depend on runtime values, not call syntax. Treat a clean
-scan as "no known mechanical breakages", not "fully migrated" — still read
-§3 and test against `environment="uat"` before going live.
+The scanner checks the alias/removed-value rules in §3 (e.g. rejected `CO`/`BO`
+products, order-type aliases like `"Limit"`) only when the value is a literal
+string in the call itself — it can't see values built at runtime (f-strings,
+variables, config lookups, values loaded from a file). It also doesn't verify
+blank/malformed-input rejection (§3.6) or per-segment validity rules beyond the
+literal alias list. Treat a clean scan as "no known mechanical breakages seen
+in static analysis," not "fully migrated" — still read §3 and test against
+`environment="uat"` before going live.
 
 ---
 
@@ -267,17 +272,19 @@ client.modify_order(
 )
 ```
 
-### 3.8 `modify_order` — order-book re-verification (`isVerify`) removed
+### 3.8 `modify_order` does not accept `isVerify` — don't copy it from `cancel_order`
 
-`modify_order()` no longer accepts `isVerify`. The order-book re-check that
-flag used to trigger — re-reading the order book after a modify to detect a
-later exchange-side rejection (e.g. price outside the allowed band) — has
-been removed. `modify_order()` now always returns the raw OMS acknowledgement
-(`stat: "Ok"` on acceptance); confirm the final state via the order feed or
-order history instead.
+`modify_order()` never had an `isVerify` parameter in v2.0.2 either — that
+flag only ever existed on `cancel_order()`/`cancel_cover_order()`/
+`cancel_bracket_order()` (see §5), triggering an order-book re-check before
+cancelling. If you copy-pasted `isVerify=True` from a `cancel_order()` call
+into a `modify_order()` call, drop it — it raises `TypeError` in both
+versions, this isn't a v2.3.0 behavior change. `modify_order()` now always
+returns the raw OMS acknowledgement (`stat: "Ok"` on acceptance); confirm the
+final state via the order feed or order history.
 
 ```python
-# Before — no longer accepted
+# Invalid in both v2.0.2 and v2.3.0 — isVerify was never a modify_order() param
 client.modify_order(
     order_id="250101000000001",
     price="1450",
@@ -287,7 +294,7 @@ client.modify_order(
     isVerify=True,
 )
 
-# Now
+# Correct
 client.modify_order(
     order_id="250101000000001",
     price="1450",
@@ -539,7 +546,8 @@ See **[Order Feed](../functions/websocket/order_feed.md)**.
 - [ ] Replace `subscribe_to_orderfeed` and any cover/bracket cancel calls.
 - [ ] Drop `segment`/`exchange`/`product` from `limits()` and `market_protection` from `place_order`/`modify_order` calls.
 - [ ] Drop the bracket/cover-order-only `place_order()` params (`pf`, `tag`, `scrip_token`, `square_off_type`, `stop_loss_type`, `stop_loss_value`, `square_off_value`, `last_traded_price`, `trailing_stop_loss`, `trailing_sl_value`).
-- [ ] Drop `instrument_token`, `exchange_segment`, `trading_symbol`, `transaction_type`, `product`, `dd`, `filled_quantity`, and `isVerify` from `modify_order()` calls.
+- [ ] Drop `instrument_token`, `exchange_segment`, `trading_symbol`, `transaction_type`, `product`, `dd`, and `filled_quantity` from `modify_order()` calls.
+- [ ] Don't pass `isVerify` to `modify_order()` — it was never a valid parameter there in either version (it only exists on `cancel_order()`/`cancel_cover_order()`/`cancel_bracket_order()`, see §3.8).
 - [ ] Replace `trade_report(order_id=...)` with `order_report(order_id=...)` for single-order lookups.
 - [ ] Replace `margin_required()` `exchange_segment`/`order_type` aliases (e.g. `"NSE"`, `"Limit"`) with their exact canonical codes.
 
