@@ -31,6 +31,6 @@ body:
       label: SDK version
       description: Check with `pip show kotakneoapi` if you're not sure.
       options:
-        - "2.3.0"
+        - "2.3.1"
     validations:
       required: false

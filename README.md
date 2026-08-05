@@ -3,7 +3,7 @@
 Official Python SDK for Kotak Neo Trading APIs - a modern, well-tested trading client for the Kotak Neo platform.
 
 [![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
-[![PyPI Version](https://img.shields.io/badge/pypi-v2.3.0-green.svg)](https://pypi.org/project/kotakneoapi/)
+[![PyPI Version](https://img.shields.io/badge/pypi-v2.3.1-green.svg)](https://pypi.org/project/kotakneoapi/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/LICENSE)
 
 > **This is the actively maintained Python SDK**, superseding
@@ -129,7 +129,7 @@ Detailed documentation for all SDK functions with examples and real API response
 ### 📖 Guides & Documentation
 
 **Upgrading:**
-- **[Migration Guide (v2.0.2 → v2.3.0)](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/guides/MIGRATION.md)** - Upgrade existing code to the latest version
+- **[Migration Guide (v2.0.2 → v2.3.1)](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/guides/MIGRATION.md)** - Upgrade existing code to the latest version
 - **[Migration Scanner](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/scripts/migrate_from_v2.py)** - Run against your project to auto-detect v2-only calls before you start migrating by hand
 
 **Installation:**
@@ -442,6 +442,6 @@ See [CHANGELOG.md](https://github.com/Kotak-Neo/kotak-neo-python/releases) for v
 
 ---
 
-**Version**: 2.3.0  
+**Version**: 2.3.1  
 **Status**: Production/Stable  
 **Built with ❤️ by Kotak Neo Team**

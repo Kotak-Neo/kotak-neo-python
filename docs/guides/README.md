@@ -6,7 +6,7 @@ Comprehensive guides for developers, maintainers, and contributors.
 
 ### For Developers
 
-#### [Migration Guide (v2.0.2 → v2.3.0)](MIGRATION.md) ⭐ **UPGRADING? START HERE**
+#### [Migration Guide (v2.0.2 → v2.3.1)](MIGRATION.md) ⭐ **UPGRADING? START HERE**
 Step-by-step guide for upgrading from the previous SDK version.
 
 **Topics Covered:**
@@ -50,7 +50,7 @@ Modern async/await streaming client for live market data (v2.2.0+).
 - **[VS Code Setup](../installation/vscode.md)** - IDE configuration
 
 ### Upgrading
-- **[Migration Guide (v2.0.2 → v2.3.0)](MIGRATION.md)** - Upgrade existing code
+- **[Migration Guide (v2.0.2 → v2.3.1)](MIGRATION.md)** - Upgrade existing code
 - **[Migration Scanner](../scripts/migrate_from_v2.py)** - Automated script that flags v2-only calls in your code
 
 ### API Documentation
@@ -91,7 +91,7 @@ Modern async/await streaming client for live market data (v2.2.0+).
 docs/
 ├── guides/                          # 📖 You are here
 │   ├── README.md                    # This file
-│   ├── MIGRATION.md                 # v2.0.2 → v2.3.0 upgrade guide
+│   ├── MIGRATION.md                 # v2.0.2 → v2.3.1 upgrade guide
 │   └── websocket.md                 # Async SFeed WebSocket guide
 │
 ├── installation/                    # Platform-specific guides
@@ -103,7 +103,7 @@ docs/
 │   └── vscode.md
 │
 ├── scripts/                         # Standalone helper scripts
-│   └── migrate_from_v2.py           # v2 -> v2.3.0 migration scanner (read-only)
+│   └── migrate_from_v2.py           # v2 -> v2.3.1 migration scanner (read-only)
 │
 └── functions/                       # API documentation
     ├── README.md
