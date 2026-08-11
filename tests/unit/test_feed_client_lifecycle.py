@@ -874,6 +874,41 @@ def test_feed_message_enriched_with_trading_symbol():
     assert ws._trading_symbol_for(other) is None
 
 
+def test_index_trading_symbol_resolved_by_name_not_instrument_token():
+    """Indices are subscribed by name (WsToken("nse_cm", "Nifty 50")), so the
+    ack's trading_symbols map is keyed by that name -- not by the numeric
+    instrument_token the server resolves the index to in the streamed
+    message. _trading_symbol_for() must fall back to a name-keyed lookup for
+    index messages instead of returning None."""
+    from neo_api_client.websocket.feed.models import SFeedIndex
+
+    ws = SFeedWebSocket(url="wss://fake/feed")
+    ws._trading_symbols = {"nse_cm|Nifty 50": "Nifty 50-IN"}
+
+    msg = SFeedIndex(
+        exchange_segment="nse_cm",
+        instrument_token="4247863880",
+        name="Nifty 50",
+        last_traded_price=24471.7,
+        open_price=24575.1,
+        high_price=24576.85,
+        low_price=24429.25,
+        close_price=24583.8,
+        change=-112.1,
+        net_change_percent=-0.46,
+        yearly_high=26373.2,
+        yearly_low=22182.55,
+        last_trade_time=1786442392,
+        precision=2,
+        multiplier=0.01,
+    )
+    assert ws._trading_symbol_for(msg) == "Nifty 50-IN"
+
+    # Unknown name -> no symbol.
+    other = msg.model_copy(update={"name": "Unknown Index"})
+    assert ws._trading_symbol_for(other) is None
+
+
 def test_binary_frame_stamps_trading_symbol_on_enqueued_message(monkeypatch):
     """A decoded binary message gets trading_symbol set from the map before
     being enqueued (end-to-end enrich path)."""

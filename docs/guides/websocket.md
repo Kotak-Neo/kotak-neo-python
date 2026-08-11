@@ -292,8 +292,18 @@ Details:
   `ws.trading_symbols` is already populated by the time the call completes.
 - `trading_symbol` is `None` for any token the server didn't return a
   symbol for, or if no ack arrived before `ack_wait_timeout` elapsed.
-- The mapping is keyed by `"<exchange_segment>|<instrument_token>"`. You can
+- The mapping is keyed by `"<exchange_segment>|<instrument_token>"` — i.e. by
+  whatever `instrument_token` you subscribed with (see `WsToken`). You can
   inspect the current map via the read-only `ws.trading_symbols` property.
+- **Indices are the one exception.** They're subscribed by name (e.g.
+  `WsToken("nse_cm", "Nifty 50")`), so the ack maps that name to the trading
+  symbol — but the streamed `SFeedIndex` message itself carries the numeric
+  `instrument_token` the server resolved the index to, not the name. The
+  client accounts for this automatically (falling back to a name-keyed
+  lookup for index messages), so `trading_symbol` still resolves correctly;
+  this is only worth knowing if you're inspecting `ws.trading_symbols`
+  directly and wondering why an index's entry is keyed by name rather than
+  by the `instrument_token` on the messages you receive for it.
 - On **unsubscribe**, a token's entry is removed once it is no longer subscribed
   under any feed level (so unsubscribing touch line while depth is still active
   keeps the symbol).

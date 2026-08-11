@@ -32,6 +32,7 @@ from neo_api_client.websocket.feed.exceptions import (
 )
 from neo_api_client.websocket.feed.models import (
     EXCHANGE_NAME_TO_ID,
+    SFeedIndex,
     SFeedMessage,
     WsToken,
 )
@@ -501,9 +502,19 @@ class SFeedWebSocket:
                 self._flush_pending_latest_messages()
 
     def _trading_symbol_for(self, message: SFeedMessage) -> str | None:
-        """Look up the trading symbol for a decoded message, if known."""
+        """Look up the trading symbol for a decoded message, if known.
+
+        Indices are subscribed by name (e.g. ``WsToken("nse_cm", "Nifty 50")``),
+        not by the numeric ``instrument_token`` the server resolves them to in
+        the streamed message -- the subscribe ack's ``trading_symbols`` map is
+        keyed by that name, so index messages fall back to a name-keyed lookup
+        when the token-keyed one misses.
+        """
         key = f"{message.exchange_segment}|{message.instrument_token}"
-        return self._trading_symbols.get(key)
+        symbol = self._trading_symbols.get(key)
+        if symbol is None and isinstance(message, SFeedIndex):
+            symbol = self._trading_symbols.get(f"{message.exchange_segment}|{message.name}")
+        return symbol
 
     def _ack_deadline_passed(self) -> bool:
         return self._ack_deadline is not None and time.monotonic() >= self._ack_deadline
