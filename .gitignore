@@ -221,3 +221,7 @@ __marimo__/
 
 # Scrip Master CSV files (downloaded at runtime)
 neo_api_client/data/*.csv
+
+# Packet captures (may contain tokens/session data from local debugging)
+*.pcap
+*.pcapng

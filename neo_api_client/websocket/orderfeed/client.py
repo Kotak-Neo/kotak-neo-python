@@ -22,6 +22,7 @@ from urllib.parse import urlsplit, urlunsplit
 
 import websockets
 
+from neo_api_client.utils.ws_scheme import to_websocket_scheme
 from neo_api_client.websocket.orderfeed.exceptions import (
     AlreadyConnectedError,
     AuthenticationError,
@@ -62,6 +63,7 @@ class OrderFeedWebSocket:
         auth: str,
         sid: str,
         *,
+        url: str | None = None,
         source: str = "WEB",
         reconnect_delay: int = 5,
         max_reconnect_attempts: int = 5,
@@ -74,9 +76,14 @@ class OrderFeedWebSocket:
         Args:
             base_url: Base URL from ``/tradeApiValidate`` (e.g.
                 ``https://e21.kotaksecurities.com``). Converted to
-                ``wss://<host>/realtime``.
+                ``wss://<host>/realtime``. Ignored when ``url`` is given.
             auth: Session token (``edit_token`` from tradeApiValidate).
             sid: Session id (``edit_sid`` from tradeApiValidate).
+            url: Full order-feed URL, already resolved elsewhere (e.g. the
+                dynamic config service's ``{data_center}_{broadcast_source}_
+                interactive_endpoint``). Takes priority over ``base_url`` when
+                given; only its scheme is normalized (``https``/``http`` ->
+                ``wss``/``ws``), the rest of the URL is used as-is.
             source: ``src`` value in the connection payload (default 'WEB').
             reconnect_delay: Seconds between reconnect attempts (also used
                 between initial connect retries, see ``max_connect_retries``).
@@ -95,7 +102,12 @@ class OrderFeedWebSocket:
                 verification exposes the connection to man-in-the-middle attacks.
         """
         self.base_url = base_url
-        self.url = _to_realtime_url(base_url) if base_url else None
+        if url:
+            self.url = to_websocket_scheme(url)
+        elif base_url:
+            self.url = _to_realtime_url(base_url)
+        else:
+            self.url = None
         self.auth = auth
         self.sid = sid
         self.source = source

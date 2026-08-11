@@ -9,6 +9,12 @@ callback-based WebSocket.
 - **Data plane:** binary frames (little-endian, packed, batched) — decoded for you
   into typed Pydantic messages
 
+> The SDK resolves the actual feed URL for your account automatically (via an
+> internal config lookup keyed off the data center from `totp_validate()`),
+> which keeps it pointed at whatever endpoint is currently active. This is
+> transparent — no configuration is needed; the URL above is simply the
+> default used if that lookup doesn't return one.
+
 ## Features
 
 - **Async/await API** with `async for` iteration
@@ -300,7 +306,7 @@ Details:
 
 | Argument | Default | Purpose |
 |----------|---------|---------|
-| `url` | `wss://sfeed.kotaksecurities.com/wsfeed` | Feed endpoint |
+| `url` | `wss://sfeed.kotaksecurities.com/wsfeed` | Feed endpoint (auto-resolved per account; see note above — pass explicitly to override) |
 | `user` / `auth` | `"neome"` / `"1"` | SFeed credentials (auth frame) |
 | `source` / `platform` / `version` | `"SFeed"` / `"Web"` / `"1.2.3"` | Client identification |
 | `sdk_version` / `sdk_date` | `2` / build date | SDK identifiers |

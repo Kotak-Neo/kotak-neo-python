@@ -1,9 +1,15 @@
 import jwt
 from decouple import config
 
+from neo_api_client.__version__ import __version__
 from neo_api_client.exceptions import ApiValueError
 from neo_api_client.settings import PROD_URL, UAT_URL
 from neo_api_client.utils.urls import (
+    CONFIG_SERVICE_ENVIRONMENT_PROD,
+    CONFIG_SERVICE_ENVIRONMENT_UAT,
+    CONFIG_SERVICE_PLATFORM,
+    CONFIG_SERVICE_URL_PROD,
+    CONFIG_SERVICE_URL_UAT,
     PROD_BASE_URL,
     SESSION_PROD_BASE_URL,
     SESSION_UAT_BASE_URL,
@@ -42,6 +48,14 @@ class NeoUtility:
         self.data_center = None
         self.base_url = None
         self.totp_session_id = None
+        # Resolved from the dynamic config service (see resolve_dynamic_urls);
+        # None until that call succeeds, so callers fall back to the
+        # hardcoded SFEED_WEBSOCKET_URL default.
+        self.sfeed_websocket_url = None
+        # Same idea for the order feed; None until resolve_dynamic_urls()
+        # succeeds, so callers fall back to the base_url-derived URL (or, if
+        # that's unavailable too, the hardcoded ORDER_FEED_URL_* default).
+        self.order_feed_url = None
         self.consumer_key = consumer_key
         # SDK developers only: an optional X-Forwarded-For value attached to
         # requests in the internal UAT environment. Read from the
@@ -111,6 +125,57 @@ class NeoUtility:
         endpoint = endpoint.lstrip("/")
 
         return f"{domain_info}/{endpoint}"
+
+    def resolve_dynamic_urls(self, rest_client):
+        """Fetch this account's data-center-specific feed URLs from the dynamic
+        config service, called once right after totp_validate() learns
+        ``data_center``.
+
+        The lookup is two-step: ``{data_center}_broadcast_source`` gives the
+        source name (e.g. "sh", "ks") actually in use for this data center,
+        which is then used to build the real endpoint keys,
+        ``{data_center}_{broadcast_source}_broadcast_endpoint`` (SFeed) and
+        ``{data_center}_{broadcast_source}_interactive_endpoint`` (order feed).
+
+        Best-effort: any failure (network error, bad response, no
+        ``broadcast_source`` for this data center, or no matching endpoint
+        key) leaves ``sfeed_websocket_url``/``order_feed_url`` as None, and
+        callers fall back to their own hardcoded defaults.
+        """
+        self.sfeed_websocket_url = None
+        self.order_feed_url = None
+
+        if not self.data_center:
+            return
+
+        if self.host.lower().strip() == "uat":
+            url, environment = CONFIG_SERVICE_URL_UAT, CONFIG_SERVICE_ENVIRONMENT_UAT
+        else:
+            url, environment = CONFIG_SERVICE_URL_PROD, CONFIG_SERVICE_ENVIRONMENT_PROD
+
+        try:
+            response = rest_client.request(
+                method="GET",
+                url=url,
+                query_params={
+                    "appVersion": __version__,
+                    "platform": CONFIG_SERVICE_PLATFORM,
+                    "environment": environment,
+                },
+                timeout=5,
+            )
+            configs = (response.json().get("data") or {}).get("configs") or {}
+            broadcast_source = configs.get(f"{self.data_center}_broadcast_source")
+            if broadcast_source:
+                self.sfeed_websocket_url = configs.get(
+                    f"{self.data_center}_{broadcast_source}_broadcast_endpoint"
+                )
+                self.order_feed_url = configs.get(
+                    f"{self.data_center}_{broadcast_source}_interactive_endpoint"
+                )
+        except Exception:
+            self.sfeed_websocket_url = None
+            self.order_feed_url = None
 
     def get_neo_fin_key(self):
         # Same default neo-fin-key for both prod and uat; a caller-supplied

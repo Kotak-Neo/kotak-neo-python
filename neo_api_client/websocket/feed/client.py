@@ -22,6 +22,7 @@ from typing import Any
 import websockets
 
 from neo_api_client.utils.urls import SFEED_WEBSOCKET_URL
+from neo_api_client.utils.ws_scheme import to_websocket_scheme as _to_websocket_scheme
 from neo_api_client.websocket.feed.exceptions import (
     AlreadyConnectedError,
     AuthenticationError,
@@ -165,7 +166,7 @@ class SFeedWebSocket:
         """
         self.access_token = access_token
         self.sid = sid
-        self.url = url
+        self.url = _to_websocket_scheme(url)
         self.user = user
         self.auth = auth
         self.source = source

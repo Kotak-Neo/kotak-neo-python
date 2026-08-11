@@ -70,4 +70,5 @@ class TotpAPI:
             self.api_client.configuration.edit_rid = data.get("rid")
             self.api_client.configuration.data_center = data.get("dataCenter")
             self.api_client.configuration.base_url = data.get("baseUrl")
+            self.api_client.configuration.resolve_dynamic_urls(self.rest_client)
         return totp_validate_data

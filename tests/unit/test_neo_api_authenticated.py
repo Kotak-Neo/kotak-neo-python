@@ -287,6 +287,54 @@ def test_totp_validate_success(requests_mock):
     assert client.configuration.edit_token == "edit_token_123"
 
 
+def test_totp_validate_resolves_dynamic_websocket_url(requests_mock):
+    """totp_validate() fetches the data center's feed URL, and create_websocket() uses it."""
+    from neo_api_client.utils.urls import CONFIG_SERVICE_URL_UAT
+
+    client = NeoAPI(environment="prod", consumer_key="test_key")
+    client.configuration.view_token = "view_token_123"
+    client.configuration.sid = "sid_123"
+
+    validate_url = "https://mis.kotaksecurities.com/login/1.0/tradeApiValidate"
+    requests_mock.post(
+        validate_url,
+        json={
+            "data": {
+                "token": "edit_token_123",
+                "sid": "edit_sid_123",
+                "rid": "edit_rid_123",
+                "dataCenter": "E21",
+                "baseUrl": "https://gw-napi.kotaksecurities.com",
+            }
+        },
+        status_code=200,
+    )
+    # Prod currently reuses the UAT config URL as a placeholder (see urls.py).
+    requests_mock.get(
+        CONFIG_SERVICE_URL_UAT,
+        json={
+            "data": {
+                "configs": {
+                    "E21_broadcast_source": "sh",
+                    "E21_sh_broadcast_endpoint": "https://sfeed-e21.kotaksecurities.com/wsfeed",
+                }
+            }
+        },
+    )
+
+    client.totp_validate(mpin="1234")
+
+    # Cached verbatim (as the config service returned it, scheme included);
+    # SFeedWebSocket normalizes https -> wss itself when it receives the URL.
+    assert (
+        client.configuration.sfeed_websocket_url == "https://sfeed-e21.kotaksecurities.com/wsfeed"
+    )
+
+    ws = client.create_websocket()
+
+    assert ws.url == "wss://sfeed-e21.kotaksecurities.com/wsfeed"
+
+
 def test_create_websocket_returns_client(authenticated_client):
     """create_websocket returns a configured SFeed WebSocket client when authenticated."""
     from neo_api_client.websocket.feed import SFeedWebSocket

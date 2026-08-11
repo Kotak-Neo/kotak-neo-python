@@ -17,6 +17,12 @@ The feed lives at `wss://<baseurl>/realtime`, where `<baseurl>` is the host
 returned by `totp_validate()` (stored on the configuration as `base_url`). You
 must complete `totp_login()` **and** `totp_validate()` before creating the feed.
 
+> The SDK resolves the actual endpoint for your account automatically (via an
+> internal config lookup keyed off the data center from `totp_validate()`),
+> which keeps it pointed at whatever endpoint is currently active. This is
+> transparent — no configuration is needed; `base_url` above is simply the
+> fallback used if that lookup doesn't return one.
+
 Immediately after the socket opens the client sends a single **raw (non-JSON)**
 handshake string — this is handled for you:
 
@@ -178,6 +184,7 @@ Builds an `OrderFeedWebSocket` from the current session (`base_url`, `edit_token
 
 | Keyword                  | Default | Description                                   |
 |--------------------------|---------|-----------------------------------------------|
+| `url`                    | auto-resolved | Feed endpoint (see note above — pass explicitly to override) |
 | `source`                 | `"WEB"` | `src` value in the connection payload         |
 | `reconnect_delay`        | `5`     | Seconds between reconnect attempts (also used between initial connect retries) |
 | `max_reconnect_attempts` | `5`     | Cap on reconnect attempts after a previously established connection later drops |

@@ -2,8 +2,11 @@
 
 import pytest
 
+from neo_api_client.__version__ import __version__
 from neo_api_client.exceptions import ApiValueError
+from neo_api_client.rest import RESTClientObject
 from neo_api_client.utils.neo_utility import NeoUtility
+from neo_api_client.utils.urls import CONFIG_SERVICE_URL_PROD, CONFIG_SERVICE_URL_UAT
 
 
 def test_neo_utility_init():
@@ -225,6 +228,154 @@ def test_neo_utility_attributes_mutable():
     assert utility.edit_rid == "rid_123"
     assert utility.data_center == "DC1"
     assert utility.base_url == "https://custom.url"
+
+
+def test_resolve_dynamic_urls_uat_success(requests_mock):
+    """Resolves via broadcast_source: E22_broadcast_source="ks" -> looks up
+    E22_ks_broadcast_endpoint (SFeed) and E22_ks_interactive_endpoint (order feed)."""
+    utility = NeoUtility(host="uat")
+    utility.data_center = "E22"
+    rest_client = RESTClientObject(utility)
+
+    requests_mock.get(
+        CONFIG_SERVICE_URL_UAT,
+        json={
+            "data": {
+                "configs": {
+                    "E22_broadcast_source": "ks",
+                    "E22_ks_broadcast_endpoint": "https://uat.kotaksecurities.com/ufeed",
+                    "E22_ks_interactive_endpoint": "https://uat.kotaksecurities.com/uinteractive",
+                    # Present but must NOT be used, since broadcast_source is "ks", not "sh".
+                    "E22_sh_broadcast_endpoint": "https://sfeed.kotaksecurities.com/wsfeed",
+                    "E22_sh_interactive_endpoint": "https://e22.kotaksecurities.com/realtime",
+                }
+            }
+        },
+    )
+
+    utility.resolve_dynamic_urls(rest_client)
+
+    assert utility.sfeed_websocket_url == "https://uat.kotaksecurities.com/ufeed"
+    assert utility.order_feed_url == "https://uat.kotaksecurities.com/uinteractive"
+    assert requests_mock.last_request.query["environment"] == "qa"
+    assert requests_mock.last_request.query["platform"] == "api"
+    assert requests_mock.last_request.query["appVersion"] == __version__
+
+
+def test_resolve_dynamic_urls_order_feed_endpoint_missing_leaves_none(requests_mock):
+    """Real-world shape: broadcast_source resolves and SFeed's key exists, but
+    there's no matching *_interactive_endpoint for that broadcast_source -- e.g.
+    E43_broadcast_source="ks" but only E43_ks_broadcast_endpoint is defined, not
+    E43_ks_interactive_endpoint. order_feed_url must stay None in that case,
+    independent of sfeed_websocket_url resolving fine."""
+    utility = NeoUtility(host="uat")
+    utility.data_center = "E43"
+    rest_client = RESTClientObject(utility)
+
+    requests_mock.get(
+        CONFIG_SERVICE_URL_UAT,
+        json={
+            "data": {
+                "configs": {
+                    "E43_broadcast_source": "ks",
+                    "E43_ks_broadcast_endpoint": "https://uat.kotaksecurities.com/ufeed",
+                }
+            }
+        },
+    )
+
+    utility.resolve_dynamic_urls(rest_client)
+
+    assert utility.sfeed_websocket_url == "https://uat.kotaksecurities.com/ufeed"
+    assert utility.order_feed_url is None
+
+
+def test_resolve_dynamic_urls_prod_uses_uat_placeholder(requests_mock):
+    """Prod currently points at the UAT config URL/environment (real prod value pending)."""
+    utility = NeoUtility(host="prod")
+    utility.data_center = "E43"
+    rest_client = RESTClientObject(utility)
+
+    requests_mock.get(
+        CONFIG_SERVICE_URL_PROD,
+        json={
+            "data": {
+                "configs": {
+                    "E43_broadcast_source": "ks",
+                    "E43_ks_broadcast_endpoint": "https://uat.kotaksecurities.com/ufeed",
+                }
+            }
+        },
+    )
+
+    utility.resolve_dynamic_urls(rest_client)
+
+    assert utility.sfeed_websocket_url == "https://uat.kotaksecurities.com/ufeed"
+    assert requests_mock.last_request.query["environment"] == "uat"
+
+
+def test_resolve_dynamic_urls_no_broadcast_source_leaves_none(requests_mock):
+    """No {data_center}_broadcast_source entry -> sfeed_websocket_url stays None (caller falls back)."""
+    utility = NeoUtility(host="uat")
+    utility.data_center = "E21"
+    rest_client = RESTClientObject(utility)
+
+    requests_mock.get(
+        CONFIG_SERVICE_URL_UAT,
+        json={
+            "data": {
+                # E21 has an sh_broadcast_endpoint but no broadcast_source key,
+                # so it must not be picked up without going through that lookup.
+                "configs": {"E21_sh_broadcast_endpoint": "https://sfeed.kotaksecurities.com/wsfeed"}
+            }
+        },
+    )
+
+    utility.resolve_dynamic_urls(rest_client)
+
+    assert utility.sfeed_websocket_url is None
+
+
+def test_resolve_dynamic_urls_broadcast_source_endpoint_missing_leaves_none(requests_mock):
+    """broadcast_source resolves, but the constructed endpoint key isn't in the config."""
+    utility = NeoUtility(host="uat")
+    utility.data_center = "E22"
+    rest_client = RESTClientObject(utility)
+
+    requests_mock.get(
+        CONFIG_SERVICE_URL_UAT,
+        # E22_broadcast_source resolves to "ks", but E22_ks_broadcast_endpoint
+        # itself is absent from this config.
+        json={"data": {"configs": {"E22_broadcast_source": "ks"}}},
+    )
+
+    utility.resolve_dynamic_urls(rest_client)
+
+    assert utility.sfeed_websocket_url is None
+
+
+def test_resolve_dynamic_urls_request_failure_leaves_none(requests_mock):
+    """A failed config-service call leaves sfeed_websocket_url as None instead of raising."""
+    utility = NeoUtility(host="uat")
+    utility.data_center = "E21"
+    rest_client = RESTClientObject(utility)
+
+    requests_mock.get(CONFIG_SERVICE_URL_UAT, exc=ConnectionError("boom"))
+
+    utility.resolve_dynamic_urls(rest_client)
+
+    assert utility.sfeed_websocket_url is None
+
+
+def test_resolve_dynamic_urls_no_data_center_skips_request(requests_mock):
+    """Without a data_center (e.g. before totp_validate), no request is made at all."""
+    utility = NeoUtility(host="uat")
+    rest_client = RESTClientObject(utility)
+
+    utility.resolve_dynamic_urls(rest_client)
+
+    assert utility.sfeed_websocket_url is None
+    assert not requests_mock.called
 
 
 def test_get_url_details_strips_slashes():

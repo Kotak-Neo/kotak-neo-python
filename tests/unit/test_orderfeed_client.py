@@ -60,6 +60,27 @@ def test_to_realtime_url_bare_host():
     assert _to_realtime_url("e22.kotaksecurities.com") == ("wss://e22.kotaksecurities.com/realtime")
 
 
+def test_explicit_url_takes_priority_over_base_url():
+    """A pre-resolved url (e.g. from the dynamic config service) overrides base_url-derivation."""
+    ws = OrderFeedWebSocket(
+        base_url="https://e21.kotaksecurities.com",
+        url="https://e99.kotaksecurities.com/realtime",
+        auth="TOK",
+        sid="SID",
+    )
+    assert ws.url == "wss://e99.kotaksecurities.com/realtime"
+
+
+def test_explicit_url_normalizes_http_to_ws():
+    ws = OrderFeedWebSocket(base_url=None, url="http://fake/realtime", auth="TOK", sid="SID")
+    assert ws.url == "ws://fake/realtime"
+
+
+def test_no_url_and_no_base_url_leaves_url_none():
+    ws = OrderFeedWebSocket(base_url=None, auth="TOK", sid="SID")
+    assert ws.url is None
+
+
 # ---- auth payload -----------------------------------------------------------
 
 
@@ -417,7 +438,51 @@ def test_create_order_feed_requires_base_url():
     c = NeoAPI(environment="prod", consumer_key="ck")
     c.configuration.edit_token = "t"
     c.configuration.edit_sid = "s"
-    # base_url stays None
+    # base_url stays None, and data_center is unset -> no hardcoded fallback either.
+    with pytest.raises(ValueError, match="base URL is unavailable"):
+        c.create_order_feed()
+
+
+def test_create_order_feed_prefers_dynamic_config_url_over_base_url():
+    """When resolve_dynamic_urls() populated order_feed_url, it wins over base_url."""
+    c = _authed_client()
+    c.configuration.order_feed_url = "https://e21.kotaksecurities.com/realtime"
+
+    feed = c.create_order_feed()
+
+    assert feed.url == "wss://e21.kotaksecurities.com/realtime"
+
+
+def test_create_order_feed_explicit_url_kwarg_wins_over_dynamic_config():
+    c = _authed_client()
+    c.configuration.order_feed_url = "https://e21.kotaksecurities.com/realtime"
+
+    feed = c.create_order_feed(url="https://override.example.com/realtime")
+
+    assert feed.url == "wss://override.example.com/realtime"
+
+
+def test_create_order_feed_falls_back_to_hardcoded_constant_when_base_url_missing():
+    """No dynamic config value and no base_url, but data_center matches a known
+    ORDER_FEED_URL_* constant -> use it instead of raising."""
+    c = NeoAPI(environment="prod", consumer_key="ck")
+    c.configuration.edit_token = "t"
+    c.configuration.edit_sid = "s"
+    c.configuration.data_center = "E21"
+    # base_url and order_feed_url both stay None.
+
+    feed = c.create_order_feed()
+
+    assert feed.url == "wss://e21.kotaksecurities.com/realtime"
+
+
+def test_create_order_feed_unrecognized_data_center_still_raises():
+    c = NeoAPI(environment="prod", consumer_key="ck")
+    c.configuration.edit_token = "t"
+    c.configuration.edit_sid = "s"
+    c.configuration.data_center = "E25"  # no ORDER_FEED_URL_E25 constant exists
+    # base_url and order_feed_url both stay None.
+
     with pytest.raises(ValueError, match="base URL is unavailable"):
         c.create_order_feed()
 

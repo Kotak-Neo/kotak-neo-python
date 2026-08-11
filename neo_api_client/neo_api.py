@@ -20,6 +20,22 @@ from neo_api_client.services.scrip_search import ScripSearch
 from neo_api_client.services.totp import TotpAPI
 from neo_api_client.services.trade_report import TradeReportAPI
 from neo_api_client.utils.neo_utility import NeoUtility
+from neo_api_client.utils.urls import (
+    ORDER_FEED_URL_E21,
+    ORDER_FEED_URL_E22,
+    ORDER_FEED_URL_E41,
+    ORDER_FEED_URL_E43,
+)
+
+# Last-resort order-feed URL, used only when neither the dynamic config
+# service nor totp_validate()'s baseUrl gave us an endpoint for this data
+# center.
+_ORDER_FEED_URL_BY_DATA_CENTER = {
+    "E21": ORDER_FEED_URL_E21,
+    "E22": ORDER_FEED_URL_E22,
+    "E41": ORDER_FEED_URL_E41,
+    "E43": ORDER_FEED_URL_E43,
+}
 
 if TYPE_CHECKING:
     from neo_api_client.websocket.feed import SFeedWebSocket
@@ -941,10 +957,13 @@ class NeoAPI:
                 "Authentication required. Please call totp_login() and totp_validate() first."
             )
 
-        # Only override the URL when one is explicitly provided, otherwise let
-        # SFeedWebSocket fall back to its default (SFEED_WEBSOCKET_URL).
+        # Prefer an explicit url, then the data-center-specific URL resolved
+        # by resolve_dynamic_urls() during totp_validate(), then let
+        # SFeedWebSocket fall back to its hardcoded default (SFEED_WEBSOCKET_URL).
         if url is not None:
             kwargs["url"] = url
+        elif self.configuration.sfeed_websocket_url:
+            kwargs["url"] = self.configuration.sfeed_websocket_url
 
         return SFeedWebSocket(
             access_token=self.configuration.edit_token,
@@ -995,8 +1014,22 @@ class NeoAPI:
             raise ValueError(
                 "Authentication required. Please call totp_login() and totp_validate() first."
             )
-        if not self.configuration.base_url:
-            raise ValueError("Order-feed base URL is unavailable. Complete totp_validate() first.")
+
+        # Prefer an explicit url kwarg, then the data-center-specific URL
+        # resolved by resolve_dynamic_urls() during totp_validate(). If
+        # neither is available, OrderFeedWebSocket falls back to base_url
+        # (from totp_validate()) itself; if even that's missing, fall back to
+        # the hardcoded ORDER_FEED_URL_* default for this data center.
+        if "url" not in kwargs and self.configuration.order_feed_url:
+            kwargs["url"] = self.configuration.order_feed_url
+
+        if "url" not in kwargs and not self.configuration.base_url:
+            fallback_url = _ORDER_FEED_URL_BY_DATA_CENTER.get(self.configuration.data_center)
+            if not fallback_url:
+                raise ValueError(
+                    "Order-feed base URL is unavailable. Complete totp_validate() first."
+                )
+            kwargs["url"] = fallback_url
 
         return OrderFeedWebSocket(
             base_url=self.configuration.base_url,

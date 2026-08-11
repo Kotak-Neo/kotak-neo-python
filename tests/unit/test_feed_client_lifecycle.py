@@ -388,6 +388,36 @@ def test_feed_module_reexports():
     assert feed_module.SFeedWebSocket is SFeedWebSocket
 
 
+# ---- https -> wss URL normalization -----------------------------------------
+
+
+def test_to_websocket_scheme_https_becomes_wss():
+    assert (
+        _client_mod._to_websocket_scheme("https://sfeed.kotaksecurities.com/wsfeed")
+        == "wss://sfeed.kotaksecurities.com/wsfeed"
+    )
+
+
+def test_to_websocket_scheme_http_becomes_ws():
+    assert _client_mod._to_websocket_scheme("http://fake/feed") == "ws://fake/feed"
+
+
+def test_to_websocket_scheme_leaves_wss_unchanged():
+    assert _client_mod._to_websocket_scheme("wss://fake/feed") == "wss://fake/feed"
+
+
+def test_to_websocket_scheme_preserves_query_string():
+    assert (
+        _client_mod._to_websocket_scheme("https://fake/feed?a=1&b=2") == "wss://fake/feed?a=1&b=2"
+    )
+
+
+def test_sfeed_websocket_normalizes_https_url_to_wss():
+    """A config-service-style https:// URL is usable directly by SFeedWebSocket."""
+    ws = SFeedWebSocket(url="https://sfeed.kotaksecurities.com/wsfeed")
+    assert ws.url == "wss://sfeed.kotaksecurities.com/wsfeed"
+
+
 # ---- TLS verification -------------------------------------------------------
 
 

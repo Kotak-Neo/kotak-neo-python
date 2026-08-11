@@ -73,7 +73,7 @@ except Exception as e:
 | `baseUrl` | string | API base URL for the assigned data center |
 | `ucc` | string | Unique Client Code |
 | `greetingName` | string | User's name |
-| `dataCenter` | string | Data center location (e.g., E43, GDC) |
+| `dataCenter` | string | Data center location (e.g., E43, GDC). The SDK uses this internally to look up the currently active WebSocket feed endpoints (SFeed, order feed) via an internal config service, so they stay accurate without needing an SDK update — this doesn't require any action from you. |
 | `kId` | string | Client PAN Card number |
 | `kType` | string | Token type - "Trade" (full trading access) |
 | `status` | string | Validation status - "success" or "failed" |
