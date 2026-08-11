@@ -225,3 +225,6 @@ neo_api_client/data/*.csv
 # Packet captures (may contain tokens/session data from local debugging)
 *.pcap
 *.pcapng
+
+# macOS
+.DS_Store
