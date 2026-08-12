@@ -36,8 +36,10 @@ ORDER_FEED_URL_E43 = "wss://e43.kotaksecurities.com/realtime"
 # fails or the data center has no entry.
 CONFIG_SERVICE_URL_UAT = "https://qapi.kotaksecurities.online/5config/config"
 # TODO: replace with the real prod config-service URL once available from the
-# Solution Architect. Pointed at the UAT URL for now (with environment=uat
-# below) so the prod code path can be exercised end-to-end ahead of that.
+# Solution Architect. No separate prod URL exists yet, so this points at the
+# UAT URL for now (with environment=qa below, the only value that currently
+# returns data from this service) so the prod code path can be exercised
+# end-to-end ahead of that.
 CONFIG_SERVICE_URL_PROD = CONFIG_SERVICE_URL_UAT
 
 # appVersion isn't validated by the config service, so the SDK sends its own
@@ -45,5 +47,7 @@ CONFIG_SERVICE_URL_PROD = CONFIG_SERVICE_URL_UAT
 CONFIG_SERVICE_PLATFORM = "api"
 CONFIG_SERVICE_ENVIRONMENT_UAT = "qa"
 # TODO: confirm the real prod "environment" value with the Solution
-# Architect; "uat" is a placeholder matching CONFIG_SERVICE_URL_PROD above.
-CONFIG_SERVICE_ENVIRONMENT_PROD = "uat"
+# Architect. "qa" is a placeholder matching CONFIG_SERVICE_URL_PROD above —
+# environment=uat returns an empty config ({"data":{}}), so "qa" is used
+# instead until the real prod value is known.
+CONFIG_SERVICE_ENVIRONMENT_PROD = "qa"

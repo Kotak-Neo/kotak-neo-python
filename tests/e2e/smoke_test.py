@@ -731,6 +731,7 @@ def _ws_subscribe_test(tokens):
             ws = runner.client.create_websocket()
             ws.on_message = runner.on_ws_message
             ws.on_error = runner.on_ws_error
+            print(f"\n[WEBSOCKET URL] SFeed: {ws.url}")
 
             await ws.connect()
             runner.ws_connected = ws.is_connected
@@ -774,6 +775,7 @@ def _ws_unsubscribe_test(tokens):
 
             ws = runner.client.create_websocket()
             ws.on_error = runner.on_ws_error
+            print(f"\n[WEBSOCKET URL] SFeed: {ws.url}")
 
             await ws.connect()
             _trace_ws_frames(ws)
@@ -857,6 +859,7 @@ def _order_feed_test():
 
             feed = runner.client.create_order_feed()
             feed.on_error = runner.on_ws_error
+            print(f"\n[WEBSOCKET URL] Order feed: {feed.url}")
 
             await feed.connect()
             connected = feed.is_connected
