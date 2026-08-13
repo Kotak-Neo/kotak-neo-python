@@ -958,12 +958,15 @@ class NeoAPI:
             )
 
         # Prefer an explicit url, then the data-center-specific URL resolved
-        # by resolve_dynamic_urls() during totp_validate(), then let
-        # SFeedWebSocket fall back to its hardcoded default (SFEED_WEBSOCKET_URL).
+        # by resolve_dynamic_urls() during totp_validate(), then the feedUrl
+        # from that same totp_validate() response, then let SFeedWebSocket
+        # fall back to its hardcoded default (SFEED_WEBSOCKET_URL).
         if url is not None:
             kwargs["url"] = url
         elif self.configuration.sfeed_websocket_url:
             kwargs["url"] = self.configuration.sfeed_websocket_url
+        elif self.configuration.feed_url:
+            kwargs["url"] = self.configuration.feed_url
 
         return SFeedWebSocket(
             access_token=self.configuration.edit_token,
@@ -1016,12 +1019,15 @@ class NeoAPI:
             )
 
         # Prefer an explicit url kwarg, then the data-center-specific URL
-        # resolved by resolve_dynamic_urls() during totp_validate(). If
-        # neither is available, OrderFeedWebSocket falls back to base_url
-        # (from totp_validate()) itself; if even that's missing, fall back to
-        # the hardcoded ORDER_FEED_URL_* default for this data center.
+        # resolved by resolve_dynamic_urls() during totp_validate(), then the
+        # rtUrl from that same totp_validate() response. If none of those are
+        # available, OrderFeedWebSocket falls back to base_url (from
+        # totp_validate()) itself; if even that's missing, fall back to the
+        # hardcoded ORDER_FEED_URL_* default for this data center.
         if "url" not in kwargs and self.configuration.order_feed_url:
             kwargs["url"] = self.configuration.order_feed_url
+        elif "url" not in kwargs and self.configuration.rt_url:
+            kwargs["url"] = self.configuration.rt_url
 
         if "url" not in kwargs and not self.configuration.base_url:
             fallback_url = _ORDER_FEED_URL_BY_DATA_CENTER.get(self.configuration.data_center)

@@ -56,6 +56,12 @@ class NeoUtility:
         # succeeds, so callers fall back to the base_url-derived URL (or, if
         # that's unavailable too, the hardcoded ORDER_FEED_URL_* default).
         self.order_feed_url = None
+        # Secondary sources for the two feed URLs, from totp_validate()'s
+        # feedUrl/rtUrl fields (set alongside base_url/data_center). Used
+        # when the dynamic config service doesn't provide sfeed_websocket_url/
+        # order_feed_url, ahead of each one's own further fallback.
+        self.feed_url = None
+        self.rt_url = None
         self.consumer_key = consumer_key
         # SDK developers only: an optional X-Forwarded-For value attached to
         # requests in the internal UAT environment. Read from the

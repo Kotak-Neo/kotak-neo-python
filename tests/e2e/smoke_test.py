@@ -865,8 +865,8 @@ def _order_feed_test():
             connected = feed.is_connected
             print(f"\nOrder feed connected: {connected} ({feed.url})")
 
-            print("Listening for order/position updates (5 seconds)...")
-            await _collect_for(feed, 5, on_message=order_messages.append)
+            print("Listening for order/position updates (60 seconds)...")
+            await _collect_for(feed, 60, on_message=order_messages.append)
 
             await feed.close()
             return connected, order_messages

@@ -70,5 +70,9 @@ class TotpAPI:
             self.api_client.configuration.edit_rid = data.get("rid")
             self.api_client.configuration.data_center = data.get("dataCenter")
             self.api_client.configuration.base_url = data.get("baseUrl")
+            # Secondary source for the feed URLs, used when the dynamic
+            # config service doesn't provide one (see resolve_dynamic_urls).
+            self.api_client.configuration.feed_url = data.get("feedUrl")
+            self.api_client.configuration.rt_url = data.get("rtUrl")
             self.api_client.configuration.resolve_dynamic_urls(self.rest_client)
         return totp_validate_data

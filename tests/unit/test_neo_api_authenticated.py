@@ -287,6 +287,36 @@ def test_totp_validate_success(requests_mock):
     assert client.configuration.edit_token == "edit_token_123"
 
 
+def test_totp_validate_captures_feed_url_and_rt_url(requests_mock):
+    """feedUrl/rtUrl are captured alongside baseUrl/dataCenter, as secondary
+    sources for the SFeed/order-feed URLs (see resolve_dynamic_urls)."""
+    client = NeoAPI(environment="prod", consumer_key="test_key")
+    client.configuration.view_token = "view_token_123"
+    client.configuration.sid = "sid_123"
+
+    validate_url = "https://mis.kotaksecurities.com/login/1.0/tradeApiValidate"
+    requests_mock.post(
+        validate_url,
+        json={
+            "data": {
+                "token": "edit_token_123",
+                "sid": "edit_sid_123",
+                "rid": "edit_rid_123",
+                "dataCenter": "DC1",
+                "baseUrl": "https://gw-napi.kotaksecurities.com",
+                "feedUrl": "https://login-feed.kotaksecurities.com/wsfeed",
+                "rtUrl": "https://login-rt.kotaksecurities.com/realtime",
+            }
+        },
+        status_code=200,
+    )
+
+    client.totp_validate(mpin="1234")
+
+    assert client.configuration.feed_url == "https://login-feed.kotaksecurities.com/wsfeed"
+    assert client.configuration.rt_url == "https://login-rt.kotaksecurities.com/realtime"
+
+
 def test_totp_validate_resolves_dynamic_websocket_url(requests_mock):
     """totp_validate() fetches the data center's feed URL, and create_websocket() uses it."""
     from neo_api_client.utils.urls import CONFIG_SERVICE_URL_UAT
@@ -821,6 +851,26 @@ def test_create_websocket_url_override(authenticated_client):
     """create_websocket(url=...) overrides the default feed URL."""
     ws = authenticated_client.create_websocket(url="wss://example.test/feed")
     assert ws.url == "wss://example.test/feed"
+
+
+def test_create_websocket_uses_feed_url_when_dynamic_config_missing(authenticated_client):
+    """totp_validate()'s feedUrl is used when the dynamic config service
+    didn't resolve sfeed_websocket_url."""
+    authenticated_client.configuration.feed_url = "https://login-feed.kotaksecurities.com/wsfeed"
+
+    ws = authenticated_client.create_websocket()
+
+    assert ws.url == "wss://login-feed.kotaksecurities.com/wsfeed"
+
+
+def test_create_websocket_dynamic_config_wins_over_feed_url(authenticated_client):
+    """sfeed_websocket_url (dynamic config) takes priority over feed_url (totp_validate)."""
+    authenticated_client.configuration.sfeed_websocket_url = "https://config.example.com/wsfeed"
+    authenticated_client.configuration.feed_url = "https://login-feed.kotaksecurities.com/wsfeed"
+
+    ws = authenticated_client.create_websocket()
+
+    assert ws.url == "wss://config.example.com/wsfeed"
 
 
 def test_create_websocket_requires_auth():

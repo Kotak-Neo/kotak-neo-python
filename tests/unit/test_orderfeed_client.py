@@ -462,6 +462,39 @@ def test_create_order_feed_explicit_url_kwarg_wins_over_dynamic_config():
     assert feed.url == "wss://override.example.com/realtime"
 
 
+def test_create_order_feed_uses_rt_url_when_dynamic_config_missing():
+    """totp_validate()'s rtUrl is used (ahead of base_url-derivation) when the
+    dynamic config service didn't resolve order_feed_url."""
+    c = _authed_client()  # base_url is set, order_feed_url is not
+    c.configuration.rt_url = "https://login-rt.kotaksecurities.com/realtime"
+
+    feed = c.create_order_feed()
+
+    assert feed.url == "wss://login-rt.kotaksecurities.com/realtime"
+
+
+def test_create_order_feed_dynamic_config_wins_over_rt_url():
+    """order_feed_url (dynamic config) takes priority over rt_url (totp_validate)."""
+    c = _authed_client()
+    c.configuration.order_feed_url = "https://config.example.com/realtime"
+    c.configuration.rt_url = "https://login-rt.kotaksecurities.com/realtime"
+
+    feed = c.create_order_feed()
+
+    assert feed.url == "wss://config.example.com/realtime"
+
+
+def test_create_order_feed_base_url_wins_over_rt_url_when_rt_url_absent():
+    """Confirms rt_url is an EXTRA layer, not a replacement: with neither
+    order_feed_url nor rt_url set, base_url-derivation still applies
+    (existing behavior, unchanged)."""
+    c = _authed_client()  # base_url = "https://e21.kotaksecurities.com"
+
+    feed = c.create_order_feed()
+
+    assert feed.url == "wss://e21.kotaksecurities.com/realtime"
+
+
 def test_create_order_feed_falls_back_to_hardcoded_constant_when_base_url_missing():
     """No dynamic config value and no base_url, but data_center matches a known
     ORDER_FEED_URL_* constant -> use it instead of raising."""
