@@ -679,7 +679,12 @@ else:
 
 
 # Tokens for the documented WebSocket operations
-LTP_TOKENS = [WsToken("nse_cm", "Nifty 50")]  # LTP by index name
+LTP_TOKENS = [
+    WsToken("nse_fo", "45107"),
+    WsToken("nse_cm", "Nifty 50"),  # LTP by index name
+    WsToken("nse_cm", "1333"),
+    WsToken("bse_cm", "500180"),
+]
 
 # Option chain: underlying + a batch of NSE F&O contract tokens
 OPTION_CHAIN_TOKENS = [
