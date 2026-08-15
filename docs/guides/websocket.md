@@ -318,7 +318,7 @@ Details:
 |----------|---------|---------|
 | `url` | `wss://sfeed.kotaksecurities.com/betafeed` | Feed endpoint (auto-resolved per account; see note above — pass explicitly to override) |
 | `user` / `auth` | `ucc` / `sid` | SFeed credentials — `user` is your UCC, `auth` is your `sid` (both from the `totp_validate()` response), auto-filled from your session; no need to set these yourself |
-| `source` / `platform` / `version` / `sdk_version` / `sdk_date` | internal defaults | Client/build identification sent to the feed — no need to change these |
+| `source` / `platform` / `version` / `sdk_version` / `sdk_date` | `"NEOTRADEAPI"` / internal defaults | Client/build identification sent to the feed. `source` is always `"NEOTRADEAPI"` — no need to change these |
 | `session_validation` | `False` | `sessionValidation` auth field |
 | `reconnect_delay` | `5` | Seconds between reconnect attempts (also used between initial connect retries) |
 | `max_reconnect_attempts` | `5` | Cap on reconnect attempts after a previously established connection later drops |
