@@ -248,7 +248,7 @@ none of them are required by the backend for a modify request, and the
 gone. Drop them from any call:
 
 ```python
-# Before (v2.3.0, "quick-modify" path)
+# Before (v3.0.0, "quick-modify" path)
 client.modify_order(
     order_id="250101000000001",
     price="1450",
