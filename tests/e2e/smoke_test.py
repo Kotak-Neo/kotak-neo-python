@@ -842,10 +842,10 @@ def _ws_unsubscribe_test(tokens, lite=False):
     return _test
 
 
-# LTP subscribe / unsubscribe (lite touchline feed)
+# LTP subscribe / unsubscribe (touchline feed)
 runner.run_test(
     "WEBSOCKET LTP SUBSCRIBE",
-    _ws_subscribe_test(LTP_TOKENS, lite=True),
+    _ws_subscribe_test(LTP_TOKENS),
     request_params={
         "inputtoken": [t.inputtoken for t in LTP_TOKENS],
         "ack_symbol": True,
@@ -854,7 +854,7 @@ runner.run_test(
 
 runner.run_test(
     "WEBSOCKET LTP UNSUBSCRIBE",
-    _ws_unsubscribe_test(LTP_TOKENS, lite=True),
+    _ws_unsubscribe_test(LTP_TOKENS),
     request_params={"inputtoken": [t.inputtoken for t in LTP_TOKENS]},
 )
 

@@ -4,7 +4,7 @@ Modern **async/await** WebSocket client for Kotak Neo's **SFeed** market-data fe
 (`native_batch` protocol). Introduced in **v2.2.0**, it replaces the legacy
 callback-based WebSocket.
 
-- **URL:** `wss://sfeed.kotaksecurities.com/wsfeed`
+- **URL:** `wss://sfeed.kotaksecurities.com/betafeed`
 - **Control plane:** JSON text frames (auth, subscribe, unsubscribe, snapshot)
 - **Data plane:** binary frames (little-endian, packed, batched) — decoded for you
   into typed Pydantic messages
@@ -316,8 +316,8 @@ Details:
 
 | Argument | Default | Purpose |
 |----------|---------|---------|
-| `url` | `wss://sfeed.kotaksecurities.com/wsfeed` | Feed endpoint (auto-resolved per account; see note above — pass explicitly to override) |
-| `user` / `auth` | auto-filled from your session | SFeed credentials — no need to set these yourself |
+| `url` | `wss://sfeed.kotaksecurities.com/betafeed` | Feed endpoint (auto-resolved per account; see note above — pass explicitly to override) |
+| `user` / `auth` | `ucc` / `sid` | SFeed credentials — `user` is your UCC, `auth` is your `sid` (both from the `totp_validate()` response), auto-filled from your session; no need to set these yourself |
 | `source` / `platform` / `version` / `sdk_version` / `sdk_date` | internal defaults | Client/build identification sent to the feed — no need to change these |
 | `session_validation` | `False` | `sessionValidation` auth field |
 | `reconnect_delay` | `5` | Seconds between reconnect attempts (also used between initial connect retries) |

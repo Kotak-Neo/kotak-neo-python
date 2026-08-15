@@ -4,8 +4,8 @@ from neo_api_client.utils.ws_scheme import to_websocket_scheme
 
 
 def test_https_becomes_wss():
-    assert to_websocket_scheme("https://sfeed.kotaksecurities.com/wsfeed") == (
-        "wss://sfeed.kotaksecurities.com/wsfeed"
+    assert to_websocket_scheme("https://sfeed.kotaksecurities.com/betafeed") == (
+        "wss://sfeed.kotaksecurities.com/betafeed"
     )
 
 
