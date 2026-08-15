@@ -968,6 +968,9 @@ class NeoAPI:
         elif self.configuration.feed_url:
             kwargs["url"] = self.configuration.feed_url
 
+        if "ucc" not in kwargs and "user" not in kwargs:
+            kwargs["ucc"] = self.configuration.ucc
+
         return SFeedWebSocket(
             access_token=self.configuration.edit_token,
             sid=self.configuration.edit_sid,

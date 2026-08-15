@@ -86,7 +86,7 @@ def test_auth_frame_fields():
     assert frame["user"] == "neome"
     assert frame["auth"] == "1"
     assert frame["format"] == "native_batch"
-    assert frame["source"] == "SFeed"
+    assert frame["source"] == "NEOTRADEAPI"
     assert frame["platform"] == "Web"
     assert frame["version"] == "1.2.3"
     assert frame["sdk_version"] == 2

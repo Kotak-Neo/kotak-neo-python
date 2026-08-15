@@ -84,13 +84,14 @@ class SFeedWebSocket:
         sid: str | None = None,
         url: str = SFEED_WEBSOCKET_URL,
         *,
-        user: str = "neome",
-        auth: str = "1",
-        source: str = "SFeed",
+        ucc: str | None = None,
+        user: str | None = None,
+        auth: str | None = None,
+        source: str = "NEOTRADEAPI",
         platform: str = "Web",
         version: str = "1.2.3",
         sdk_version: int = 2,
-        sdk_date: str = "2026-05-21T09:35:34.304Z",
+        sdk_date: str = "2026-08-07T09:41:17.667Z",
         session_validation: bool = False,
         reconnect_delay: int = 5,
         max_reconnect_attempts: int = 5,
@@ -105,11 +106,23 @@ class SFeedWebSocket:
         Args:
             access_token: Session token (retained for compatibility; the feed
                 uses the ``user``/``auth`` credentials below, not this token).
-            sid: Session id (retained for compatibility).
+            sid: Session id. Also used as the default ``auth`` credential (see
+                ``auth`` below) — some endpoints (e.g. the beta feed) reject
+                the connection a few seconds in if ``auth`` doesn't match a
+                real session's sid.
             url: Feed URL (default: SFeed production ``/wsfeed``).
+            ucc: Unique Client Code (from the totp_login()/totp_validate()
+                response). Used as the default ``user`` credential (see
+                ``user`` below).
             user: ``user`` credential for the native_batch auth frame.
+                Defaults to ``ucc`` when not given; falls back to the demo
+                placeholder ``"neome"`` only if ``ucc`` is also not given
+                (e.g. constructing without a real session, such as in tests).
             auth: ``auth`` credential for the native_batch auth frame.
-            source: Client identification (default 'SFeed').
+                Defaults to ``sid`` when not given; falls back to ``"1"`` only
+                if ``sid`` is also not given (e.g. constructing without a real
+                session, such as in tests).
+            source: Client identification (default 'NEOTRADEAPI').
             platform: Client platform string (default 'Web').
             version: Client version string sent in the auth frame.
             sdk_version: SDK/build version integer sent in the auth frame.
@@ -167,9 +180,10 @@ class SFeedWebSocket:
         """
         self.access_token = access_token
         self.sid = sid
+        self.ucc = ucc
         self.url = _to_websocket_scheme(url)
-        self.user = user
-        self.auth = auth
+        self.user = user if user is not None else (ucc or "neome")
+        self.auth = auth if auth is not None else (sid or "1")
         self.source = source
         self.platform = platform
         self.version = version

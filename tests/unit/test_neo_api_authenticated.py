@@ -288,8 +288,9 @@ def test_totp_validate_success(requests_mock):
 
 
 def test_totp_validate_captures_feed_url_and_rt_url(requests_mock):
-    """feedUrl/rtUrl are captured alongside baseUrl/dataCenter, as secondary
-    sources for the SFeed/order-feed URLs (see resolve_dynamic_urls)."""
+    """feedUrl/rtUrl/ucc are captured alongside baseUrl/dataCenter -- feedUrl/
+    rtUrl as secondary sources for the SFeed/order-feed URLs (see
+    resolve_dynamic_urls), ucc as the default SFeed "user" credential."""
     client = NeoAPI(environment="prod", consumer_key="test_key")
     client.configuration.view_token = "view_token_123"
     client.configuration.sid = "sid_123"
@@ -306,6 +307,7 @@ def test_totp_validate_captures_feed_url_and_rt_url(requests_mock):
                 "baseUrl": "https://gw-napi.kotaksecurities.com",
                 "feedUrl": "https://login-feed.kotaksecurities.com/wsfeed",
                 "rtUrl": "https://login-rt.kotaksecurities.com/realtime",
+                "ucc": "ABC123",
             }
         },
         status_code=200,
@@ -315,11 +317,62 @@ def test_totp_validate_captures_feed_url_and_rt_url(requests_mock):
 
     assert client.configuration.feed_url == "https://login-feed.kotaksecurities.com/wsfeed"
     assert client.configuration.rt_url == "https://login-rt.kotaksecurities.com/realtime"
+    assert client.configuration.ucc == "ABC123"
+
+
+def test_totp_login_captures_ucc(requests_mock):
+    """ucc from the totp_login() response is captured early, before totp_validate()."""
+    client = NeoAPI(environment="prod", consumer_key="test_key")
+
+    login_url = "https://mis.kotaksecurities.com/login/1.0/tradeApiLogin"
+    requests_mock.post(
+        login_url,
+        json={
+            "data": {
+                "token": "view_token_123",
+                "sid": "sid_123",
+                "rid": "rid_123",
+                "ucc": "ABC123",
+            }
+        },
+        status_code=200,
+    )
+
+    client.totp_login(mobile_number="+919999999999", ucc="ABC123", totp="123456")
+
+    assert client.configuration.ucc == "ABC123"
+
+
+def test_totp_validate_keeps_ucc_from_login_if_validate_response_omits_it(requests_mock):
+    """totp_validate() shouldn't clobber ucc already captured from totp_login()
+    if its own response happens not to include the field."""
+    client = NeoAPI(environment="prod", consumer_key="test_key")
+    client.configuration.view_token = "view_token_123"
+    client.configuration.sid = "sid_123"
+    client.configuration.ucc = "ABC123"  # already captured from totp_login()
+
+    validate_url = "https://mis.kotaksecurities.com/login/1.0/tradeApiValidate"
+    requests_mock.post(
+        validate_url,
+        json={
+            "data": {
+                "token": "edit_token_123",
+                "sid": "edit_sid_123",
+                "rid": "edit_rid_123",
+                # No "ucc" in this response.
+            }
+        },
+        status_code=200,
+    )
+
+    client.totp_validate(mpin="1234")
+
+    assert client.configuration.ucc == "ABC123"
 
 
 def test_totp_validate_resolves_dynamic_websocket_url(requests_mock):
     """totp_validate() fetches the data center's feed URL, and create_websocket() uses it."""
-    from neo_api_client.utils.urls import CONFIG_SERVICE_URL_UAT
+    from neo_api_client.utils.urls import CONFIG_SERVICE_URL_PROD
 
     client = NeoAPI(environment="prod", consumer_key="test_key")
     client.configuration.view_token = "view_token_123"
@@ -339,9 +392,8 @@ def test_totp_validate_resolves_dynamic_websocket_url(requests_mock):
         },
         status_code=200,
     )
-    # Prod currently reuses the UAT config URL as a placeholder (see urls.py).
     requests_mock.get(
-        CONFIG_SERVICE_URL_UAT,
+        CONFIG_SERVICE_URL_PROD,
         json={
             "data": {
                 "configs": {
@@ -861,6 +913,24 @@ def test_create_websocket_uses_feed_url_when_dynamic_config_missing(authenticate
     ws = authenticated_client.create_websocket()
 
     assert ws.url == "wss://login-feed.kotaksecurities.com/wsfeed"
+
+
+def test_create_websocket_passes_ucc_as_user(authenticated_client):
+    """create_websocket() passes configuration.ucc through, so the auth
+    frame's "user" field is the account's real UCC, not the demo placeholder."""
+    authenticated_client.configuration.ucc = "ABC123"
+
+    ws = authenticated_client.create_websocket()
+
+    assert ws.user == "ABC123"
+
+
+def test_create_websocket_explicit_user_kwarg_wins_over_ucc(authenticated_client):
+    authenticated_client.configuration.ucc = "ABC123"
+
+    ws = authenticated_client.create_websocket(user="explicit-user")
+
+    assert ws.user == "explicit-user"
 
 
 def test_create_websocket_dynamic_config_wins_over_feed_url(authenticated_client):

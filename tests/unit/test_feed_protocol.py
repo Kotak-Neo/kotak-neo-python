@@ -163,10 +163,10 @@ def test_decode_mini_touch_line():
     assert msg.net_change_percent == pytest.approx(1.23)
 
 
-def test_mini_touch_line_close_price_not_divided():
-    """Quirk: mini touch line close_price is used as-is (NOT scaled)."""
+def test_mini_touch_line_close_price_scaled():
+    """close_price is scaled by the exchange divider, like every other price field."""
     msg = decode_packet(_mini_packet(), DIVIDERS)
-    assert msg.close_price == pytest.approx(149900.0)  # raw, not /100
+    assert msg.close_price == pytest.approx(1499.00)  # 149900 / 100
 
 
 def test_decode_market_picture_touch_line():

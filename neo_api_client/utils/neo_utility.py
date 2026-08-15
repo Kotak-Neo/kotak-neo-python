@@ -47,6 +47,7 @@ class NeoUtility:
         self.neo_fin_key = neo_fin_key
         self.data_center = None
         self.base_url = None
+        self.ucc = None
         self.totp_session_id = None
         # Resolved from the dynamic config service (see resolve_dynamic_urls);
         # None until that call succeeds, so callers fall back to the

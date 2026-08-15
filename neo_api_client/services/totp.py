@@ -37,6 +37,7 @@ class TotpAPI:
         if 200 <= totp_login.status_code <= 299 and isinstance(data, dict):
             self.api_client.configuration.view_token = data.get("token")
             self.api_client.configuration.sid = data.get("sid")
+            self.api_client.configuration.ucc = data.get("ucc")
         return totp_login_data
 
     def totp_validate(self, mpin=None):
@@ -70,6 +71,7 @@ class TotpAPI:
             self.api_client.configuration.edit_rid = data.get("rid")
             self.api_client.configuration.data_center = data.get("dataCenter")
             self.api_client.configuration.base_url = data.get("baseUrl")
+            self.api_client.configuration.ucc = data.get("ucc") or self.api_client.configuration.ucc
             # Secondary source for the feed URLs, used when the dynamic
             # config service doesn't provide one (see resolve_dynamic_urls).
             self.api_client.configuration.feed_url = data.get("feedUrl")

@@ -134,6 +134,45 @@ def _patch_connect(monkeypatch, fake):
     monkeypatch.setattr(_client_mod.websockets, "connect", fake_connect)
 
 
+# ---- auth frame credential defaults --------------------------------------
+
+
+def test_auth_defaults_to_sid_when_given():
+    """Some endpoints (e.g. the beta feed) reject the connection a few
+    seconds in unless auth matches a real session's sid -- auth must default
+    to sid, not the hardcoded demo placeholder, whenever a real sid is given."""
+    ws = SFeedWebSocket(access_token="TOKEN", sid="SID123", url="wss://fake/feed")
+    assert ws.auth == "SID123"
+
+
+def test_auth_explicit_override_wins_over_sid():
+    ws = SFeedWebSocket(sid="SID123", url="wss://fake/feed", auth="explicit-auth")
+    assert ws.auth == "explicit-auth"
+
+
+def test_auth_falls_back_to_placeholder_without_sid():
+    """No real session available (e.g. constructing without sid, as in demos
+    and most other tests here) -- falls back to the original demo placeholder."""
+    ws = SFeedWebSocket(url="wss://fake/feed")
+    assert ws.auth == "1"
+
+
+def test_user_defaults_to_ucc_when_given():
+    ws = SFeedWebSocket(ucc="ABC123", url="wss://fake/feed")
+    assert ws.user == "ABC123"
+
+
+def test_user_explicit_override_wins_over_ucc():
+    ws = SFeedWebSocket(ucc="ABC123", url="wss://fake/feed", user="explicit-user")
+    assert ws.user == "explicit-user"
+
+
+def test_user_falls_back_to_placeholder_without_ucc():
+    """No real session available -- falls back to the original demo placeholder."""
+    ws = SFeedWebSocket(url="wss://fake/feed")
+    assert ws.user == "neome"
+
+
 def test_connect_authenticate_and_receive(monkeypatch):
     """Full happy path: connect, auth (dividers stored), decode a binary frame."""
 

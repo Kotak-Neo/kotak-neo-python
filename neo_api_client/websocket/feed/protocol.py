@@ -189,8 +189,7 @@ def _decode_mini(packet: bytes, exchange: str, divider: int) -> SFeedScripLite:
         last_traded_price=last_traded_price / divider,
         last_trade_time=last_trade_time,
         last_trade_qty=last_trade_qty,
-        # Quirk: mini-touch-line close_price is used as-is (NOT divided).
-        close_price=float(close_price),
+        close_price=close_price / divider,
         net_change=net_chg / divider,
         net_change_percent=net_chg_percent / 100,
         market_lot=market_lot,

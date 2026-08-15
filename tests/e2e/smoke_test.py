@@ -722,8 +722,29 @@ def _trace_ws_frames(ws):
     ws._ws.send = send_and_print
 
 
-def _ws_subscribe_test(tokens):
+def _trace_ws_login(ws):
+    """Wrap _build_auth_frame() so the login/auth frame sent during connect()
+    is printed.
+
+    Must be installed BEFORE connect() — that's where the frame is actually
+    built and sent (inside _authenticate()), before ws._ws even exists, so
+    _trace_ws_frames() (which wraps ws._ws.send) is installed too late to
+    catch it.
+    """
+    original_build_auth_frame = ws._build_auth_frame
+
+    def build_and_print():
+        frame = original_build_auth_frame()
+        print(f"[WS LOGIN →] {json.dumps(frame)}")
+        return frame
+
+    ws._build_auth_frame = build_and_print
+
+
+def _ws_subscribe_test(tokens, lite=False):
     """Connect, subscribe to `tokens`, collect messages for a few seconds.
+
+    Uses subscribe_scrips_lite() when `lite=True`, subscribe_scrips() otherwise.
 
     Returns a callable suitable for runner.run_test().
     """
@@ -737,12 +758,14 @@ def _ws_subscribe_test(tokens):
             ws.on_message = runner.on_ws_message
             ws.on_error = runner.on_ws_error
             print(f"\n[WEBSOCKET URL] SFeed: {ws.url}")
+            _trace_ws_login(ws)
 
             await ws.connect()
             runner.ws_connected = ws.is_connected
             _trace_ws_frames(ws)
 
-            await ws.subscribe_scrips(tokens)
+            subscribe = ws.subscribe_scrips_lite if lite else ws.subscribe_scrips
+            await subscribe(tokens)
             print(f"\nSubscribed to {len(tokens)} token(s)")
             print("[TRADING SYMBOLS MAP] (from subscribe ack):")
             print(json.dumps(ws.trading_symbols, indent=2))
@@ -768,8 +791,10 @@ def _ws_subscribe_test(tokens):
     return _test
 
 
-def _ws_unsubscribe_test(tokens):
+def _ws_unsubscribe_test(tokens, lite=False):
     """Subscribe to `tokens`, unsubscribe, then confirm the feed goes quiet.
+
+    Uses the *_scrips_lite() variants when `lite=True`, *_scrips() otherwise.
 
     Returns a callable suitable for runner.run_test().
     """
@@ -781,17 +806,21 @@ def _ws_unsubscribe_test(tokens):
             ws = runner.client.create_websocket()
             ws.on_error = runner.on_ws_error
             print(f"\n[WEBSOCKET URL] SFeed: {ws.url}")
+            _trace_ws_login(ws)
 
             await ws.connect()
             _trace_ws_frames(ws)
 
+            subscribe = ws.subscribe_scrips_lite if lite else ws.subscribe_scrips
+            unsubscribe = ws.unsubscribe_scrips_lite if lite else ws.unsubscribe_scrips
+
             # Subscribe briefly so we know the feed is live.
-            await ws.subscribe_scrips(tokens)
+            await subscribe(tokens)
             print(f"\nSubscribed to {len(tokens)} token(s) - receiving briefly (3 seconds)...")
             await _collect_for(ws, 3)
 
             # Unsubscribe, then count any messages that still arrive.
-            await ws.unsubscribe_scrips(tokens)
+            await unsubscribe(tokens)
             print("\nUnsubscribed - confirming feed goes quiet (3 seconds)...")
             messages_after = await _collect_for(ws, 3)
 
@@ -813,10 +842,10 @@ def _ws_unsubscribe_test(tokens):
     return _test
 
 
-# LTP subscribe / unsubscribe (single index token)
+# LTP subscribe / unsubscribe (lite touchline feed)
 runner.run_test(
     "WEBSOCKET LTP SUBSCRIBE",
-    _ws_subscribe_test(LTP_TOKENS),
+    _ws_subscribe_test(LTP_TOKENS, lite=True),
     request_params={
         "inputtoken": [t.inputtoken for t in LTP_TOKENS],
         "ack_symbol": True,
@@ -825,7 +854,7 @@ runner.run_test(
 
 runner.run_test(
     "WEBSOCKET LTP UNSUBSCRIBE",
-    _ws_unsubscribe_test(LTP_TOKENS),
+    _ws_unsubscribe_test(LTP_TOKENS, lite=True),
     request_params={"inputtoken": [t.inputtoken for t in LTP_TOKENS]},
 )
 
@@ -858,9 +887,22 @@ def _order_feed_test():
     messages — a clean connect + graceful close is still a PASS.
     """
 
+    def _print_message(message):
+        # Most frames parse into a typed OrderUpdate/PositionUpdate, but
+        # _parse_message() falls back to the raw dict/string for an
+        # unrecognized type or a payload that doesn't fit the model.
+        if hasattr(message, "model_dump"):
+            print(json.dumps(message.model_dump(), indent=2, default=str))
+        else:
+            print(json.dumps(message, indent=2, default=str))
+
     def _test():
         async def _run():
             order_messages = []
+
+            def _on_message(message):
+                order_messages.append(message)
+                _print_message(message)
 
             feed = runner.client.create_order_feed()
             feed.on_error = runner.on_ws_error
@@ -871,7 +913,7 @@ def _order_feed_test():
             print(f"\nOrder feed connected: {connected} ({feed.url})")
 
             print("Listening for order/position updates (60 seconds)...")
-            await _collect_for(feed, 60, on_message=order_messages.append)
+            await _collect_for(feed, 60, on_message=_on_message)
 
             await feed.close()
             return connected, order_messages
@@ -882,15 +924,6 @@ def _order_feed_test():
             raise RuntimeError(f"Order feed error: {runner.ws_error}")
         if not connected:
             raise RuntimeError("Order feed did not connect")
-
-        for message in order_messages:
-            # Most frames parse into a typed OrderUpdate/PositionUpdate, but
-            # _parse_message() falls back to the raw dict/string for an
-            # unrecognized type or a payload that doesn't fit the model.
-            if hasattr(message, "model_dump"):
-                print(json.dumps(message.model_dump(), indent=2, default=str))
-            else:
-                print(json.dumps(message, indent=2, default=str))
 
         return {
             "connected": connected,

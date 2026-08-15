@@ -317,9 +317,8 @@ Details:
 | Argument | Default | Purpose |
 |----------|---------|---------|
 | `url` | `wss://sfeed.kotaksecurities.com/wsfeed` | Feed endpoint (auto-resolved per account; see note above — pass explicitly to override) |
-| `user` / `auth` | `"neome"` / `"1"` | SFeed credentials (auth frame) |
-| `source` / `platform` / `version` | `"SFeed"` / `"Web"` / `"1.2.3"` | Client identification |
-| `sdk_version` / `sdk_date` | `2` / build date | SDK identifiers |
+| `user` / `auth` | auto-filled from your session | SFeed credentials — no need to set these yourself |
+| `source` / `platform` / `version` / `sdk_version` / `sdk_date` | internal defaults | Client/build identification sent to the feed — no need to change these |
 | `session_validation` | `False` | `sessionValidation` auth field |
 | `reconnect_delay` | `5` | Seconds between reconnect attempts (also used between initial connect retries) |
 | `max_reconnect_attempts` | `5` | Cap on reconnect attempts after a previously established connection later drops |

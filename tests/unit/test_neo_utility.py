@@ -290,9 +290,8 @@ def test_resolve_dynamic_urls_order_feed_endpoint_missing_leaves_none(requests_m
     assert utility.order_feed_url is None
 
 
-def test_resolve_dynamic_urls_prod_uses_qa_placeholder(requests_mock):
-    """Prod currently points at the UAT config URL with environment=qa (real
-    prod value pending -- environment=uat returns an empty config)."""
+def test_resolve_dynamic_urls_prod_uses_prod_config_service(requests_mock):
+    """Prod queries the real prod config-service URL with environment=prod."""
     utility = NeoUtility(host="prod")
     utility.data_center = "E43"
     rest_client = RESTClientObject(utility)
@@ -312,7 +311,7 @@ def test_resolve_dynamic_urls_prod_uses_qa_placeholder(requests_mock):
     utility.resolve_dynamic_urls(rest_client)
 
     assert utility.sfeed_websocket_url == "https://uat.kotaksecurities.com/ufeed"
-    assert requests_mock.last_request.query["environment"] == "qa"
+    assert requests_mock.last_request.query["environment"] == "prod"
 
 
 def test_resolve_dynamic_urls_no_broadcast_source_leaves_none(requests_mock):
