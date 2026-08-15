@@ -24,18 +24,18 @@ Step-by-step guide for upgrading from the previous SDK version.
 ---
 
 #### [SFeed WebSocket Guide](websocket.md)
-Modern async/await streaming client for live market data (v2.2.0+).
+Modern async/await streaming client for live market data (v3.0.0+).
 
 **Topics Covered:**
 - Async/await usage with `async for` iteration
 - Batched subscribe/unsubscribe and snapshot
 - Typed messages (`SFeedScrip`, `SFeedScripLite`, `SFeedIndex`, `SFeedMarketStatus`)
 - Configuration, error handling, and callbacks
-- Migration from the legacy callback-based WebSocket (removed in v2.2.0)
+- Migration from the legacy callback-based WebSocket (removed in v3.0.0)
 
 **Who should read:**
 - Anyone consuming real-time market data
-- Developers migrating from the pre-2.2.0 WebSocket API
+- Developers migrating from the pre-2.0.2 WebSocket API
 
 ---
 
