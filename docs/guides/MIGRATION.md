@@ -368,7 +368,7 @@ checked `if "Error" in response:`, no change is needed here.
 
 - **The async WebSocket clients** (`SFeedWebSocket`, `OrderFeedWebSocket` —
   see §6) do raise real exceptions: `AuthenticationError`, `ConnectionError`,
-  and friends from the typed hierarchy below. This is new in v2.2.x, since
+  and friends from the typed hierarchy below. This is new in v3.0.x, since
   the WebSocket client itself is new.
 
 - **The optional rate limiter** (off by default; only active if you construct
@@ -395,7 +395,7 @@ and friends.
 
 ## 5. Removed methods
 
-| Removed in v2.2.x | Replacement |
+| Removed in v3.0.x | Replacement |
 |---|---|
 | `client.subscribe(...)` | `client.create_websocket()` → `ws.subscribe_scrips(...)` (see §6) |
 | `client.un_subscribe(...)` | `ws.unsubscribe_scrips(...)` |
