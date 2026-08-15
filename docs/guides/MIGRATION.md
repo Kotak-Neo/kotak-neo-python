@@ -102,7 +102,7 @@ client.totp_validate(mpin="1234")
 
 ### ⚠️ `NeoAPI(...)` parameter order changed — silent breakage risk
 
-| | v2.0.2 | v2.2.x |
+| | v2.0.2 | v3.x.x |
 |---|---|---|
 | Parameter order | `environment, access_token, neo_fin_key, consumer_key` | `consumer_key, environment, access_token, neo_fin_key` |
 | `environment` default | `"uat"` | `"prod"` |
@@ -349,7 +349,7 @@ checked `if "Error" in response:`, no change is needed here.
 
 - **`totp_login()` / `totp_validate()`** — a network-level failure (e.g. the
   host is unreachable) raises `ApiException` **uncaught**, in both v2.0.2 and
-  v2.2.x. This is the one place in the REST API surface where wrapping the
+  v3.x.x. This is the one place in the REST API surface where wrapping the
   call in `try/except ApiException` is warranted:
 
   ```python
