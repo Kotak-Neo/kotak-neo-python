@@ -269,20 +269,7 @@ NEO_MPIN=123456
 - **UCC**: NEO app → Profile section
 - **TOTP Secret**: https://www.kotakneo.com/platform/kotak-neo-trade-api/ → Register for TOTP → Note the secret from QR code setup
 
-## Performance Benchmarks
 
-Average API response times (production environment):
-
-| API Function | Avg Latency |
-|--------------|-------------|
-| Login & Authentication | 134-367 ms |
-| Order Operations | 67-71 ms |
-| Portfolio & Positions | 68-77 ms |
-| Market Data (Quotes) | 289 ms |
-| Margin Calculation | 110 ms |
-| Scrip Master | 1250 ms |
-
-*Tested on production environment with real API calls*
 
 ## Common Parameters
 
