@@ -134,27 +134,6 @@ and Cover orders are no longer supported).
 - `DAY` - Valid for the day
 - `IOC` - Immediate or Cancel
 
-## Performance Benchmarks
-
-Average API latency (production environment):
-
-| Function | Avg Latency |
-|----------|-------------|
-| TOTP Login | 367 ms |
-| TOTP Validate | 134 ms |
-| Place Order | 139 ms |
-| Modify Order | 176 ms |
-| Cancel Order | 102 ms |
-| Quotes | 289 ms |
-| Order Report | 71 ms |
-| Trade Report | 67 ms |
-| Positions | 68 ms |
-| Holdings | 73 ms |
-| Limits | 77 ms |
-| Margin Required | 110 ms |
-| Scrip Master | 1250 ms |
-| Search Scrip | 153 ms |
-
 ## Support
 
 For issues or questions:
