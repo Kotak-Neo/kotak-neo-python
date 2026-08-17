@@ -6,7 +6,7 @@ Comprehensive guides for developers, maintainers, and contributors.
 
 ### For Developers
 
-#### [Migration Guide (v2.0.2 → v3.0.0)](MIGRATION.md) ⭐ **UPGRADING? START HERE**
+#### [Migration Guide (v2.0.2 → v3.0.X)](MIGRATION.md) ⭐ **UPGRADING? START HERE**
 Step-by-step guide for upgrading from the previous SDK version.
 
 **Topics Covered:**

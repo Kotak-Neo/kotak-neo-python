@@ -1,4 +1,4 @@
-# Migration Guide — v2.0.2 → v3.0.0
+# Migration Guide — v2.0.2 → v3.0.X
 
 This guide helps you upgrade the **Kotak Neo Python SDK** (`neo_api_client`) from
 **v2.0.2** to **v3.0.0**.
