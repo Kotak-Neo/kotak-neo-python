@@ -395,14 +395,14 @@ def test_close_with_no_session_is_noop():
 
 
 def test_close_log_failure_is_suppressed(monkeypatch):
-    """A failing close-log must not prevent session.close() (353-354)."""
+    """A failing close-log must not prevent session.close() (354-355)."""
     _enable_enhanced(monkeypatch)
     client = RESTClientObject(DummyConfig())
 
     def boom(*a, **k):
         raise RuntimeError("logging down")
 
-    monkeypatch.setattr(rest_module.logger, "info", boom)
+    monkeypatch.setattr(rest_module.logger, "debug", boom)
     client.close()  # exception suppressed; still closes cleanly
     assert client.session is not None
 

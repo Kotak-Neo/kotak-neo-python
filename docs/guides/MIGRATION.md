@@ -502,8 +502,10 @@ See **[Order Feed](../functions/websocket/order_feed.md)**.
   server (useful for IP-whitelisting).
 - **No stdout printing from the library.** The old SDK printed warnings/errors to
   stdout; the new SDK uses structured logging.
-- **Structured logging.** Configure via `NEO_LOG_LEVEL` / `NEO_LOG_JSON`
-  environment variables.
+- **Structured logging.** Quiet by default (`NEO_LOG_LEVEL` defaults to
+  `WARNING`, so routine per-request tracing stays silent) — set
+  `NEO_LOG_LEVEL=INFO` or `DEBUG` for more verbosity. Also configurable via
+  `NEO_LOG_JSON`.
 - **`limits()` takes no parameters.** It always requests limits across all
   segments, exchanges, and products. If you called `limits(segment=..., exchange=..., product=...)`,
   drop those arguments — `client.limits()` now covers everything in one call.

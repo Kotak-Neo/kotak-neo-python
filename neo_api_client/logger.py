@@ -13,8 +13,12 @@ from typing import Any
 import structlog
 from structlog.types import FilteringBoundLogger
 
-# Configure log level from environment
-LOG_LEVEL = os.getenv("NEO_LOG_LEVEL", "INFO").upper()
+# Configure log level from environment. Defaults to WARNING so the SDK is
+# quiet out of the box -- routine per-request tracing (api_request_start/
+# success, rest_client_initialized/closing) logs at DEBUG; only warnings and
+# errors are visible unless a caller explicitly opts into more verbosity via
+# NEO_LOG_LEVEL=INFO or DEBUG.
+LOG_LEVEL = os.getenv("NEO_LOG_LEVEL", "WARNING").upper()
 
 
 def add_correlation_id(

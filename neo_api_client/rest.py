@@ -59,7 +59,7 @@ class RESTClientObject:
 
         if _ENHANCED_FEATURES and enable_rate_limiting:
             self.rate_limiter = get_rate_limiter()
-            logger.info(
+            logger.debug(
                 "rest_client_initialized",
                 rate_limiting=enable_rate_limiting,
                 timeout=DEFAULT_TIMEOUT,
@@ -196,7 +196,7 @@ class RESTClientObject:
             if hasattr(self.configuration, "consumer_key") and self.configuration.consumer_key:
                 headers["X-Client-ID"] = self.configuration.consumer_key[:8] + "***"
 
-            logger.info(
+            logger.debug(
                 "api_request_start",
                 request_id=request_id,
                 method=method,
@@ -241,7 +241,7 @@ class RESTClientObject:
             # Log success if enhanced features available
             if _ENHANCED_FEATURES and request_id and start_time:
                 duration_ms = (time.time() - start_time) * 1000
-                logger.info(
+                logger.debug(
                     "api_request_success",
                     request_id=request_id,
                     status_code=response.status_code,
@@ -350,7 +350,7 @@ class RESTClientObject:
             # Best-effort close log; it must never mask the session.close() below.
             try:
                 if _ENHANCED_FEATURES:
-                    logger.info("rest_client_closing")
+                    logger.debug("rest_client_closing")
             except Exception:  # nosec B110
                 pass
             self.session.close()
