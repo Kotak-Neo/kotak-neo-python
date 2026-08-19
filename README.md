@@ -141,6 +141,7 @@ Detailed documentation for all SDK functions with examples and real API response
 **API Documentation:**
 - **[Complete API Reference](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/README.md)** - All SDK functions
 - **[SFeed WebSocket Guide](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/guides/websocket.md)** - Async streaming client, protocol & migration
+- **[Logging Guide](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/guides/logging.md)** - `setup_logging()`, log levels & configuration
 - **[All Guides](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/guides/README.md)** - Complete guide index
 
 ## WebSocket Streaming Example (SFeed)

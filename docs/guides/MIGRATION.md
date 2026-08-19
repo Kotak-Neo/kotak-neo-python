@@ -500,43 +500,11 @@ See **[Order Feed](../functions/websocket/order_feed.md)**.
   (`/quick/user/orders/<order_no>`); omit `order_id` for the full order book.
 - **`whatsmyip()`.** New method returning the client's outbound IP as seen by the
   server (useful for IP-whitelisting).
-- **No stdout printing from the library.** The old SDK printed warnings/errors to
-  stdout; the new SDK uses structured logging.
-- **Structured logging.** Quiet by default (`NEO_LOG_LEVEL` defaults to
-  `WARNING`) — set `NEO_LOG_LEVEL=INFO` for more verbosity. Also
-  configurable via `NEO_LOG_JSON`. Every entry — including ones logged by
-  third-party libraries the SDK depends on, like `httpx` — carries a
-  `timestamp`, `level`, `logger` name, and `environment` (`"prod"`/`"uat"`,
-  taken from the `NeoAPI(environment=...)` your client was actually
-  constructed with, once it's been created — `"unknown"` before that, or if
-  none was ever created in this process). Sensitive fields (passwords,
-  tokens, `sid`, `mpin`, OTP/TOTP, `Authorization`/`Auth` headers, etc.) are
-  automatically masked before anything is written.
-- **Rotating log file, on by default, covers REST *and* WebSocket.**
-  Written to `logs/neo-api-client.log` (relative to your working directory),
-  rotated daily with 7 days retained. Independent of the console level.
-  Configure via `NEO_LOG_FILE_ENABLED` (set to `false` to disable),
-  `NEO_LOG_FILE_PATH`, `NEO_LOG_FILE_LEVEL`, and `NEO_LOG_FILE_BACKUP_COUNT`.
-- **Log levels used by the SDK** (set `level`/`file_level` to the lowest one
-  you want to see — each level also includes everything above it):
-
-  | Level | What's logged |
-  |-------|----------------|
-  | `INFO` | Trade REST request/response tracing — `api_request_start` (method, URL, query params, body) and `api_request_success` (status, duration, response body) — plus rate-limiter/circuit-breaker lifecycle events and a successful WebSocket connect/authenticate/reconnect/subscribe/unsubscribe. |
-  | `WARNING` | Recoverable issues: a WebSocket connect/reconnect attempt failing (before the next retry), a disconnect, a retried request, or a circuit breaker reopening/rejecting a call. |
-  | `ERROR` | Failures: REST 4xx/5xx responses (`api_error_response` — logged even if you don't pass `raise_on_error`, which only controls whether it's *also* raised), request timeouts/connection errors, WebSocket authentication/connect/subscribe/unsubscribe failures, exhausted reconnect attempts, and circuit breaker opening. |
-
-  Response bodies over 4KB are logged as a size summary instead of in full
-  (e.g. the scrip master download), so one large response can't bloat the
-  log file — the object returned to your code is never truncated, only what
-  gets written to the log.
-- **Programmatic control via `setup_logging(...)`.** Both `level` (console)
-  and `file_level` (file) also accept `"NOLOG"` to disable that output
-  entirely — e.g. `setup_logging(file_level="NOLOG")` stops file logging,
-  independent of the console. Call it directly (`from neo_api_client.logger
-  import setup_logging`) to reconfigure at runtime instead of via env vars;
-  each call fully replaces the previous configuration rather than adding to
-  it.
+- **Structured logging.** The old SDK printed warnings/errors to stdout; the
+  new SDK uses structured logging instead, on both REST and WebSocket
+  clients, with a rotating log file on by default. See the
+  [Logging Guide](logging.md) for `setup_logging(...)` usage, log levels,
+  and configuration.
 - **`limits()` takes no parameters.** It always requests limits across all
   segments, exchanges, and products. If you called `limits(segment=..., exchange=..., product=...)`,
   drop those arguments — `client.limits()` now covers everything in one call.
