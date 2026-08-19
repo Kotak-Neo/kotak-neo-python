@@ -506,6 +506,21 @@ See **[Order Feed](../functions/websocket/order_feed.md)**.
   `WARNING`, so routine per-request tracing stays silent) — set
   `NEO_LOG_LEVEL=INFO` or `DEBUG` for more verbosity. Also configurable via
   `NEO_LOG_JSON`.
+- **Rotating log file, on by default, covers REST *and* WebSocket.**
+  Warnings and errors — including WebSocket connect failures, disconnects,
+  reconnect attempts, authentication failures, and subscription errors for
+  both `SFeedWebSocket` and `OrderFeedWebSocket`, not just REST calls — are
+  written to `logs/neo-api-client.log` (relative to your working directory),
+  rotated daily with 7 days retained. Independent of the console level.
+  Configure via `NEO_LOG_FILE_ENABLED` (set to `false` to disable),
+  `NEO_LOG_FILE_PATH`, `NEO_LOG_FILE_LEVEL`, and `NEO_LOG_FILE_BACKUP_COUNT`.
+- **Programmatic control via `setup_logging(...)`.** Both `level` (console)
+  and `file_level` (file) also accept `"NOLOG"` to disable that output
+  entirely — e.g. `setup_logging(file_level="NOLOG")` stops file logging,
+  independent of the console. Call it directly (`from neo_api_client.logger
+  import setup_logging`) to reconfigure at runtime instead of via env vars;
+  each call fully replaces the previous configuration rather than adding to
+  it.
 - **`limits()` takes no parameters.** It always requests limits across all
   segments, exchanges, and products. If you called `limits(segment=..., exchange=..., product=...)`,
   drop those arguments — `client.limits()` now covers everything in one call.

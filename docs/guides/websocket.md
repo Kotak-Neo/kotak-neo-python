@@ -418,3 +418,26 @@ subscribe/receive/unsubscribe cycles for both documented flows:
   of `nse_fo` option tokens sent in one frame
 
 The unsubscribe cases also confirm the feed goes quiet after unsubscribing.
+
+### Logging
+
+Both `SFeedWebSocket` and `OrderFeedWebSocket` log connect/reconnect/
+disconnect/authentication/subscription events through the SDK's shared
+logger. Call `setup_logging(...)` (`from neo_api_client.logger import
+setup_logging`) to control where those go and at what level:
+
+```python
+from neo_api_client.logger import setup_logging
+
+# Console at INFO, file at its own default (WARNING+, rotates daily).
+setup_logging(level="INFO")
+
+# Console fully off, file at INFO+ instead -- useful when you don't want
+# log output cluttering the console but still want a detailed record.
+setup_logging(level="NOLOG", file_level="INFO")
+```
+
+`level` (console) and `file_level` (file) are independent and both accept
+`"NOLOG"` to disable that output entirely. See
+[Other notable changes](MIGRATION.md#7-other-notable-changes) in the
+Migration Guide for the full set of parameters and environment variables.

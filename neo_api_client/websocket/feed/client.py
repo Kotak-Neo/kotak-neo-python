@@ -21,6 +21,7 @@ from typing import Any
 
 import websockets
 
+from neo_api_client.logger import get_logger
 from neo_api_client.utils.urls import SFEED_WEBSOCKET_URL
 from neo_api_client.utils.ws_scheme import to_websocket_scheme as _to_websocket_scheme
 from neo_api_client.websocket.feed.exceptions import (
@@ -42,6 +43,8 @@ from neo_api_client.websocket.feed.protocol import (
     decode_packet,
     split_batch,
 )
+
+logger = get_logger(__name__)
 
 # Control-plane event names by subscription intent (see protocol §3.1).
 _SUBSCRIBE_EVENTS = {
@@ -375,14 +378,29 @@ class SFeedWebSocket:
             except Exception as e:
                 self._connected = False
                 connect_error = e
+                logger.warning(
+                    "sfeed_connect_attempt_failed",
+                    url=self.url,
+                    attempt=attempt + 1,
+                    max_attempts=self.max_connect_retries + 1,
+                    error=str(e),
+                )
                 if attempt < self.max_connect_retries:
                     await asyncio.sleep(self.reconnect_delay)
 
         if connect_error is not None:
+            logger.error(
+                "sfeed_connect_failed",
+                url=self.url,
+                attempts=self.max_connect_retries + 1,
+                error=str(connect_error),
+            )
             raise ConnectionError(
                 f"Failed to connect after {self.max_connect_retries + 1} attempt(s): "
                 f"{connect_error}"
             ) from connect_error
+
+        logger.debug("sfeed_connected", url=self.url)
 
         # Authenticate (may raise AuthenticationError).
         await self._authenticate()
@@ -426,10 +444,12 @@ class SFeedWebSocket:
                     data = json.loads(raw)
                     break
             if data is None or data.get("message_code") not in MSG_AUTH_RESPONSE_CODES:
+                logger.error("sfeed_authentication_failed", url=self.url, response=data)
                 raise AuthenticationError(f"Unexpected auth response: {data!r}")
 
             fmt = data.get("format")
             if fmt == "native_fallback":
+                logger.error("sfeed_authentication_downgraded", url=self.url)
                 raise AuthenticationError("Server downgraded to native_fallback (out of scope)")
 
             # Persist dividers keyed by exchange_id for binary decoding.
@@ -447,8 +467,10 @@ class SFeedWebSocket:
         except AuthenticationError:
             raise
         except asyncio.TimeoutError:
+            logger.error("sfeed_authentication_timeout", url=self.url)
             raise AuthenticationError("Authentication timeout") from None
         except Exception as e:
+            logger.error("sfeed_authentication_error", url=self.url, error=str(e))
             raise AuthenticationError(f"Authentication failed: {e}") from e
 
     async def _receive_loop(self) -> None:
@@ -628,10 +650,16 @@ class SFeedWebSocket:
     async def _handle_disconnect(self) -> None:
         """Reconnect from scratch and re-send all subscriptions."""
         self._connected = False
+        logger.warning("sfeed_disconnected", url=self.url, reconnect_count=self._reconnect_count)
         if self.on_disconnect:
             self.on_disconnect()
 
         if self._reconnect_count >= self.max_reconnect_attempts:
+            logger.error(
+                "sfeed_reconnect_exhausted",
+                url=self.url,
+                max_reconnect_attempts=self.max_reconnect_attempts,
+            )
             return
         self._reconnect_count += 1
         await asyncio.sleep(self.reconnect_delay)
@@ -645,7 +673,9 @@ class SFeedWebSocket:
                 by_intent.setdefault(intent, []).append(token)
             for intent, tokens in by_intent.items():
                 await self._send_subscribe(_SUBSCRIBE_EVENTS[intent], tokens)
+            logger.debug("sfeed_reconnected", url=self.url, reconnect_count=self._reconnect_count)
         except Exception as e:
+            logger.warning("sfeed_reconnect_attempt_failed", url=self.url, error=str(e))
             if self.on_error:
                 self.on_error(e)
             await self._handle_disconnect()
@@ -738,6 +768,12 @@ class SFeedWebSocket:
         new_pairs = {(token, intent) for token in tokens} - self._subscriptions
         projected_total = len(self._subscriptions) + len(new_pairs)
         if projected_total > self.max_subscriptions:
+            logger.error(
+                "sfeed_subscription_limit_exceeded",
+                intent=intent,
+                projected_total=projected_total,
+                max_subscriptions=self.max_subscriptions,
+            )
             raise SubscriptionError(
                 f"Subscription limit exceeded: {projected_total} tokens requested "
                 f"(currently {len(self._subscriptions)}, adding {len(new_pairs)} new), "
@@ -750,6 +786,7 @@ class SFeedWebSocket:
         except SubscriptionError:
             raise
         except Exception as e:
+            logger.error("sfeed_subscribe_failed", intent=intent, error=str(e))
             raise SubscriptionError(f"Failed to subscribe ({intent}): {e}") from e
 
         await self._wait_for_subscribe_ack()
@@ -769,6 +806,7 @@ class SFeedWebSocket:
                 if not any(t == token for t, _ in self._subscriptions):
                     self._trading_symbols.pop(token.inputtoken, None)
         except Exception as e:
+            logger.error("sfeed_unsubscribe_failed", intent=intent, error=str(e))
             raise SubscriptionError(f"Failed to unsubscribe ({intent}): {e}") from e
 
     # ---- Public subscription API -------------------------------------------

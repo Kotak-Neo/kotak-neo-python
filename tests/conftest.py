@@ -1,5 +1,13 @@
+import os
 import sys
 import types
+
+# Must run before the first `neo_api_client` import below: neo_api_client.logger
+# reads NEO_LOG_FILE_ENABLED at import time to decide whether to create a
+# rotating log file. Default it off for the test session so `pytest` doesn't
+# write logs/neo_api_client.log into the repo; setdefault() still lets a
+# developer override it explicitly to exercise the real file-logging path.
+os.environ.setdefault("NEO_LOG_FILE_ENABLED", "false")
 
 import pytest
 

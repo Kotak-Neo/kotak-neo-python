@@ -22,6 +22,7 @@ from urllib.parse import urlsplit, urlunsplit
 
 import websockets
 
+from neo_api_client.logger import get_logger
 from neo_api_client.utils.ws_scheme import to_websocket_scheme
 from neo_api_client.websocket.orderfeed.exceptions import (
     AlreadyConnectedError,
@@ -30,6 +31,8 @@ from neo_api_client.websocket.orderfeed.exceptions import (
     NotConnectedError,
 )
 from neo_api_client.websocket.orderfeed.models import OrderUpdate, PositionUpdate
+
+logger = get_logger(__name__)
 
 
 def _to_realtime_url(base_url: str) -> str:
@@ -223,14 +226,29 @@ class OrderFeedWebSocket:
             except Exception as e:
                 self._connected = False
                 connect_error = e
+                logger.warning(
+                    "orderfeed_connect_attempt_failed",
+                    url=self.url,
+                    attempt=attempt + 1,
+                    max_attempts=self.max_connect_retries + 1,
+                    error=str(e),
+                )
                 if attempt < self.max_connect_retries:
                     await asyncio.sleep(self.reconnect_delay)
 
         if connect_error is not None:
+            logger.error(
+                "orderfeed_connect_failed",
+                url=self.url,
+                attempts=self.max_connect_retries + 1,
+                error=str(connect_error),
+            )
             raise ConnectionError(
                 f"Failed to connect after {self.max_connect_retries + 1} attempt(s): "
                 f"{connect_error}"
             ) from connect_error
+
+        logger.debug("orderfeed_connected", url=self.url)
 
         # Send the mandatory raw connection payload immediately after open.
         try:
@@ -240,6 +258,7 @@ class OrderFeedWebSocket:
             with contextlib.suppress(Exception):
                 await self._ws.close()
             self._ws = None
+            logger.error("orderfeed_authentication_failed", url=self.url, error=str(e))
             raise AuthenticationError(f"Failed to send connection payload: {e}") from e
 
         self._receive_task = asyncio.create_task(self._receive_loop())
@@ -323,17 +342,29 @@ class OrderFeedWebSocket:
     async def _handle_disconnect(self) -> None:
         """Reconnect from scratch (server pushes state again on reconnect)."""
         self._connected = False
+        logger.warning(
+            "orderfeed_disconnected", url=self.url, reconnect_count=self._reconnect_count
+        )
         if self.on_disconnect:
             self.on_disconnect()
 
         if self._reconnect_count >= self.max_reconnect_attempts:
+            logger.error(
+                "orderfeed_reconnect_exhausted",
+                url=self.url,
+                max_reconnect_attempts=self.max_reconnect_attempts,
+            )
             return
         self._reconnect_count += 1
         await asyncio.sleep(self.reconnect_delay)
 
         try:
             await self.connect()
+            logger.debug(
+                "orderfeed_reconnected", url=self.url, reconnect_count=self._reconnect_count
+            )
         except Exception as e:
+            logger.warning("orderfeed_reconnect_attempt_failed", url=self.url, error=str(e))
             if self.on_error:
                 self.on_error(e)
             await self._handle_disconnect()

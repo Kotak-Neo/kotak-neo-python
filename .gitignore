@@ -61,6 +61,11 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 
+# Neo API Client rotating log file (see neo_api_client/logger.py) and its
+# daily-rotated backups (neo_api_client.log.YYYY-MM-DD -- *.log alone above
+# doesn't match those, since the date suffix comes after ".log").
+logs/
+
 # Flask stuff:
 instance/
 .webassets-cache

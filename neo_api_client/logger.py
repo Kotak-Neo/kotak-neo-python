@@ -6,6 +6,7 @@ correlation IDs, and configurable log levels.
 """
 
 import logging
+import logging.handlers
 import os
 import sys
 from typing import Any
@@ -19,6 +20,35 @@ from structlog.types import FilteringBoundLogger
 # errors are visible unless a caller explicitly opts into more verbosity via
 # NEO_LOG_LEVEL=INFO or DEBUG.
 LOG_LEVEL = os.getenv("NEO_LOG_LEVEL", "WARNING").upper()
+
+# Rotating file log -- on by default, independent of the console level above.
+# One file per calendar day (rotated at midnight), always JSON regardless of
+# the console's format, since it's meant for later analysis, not a terminal.
+FILE_LOG_ENABLED = os.getenv("NEO_LOG_FILE_ENABLED", "true").lower() == "true"
+FILE_LOG_PATH = os.getenv("NEO_LOG_FILE_PATH", os.path.join("logs", "neo-api-client.log"))
+FILE_LOG_LEVEL = os.getenv("NEO_LOG_FILE_LEVEL", "WARNING").upper()
+FILE_LOG_BACKUP_COUNT = int(os.getenv("NEO_LOG_FILE_BACKUP_COUNT", "7"))
+
+# Sentinel accepted by `level`/`file_level` to disable that output entirely
+# (e.g. setup_logging(file_level="NOLOG") stops writing to the log file).
+NOLOG = "NOLOG"
+
+
+def _level_value(name: str) -> int | None:
+    """Resolve a level name to its numeric logging value, or None for the
+    NOLOG sentinel (meaning: disable this handler entirely)."""
+    if name.upper() == NOLOG:
+        return None
+    return getattr(logging, name.upper())
+
+
+# Handlers setup_logging() itself has attached to the root logger. Tracked so
+# each call can remove exactly its own previous handlers before adding new
+# ones -- otherwise repeated calls (e.g. a caller reconfiguring the level at
+# runtime) would keep piling up handlers instead of replacing them, causing
+# duplicate log lines and a later setup_logging(level="NOLOG") failing to
+# actually silence anything an earlier call had already attached.
+_managed_handlers: list[logging.Handler] = []
 
 
 def add_correlation_id(
@@ -87,15 +117,39 @@ def censor_sensitive_data(
 
 
 def setup_logging(
-    level: str = LOG_LEVEL, json_output: bool = True, show_caller: bool = False
+    level: str = LOG_LEVEL,
+    json_output: bool = True,
+    show_caller: bool = False,
+    file_enabled: bool = FILE_LOG_ENABLED,
+    file_path: str = FILE_LOG_PATH,
+    file_level: str = FILE_LOG_LEVEL,
+    file_backup_count: int = FILE_LOG_BACKUP_COUNT,
 ) -> FilteringBoundLogger:
     """
     Configure structured logging for the SDK.
 
+    Two independent outputs, each with its own level:
+
+    - **Console** (stdout): controlled by ``level``/``json_output``.
+    - **Rotating file**: controlled by ``file_enabled``/``file_path``/
+      ``file_level``. On by default. Rotates at midnight (one file per
+      calendar day), keeps ``file_backup_count`` days, and is always JSON
+      regardless of ``json_output`` -- it's meant for later analysis, not a
+      terminal. A failure to create the file (e.g. read-only filesystem, no
+      permissions) is swallowed and falls back to console-only logging; it
+      must never break the SDK.
+
     Args:
-        level: Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-        json_output: If True, output JSON; if False, use console format
+        level: Console log level (DEBUG, INFO, WARNING, ERROR, CRITICAL, or
+            NOLOG to disable console output entirely)
+        json_output: If True, console output is JSON; if False, colored console format
         show_caller: If True, include caller information
+        file_enabled: Whether to also log to a rotating file
+        file_path: Path to the log file (parent directory created if missing)
+        file_level: Log level for the file handler, independent of ``level``
+            (DEBUG, INFO, WARNING, ERROR, CRITICAL, or NOLOG to disable the
+            file entirely -- equivalent to file_enabled=False)
+        file_backup_count: How many rotated daily files to keep
 
     Returns:
         Configured logger instance
@@ -135,44 +189,81 @@ def setup_logging(
 
     # Always censor sensitive data
     shared_processors.append(censor_sensitive_data)
+    # Defer final rendering to each stdlib handler's own formatter (below),
+    # so the console and file outputs can use different renderers (colored
+    # console text vs. always-JSON) from this one shared processor pipeline.
+    shared_processors.append(structlog.stdlib.ProcessorFormatter.wrap_for_formatter)
 
-    if json_output:
-        # JSON output for production
-        structlog.configure(
-            processors=shared_processors
-            + [
-                structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
-            ],
-            logger_factory=structlog.stdlib.LoggerFactory(),
-            cache_logger_on_first_use=True,
-        )
-
-        formatter = structlog.stdlib.ProcessorFormatter(
-            processors=[
-                structlog.stdlib.ProcessorFormatter.remove_processors_meta,
-                structlog.processors.JSONRenderer(),
-            ],
-        )
-    else:
-        # Console output for development
-        structlog.configure(
-            processors=shared_processors
-            + [
-                structlog.dev.ConsoleRenderer(colors=True),
-            ],
-            logger_factory=structlog.stdlib.LoggerFactory(),
-            cache_logger_on_first_use=True,
-        )
-        formatter = None
-
-    # Configure standard library logging
-    handler = logging.StreamHandler(sys.stdout)
-    if formatter:
-        handler.setFormatter(formatter)
+    structlog.configure(
+        processors=shared_processors,
+        logger_factory=structlog.stdlib.LoggerFactory(),
+        cache_logger_on_first_use=True,
+    )
 
     root_logger = logging.getLogger()
-    root_logger.addHandler(handler)
-    root_logger.setLevel(getattr(logging, level))
+
+    # Remove exactly the handlers a previous setup_logging() call attached
+    # (never a handler added by something else, e.g. pytest's own log
+    # capture), so this call fully replaces the prior configuration instead
+    # of accumulating on top of it.
+    for old_handler in _managed_handlers:
+        root_logger.removeHandler(old_handler)
+        old_handler.close()
+    _managed_handlers.clear()
+
+    handler_levels = []
+
+    console_level = _level_value(level)
+    if console_level is not None:
+        console_renderer = (
+            structlog.processors.JSONRenderer()
+            if json_output
+            else structlog.dev.ConsoleRenderer(colors=True)
+        )
+        console_formatter = structlog.stdlib.ProcessorFormatter(
+            processors=[
+                structlog.stdlib.ProcessorFormatter.remove_processors_meta,
+                console_renderer,
+            ],
+        )
+        console_handler = logging.StreamHandler(sys.stdout)
+        console_handler.setFormatter(console_formatter)
+        console_handler.setLevel(console_level)
+        root_logger.addHandler(console_handler)
+        _managed_handlers.append(console_handler)
+        handler_levels.append(console_level)
+
+    file_level_value = _level_value(file_level) if file_enabled else None
+    if file_level_value is not None:
+        try:
+            parent_dir = os.path.dirname(file_path)
+            if parent_dir:
+                os.makedirs(parent_dir, exist_ok=True)
+
+            file_formatter = structlog.stdlib.ProcessorFormatter(
+                processors=[
+                    structlog.stdlib.ProcessorFormatter.remove_processors_meta,
+                    structlog.processors.JSONRenderer(),
+                ],
+            )
+            file_handler = logging.handlers.TimedRotatingFileHandler(
+                file_path,
+                when="midnight",
+                backupCount=file_backup_count,
+                encoding="utf-8",
+            )
+            file_handler.setFormatter(file_formatter)
+            file_handler.setLevel(file_level_value)
+            root_logger.addHandler(file_handler)
+            _managed_handlers.append(file_handler)
+            handler_levels.append(file_level_value)
+        except OSError:
+            pass  # Logging setup must never break the SDK; console still works.
+
+    # Root level must be permissive enough for the noisiest handler, or its
+    # records never reach any handler regardless of that handler's own level.
+    # If every output is NOLOG, set it above CRITICAL so nothing is processed.
+    root_logger.setLevel(min(handler_levels) if handler_levels else logging.CRITICAL + 1)
 
     # Return a bound logger
     return structlog.get_logger()

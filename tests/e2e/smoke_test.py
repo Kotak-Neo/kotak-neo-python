@@ -1,15 +1,27 @@
 import asyncio
 import json
+import socket
 import time
 import traceback
 from datetime import date
 
 import pyotp
+import websockets.exceptions as ws_exceptions
 from decouple import config
 
 from neo_api_client import NeoAPI
+from neo_api_client.logger import setup_logging
 from neo_api_client.utils import scrip_cache
 from neo_api_client.websocket.feed import WsToken
+
+# Reconfigures logging globally for this process, so it applies to every test
+# case below (each one just uses the SDK's own loggers under the hood).
+# Console output is disabled (level="NOLOG") so this script's own print()
+# output stays the only thing on screen; the rotating file instead captures
+# everything at INFO+ -- including the per-request tracing (api_request_
+# start/success, etc.) that's DEBUG-level by default -- for later review in
+# logs/neo-api-client.log.
+setup_logging(level="NOLOG", file_level="INFO")
 
 # Header keys that carry secrets; masked when printed so credentials aren't
 # leaked to the console/CI logs.
@@ -937,6 +949,111 @@ runner.ws_error = None
 runner.run_test(
     "ORDER & POSITION FEED",
     _order_feed_test(),
+)
+
+
+def _resolve_ipv6_only(host, port, family=0, type=0, proto=0, flags=0):  # noqa: A002
+    """getaddrinfo() replacement returning only genuine IPv6 (AAAA) addresses.
+
+    Some resolvers (seen on macOS) still return IPv4-mapped addresses
+    (``::ffff:a.b.c.d``) even when asked for AF_INET6 specifically, if the
+    host has no real AAAA record. Filtering those out turns that into a
+    clear failure instead of a silent, misleading "success" over IPv4.
+    """
+    results = socket.getaddrinfo(host, port, socket.AF_INET6, type, proto, flags)
+    real_ipv6 = [r for r in results if not r[4][0].startswith("::ffff:")]
+    if not real_ipv6:
+        raise OSError(f"No IPv6 (AAAA) address available for {host}; cannot force IPv6")
+    return real_ipv6
+
+
+def _print_http_error_if_any(error):
+    """If `error` (or the connect_error it's chained from, see
+    OrderFeedWebSocket.connect()'s `raise ... from connect_error`) is a
+    websockets handshake rejection, print the exact HTTP status/headers/body
+    the server sent — not just the generic wrapped message — so a 404-style
+    rejection is immediately visible instead of buried in a traceback.
+
+    Handles both the current websockets API (InvalidStatus, with a
+    `.response`) and the deprecated one still used by websockets<13
+    (InvalidStatusCode, with `.status_code`/`.headers` directly) — the SDK
+    allows websockets>=12.0.
+    """
+    cause = error.__cause__ or error
+
+    if isinstance(cause, ws_exceptions.InvalidStatus):
+        r = cause.response
+        print(f"\n[HTTP ERROR] Order feed (IPv6) rejected: HTTP {r.status_code} {r.reason_phrase}")
+        print(f"[HTTP ERROR] Headers: {dict(r.headers)}")
+        if r.body:
+            print(f"[HTTP ERROR] Body: {r.body!r}")
+    elif isinstance(cause, ws_exceptions.InvalidStatusCode):
+        print(f"\n[HTTP ERROR] Order feed (IPv6) rejected: HTTP {cause.status_code}")
+        print(f"[HTTP ERROR] Headers: {dict(cause.headers)}")
+    else:
+        print(f"\n[HTTP ERROR] Order feed (IPv6) connect failed: {type(cause).__name__}: {cause}")
+
+
+def _order_feed_ipv6_test():
+    """Connect to the order/position feed forced over IPv6, listen briefly,
+    then close.
+
+    No subscribe/unsubscribe step -- the order feed is fire-and-hose, same
+    as _order_feed_test() above; this only differs by forcing the
+    connection's DNS resolution to real IPv6 (AAAA) addresses, to verify the
+    feed is reachable over IPv6. If the resolved host has no IPv6 address,
+    or IPv6 isn't actually routable from this machine, connect() fails and
+    this test correctly reports FAIL rather than silently falling back to
+    IPv4.
+    """
+
+    def _test():
+        async def _run():
+            order_messages = []
+            original_getaddrinfo = socket.getaddrinfo
+            socket.getaddrinfo = _resolve_ipv6_only
+
+            try:
+                feed = runner.client.create_order_feed()
+                feed.on_error = runner.on_ws_error
+                print(f"\n[WEBSOCKET URL] Order feed (forced IPv6): {feed.url}")
+
+                try:
+                    await feed.connect()
+                except Exception as e:
+                    _print_http_error_if_any(e)
+                    raise
+                connected = feed.is_connected
+                print(f"\nOrder feed connected over IPv6: {connected} ({feed.url})")
+
+                print("Listening for order/position updates over IPv6 (10 seconds)...")
+                await _collect_for(feed, 10, on_message=order_messages.append)
+
+                await feed.close()
+                return connected, order_messages
+            finally:
+                # Never leave the process-wide resolver patched, even on error.
+                socket.getaddrinfo = original_getaddrinfo
+
+        connected, order_messages = asyncio.run(_run())
+
+        if runner.ws_error:
+            raise RuntimeError(f"Order feed (IPv6) error: {runner.ws_error}")
+        if not connected:
+            raise RuntimeError("Order feed did not connect over IPv6")
+
+        return {
+            "connected": connected,
+            "messages_received": len(order_messages),
+        }
+
+    return _test
+
+
+runner.ws_error = None
+runner.run_test(
+    "ORDER & POSITION FEED (IPv6)",
+    _order_feed_ipv6_test(),
 )
 
 # ---------------------------
