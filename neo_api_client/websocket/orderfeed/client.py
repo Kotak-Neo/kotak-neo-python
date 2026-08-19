@@ -248,7 +248,7 @@ class OrderFeedWebSocket:
                 f"{connect_error}"
             ) from connect_error
 
-        logger.debug("orderfeed_connected", url=self.url)
+        logger.info("orderfeed_connected", url=self.url)
 
         # Send the mandatory raw connection payload immediately after open.
         try:
@@ -261,6 +261,7 @@ class OrderFeedWebSocket:
             logger.error("orderfeed_authentication_failed", url=self.url, error=str(e))
             raise AuthenticationError(f"Failed to send connection payload: {e}") from e
 
+        logger.info("orderfeed_authenticated", url=self.url)
         self._receive_task = asyncio.create_task(self._receive_loop())
         self._reconnect_count = 0
         if self.on_connect:
@@ -360,7 +361,7 @@ class OrderFeedWebSocket:
 
         try:
             await self.connect()
-            logger.debug(
+            logger.info(
                 "orderfeed_reconnected", url=self.url, reconnect_count=self._reconnect_count
             )
         except Exception as e:

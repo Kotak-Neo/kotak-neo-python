@@ -481,7 +481,7 @@ search_scrip_response = runner.run_test(
     request_params={
         "exchange_segment": "bfo",
         "symbol": "sensex",
-        "expiry": "27AUG2026",
+        "expiry": "18AUG2026",
         "ignore_50multiple": False,
     },
 )

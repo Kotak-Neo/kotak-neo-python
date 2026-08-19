@@ -10,10 +10,24 @@ import types
 os.environ.setdefault("NEO_LOG_FILE_ENABLED", "false")
 
 import pytest
+import structlog
 
 from neo_api_client.api_client import ApiClient
 from neo_api_client.utils.neo_utility import NeoUtility
 from tests._httpmock import Mocker, RespxMock
+
+
+@pytest.fixture(autouse=True)
+def _clear_structlog_contextvars():
+    """RESTClientObject binds an "environment" contextvar (via
+    set_environment()) as a side effect of construction, so it sticks around
+    for the rest of the log context -- correct for real usage, but without
+    this it'd leak from one test's client (e.g. host="prod") into unrelated
+    tests running later in the same pytest process."""
+    structlog.contextvars.clear_contextvars()
+    yield
+    structlog.contextvars.clear_contextvars()
+
 
 # The SDK transport is httpx (HTTP/2), so the real `requests_mock` package no
 # longer intercepts anything. Register a respx-backed stand-in under the same

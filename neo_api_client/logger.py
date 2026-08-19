@@ -15,10 +15,10 @@ import structlog
 from structlog.types import FilteringBoundLogger
 
 # Configure log level from environment. Defaults to WARNING so the SDK is
-# quiet out of the box -- routine per-request tracing (api_request_start/
-# success, rest_client_initialized/closing) logs at DEBUG; only warnings and
-# errors are visible unless a caller explicitly opts into more verbosity via
-# NEO_LOG_LEVEL=INFO or DEBUG.
+# quiet out of the box -- request/response tracing (api_request_start/
+# success) logs at INFO, lifecycle noise (rest_client_initialized/closing)
+# at DEBUG; only warnings and errors are visible unless a caller explicitly
+# opts into more verbosity via NEO_LOG_LEVEL=INFO or DEBUG.
 LOG_LEVEL = os.getenv("NEO_LOG_LEVEL", "WARNING").upper()
 
 # Rotating file log -- on by default, independent of the console level above.
@@ -69,8 +69,20 @@ def add_app_context(
 ) -> dict[str, Any]:
     """Add application context to logs."""
     event_dict["app"] = "neo_api_client"
-    event_dict["environment"] = os.getenv("NEO_ENVIRONMENT", "unknown")
+    # set_environment() (called from RESTClientObject.__init__ with the
+    # active client's configuration.host) binds the real "prod"/"uat" value
+    # via contextvars, which merge_contextvars already placed in event_dict
+    # by the time this runs -- setdefault so it isn't clobbered. Falls back
+    # to NEO_ENVIRONMENT / "unknown" only when nothing has bound one yet
+    # (e.g. no NeoAPI/RESTClientObject has been constructed in this context).
+    event_dict.setdefault("environment", os.getenv("NEO_ENVIRONMENT", "unknown"))
     return event_dict
+
+
+def set_environment(environment: str) -> None:
+    """Bind the active trading environment (e.g. "prod"/"uat") so every
+    subsequent log entry in this context carries it, instead of "unknown"."""
+    structlog.contextvars.bind_contextvars(environment=environment)
 
 
 def censor_sensitive_data(
@@ -81,7 +93,7 @@ def censor_sensitive_data(
         "password",
         "secret",
         "token",
-        "authorization",
+        "auth",
         "api_key",
         "consumer_key",
         "consumer_secret",
@@ -90,6 +102,7 @@ def censor_sensitive_data(
         "view_token",
         "sid",
         "otp",
+        "mpin",
     }
 
     def _censor_dict(d: dict[str, Any]) -> dict[str, Any]:
@@ -200,6 +213,21 @@ def setup_logging(
         cache_logger_on_first_use=True,
     )
 
+    # Third-party libraries (httpx, httpcore, ...) log through plain stdlib
+    # `logging`, not structlog, and propagate up to the root logger same as
+    # our own events. Without this, ProcessorFormatter renders those "foreign"
+    # records straight from their raw message -- skipping the whole
+    # shared_processors chain above -- so they show up with no timestamp, no
+    # level, and no censoring. foreign_pre_chain runs just for those records,
+    # before the same final render step our own events get.
+    foreign_pre_chain = [
+        structlog.stdlib.add_log_level,
+        structlog.stdlib.add_logger_name,
+        add_app_context,
+        timestamper,
+        censor_sensitive_data,
+    ]
+
     root_logger = logging.getLogger()
 
     # Remove exactly the handlers a previous setup_logging() call attached
@@ -221,6 +249,7 @@ def setup_logging(
             else structlog.dev.ConsoleRenderer(colors=True)
         )
         console_formatter = structlog.stdlib.ProcessorFormatter(
+            foreign_pre_chain=foreign_pre_chain,
             processors=[
                 structlog.stdlib.ProcessorFormatter.remove_processors_meta,
                 console_renderer,
@@ -241,6 +270,7 @@ def setup_logging(
                 os.makedirs(parent_dir, exist_ok=True)
 
             file_formatter = structlog.stdlib.ProcessorFormatter(
+                foreign_pre_chain=foreign_pre_chain,
                 processors=[
                     structlog.stdlib.ProcessorFormatter.remove_processors_meta,
                     structlog.processors.JSONRenderer(),

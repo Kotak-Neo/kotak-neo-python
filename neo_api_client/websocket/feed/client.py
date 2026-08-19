@@ -400,7 +400,7 @@ class SFeedWebSocket:
                 f"{connect_error}"
             ) from connect_error
 
-        logger.debug("sfeed_connected", url=self.url)
+        logger.info("sfeed_connected", url=self.url)
 
         # Authenticate (may raise AuthenticationError).
         await self._authenticate()
@@ -464,6 +464,7 @@ class SFeedWebSocket:
                     self._dividers[int(exch_id)] = info.get("divider", 100)
 
             self._authenticated = True
+            logger.info("sfeed_authenticated", url=self.url)
         except AuthenticationError:
             raise
         except asyncio.TimeoutError:
@@ -673,7 +674,7 @@ class SFeedWebSocket:
                 by_intent.setdefault(intent, []).append(token)
             for intent, tokens in by_intent.items():
                 await self._send_subscribe(_SUBSCRIBE_EVENTS[intent], tokens)
-            logger.debug("sfeed_reconnected", url=self.url, reconnect_count=self._reconnect_count)
+            logger.info("sfeed_reconnected", url=self.url, reconnect_count=self._reconnect_count)
         except Exception as e:
             logger.warning("sfeed_reconnect_attempt_failed", url=self.url, error=str(e))
             if self.on_error:
@@ -789,6 +790,7 @@ class SFeedWebSocket:
             logger.error("sfeed_subscribe_failed", intent=intent, error=str(e))
             raise SubscriptionError(f"Failed to subscribe ({intent}): {e}") from e
 
+        logger.info("sfeed_subscribed", intent=intent, tokens=len(tokens))
         await self._wait_for_subscribe_ack()
 
     async def _unsubscribe(self, tokens: list[WsToken], intent: str) -> None:
@@ -808,6 +810,8 @@ class SFeedWebSocket:
         except Exception as e:
             logger.error("sfeed_unsubscribe_failed", intent=intent, error=str(e))
             raise SubscriptionError(f"Failed to unsubscribe ({intent}): {e}") from e
+
+        logger.info("sfeed_unsubscribed", intent=intent, tokens=len(tokens))
 
     # ---- Public subscription API -------------------------------------------
 

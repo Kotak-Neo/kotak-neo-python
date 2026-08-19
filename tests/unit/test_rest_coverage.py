@@ -155,18 +155,108 @@ def test_rate_limiter_timeout_without_sanitizer_still_raises_429(monkeypatch):
     assert exc_info.value.status == 429
 
 
-def test_handle_error_response_without_enhanced_features(monkeypatch):
-    """_handle_error_response with enhanced features off skips logging (319->327)."""
-    monkeypatch.setattr(rest_module, "_ENHANCED_FEATURES", False)
+def test_error_response_logged_even_without_raise_on_error(monkeypatch):
+    """4xx/5xx responses are always logged for monitoring, even when
+    raise_on_error is False (the SDK-wide default)."""
+    _enable_enhanced(monkeypatch)
+    logged = {}
+    orig_error = rest_module.logger.error
+
+    def capture_error(event, **kwargs):
+        logged["event"] = event
+        logged.update(kwargs)
+        return orig_error(event, **kwargs)
+
+    monkeypatch.setattr(rest_module.logger, "error", capture_error)
     client = RESTClientObject(DummyConfig())
 
     with requests_mock.Mocker() as m:
         m.get("https://test.com", json={"msg": "bad"}, status_code=400, reason="Bad Request")
-        resp = client.session.get("https://test.com")
+        resp = client.request(method="GET", url="https://test.com")
 
-    with pytest.raises(ApiException) as exc_info:
-        client._handle_error_response(resp, request_id="rid-1")
-    assert exc_info.value.status == 400
+    assert resp.status_code == 400
+    assert logged["event"] == "api_error_response"
+    assert logged["status_code"] == 400
+    assert logged["response_body"] == {"msg": "bad"}
+
+
+# ---- Request/response body logging (for API monitoring) --------------------
+
+
+def test_request_start_logs_body_and_query_params(monkeypatch):
+    """api_request_start includes the request body and query params, so
+    Trade REST API calls can be monitored end-to-end from the log file."""
+    _enable_enhanced(monkeypatch)
+    logged = {}
+    orig_info = rest_module.logger.info
+
+    def capture_info(event, **kwargs):
+        if event == "api_request_start":
+            logged.update(kwargs)
+        return orig_info(event, **kwargs)
+
+    monkeypatch.setattr(rest_module.logger, "info", capture_info)
+    client = RESTClientObject(DummyConfig())
+
+    with requests_mock.Mocker() as m:
+        m.post("https://test.com", json={"ok": True})
+        client.request(
+            method="POST",
+            url="https://test.com",
+            query_params={"seg": "ALL"},
+            headers={"Content-Type": "application/json"},
+            body={"symbol": "RELIANCE"},
+        )
+
+    assert logged["query_params"] == {"seg": "ALL"}
+    assert logged["body"] == {"symbol": "RELIANCE"}
+
+
+def test_request_success_logs_response_body(monkeypatch):
+    """api_request_success includes the response body for monitoring."""
+    _enable_enhanced(monkeypatch)
+    logged = {}
+    orig_info = rest_module.logger.info
+
+    def capture_info(event, **kwargs):
+        if event == "api_request_success":
+            logged.update(kwargs)
+        return orig_info(event, **kwargs)
+
+    monkeypatch.setattr(rest_module.logger, "info", capture_info)
+    client = RESTClientObject(DummyConfig())
+
+    with requests_mock.Mocker() as m:
+        m.get("https://test.com", json={"data": [1, 2, 3]})
+        client.request(method="GET", url="https://test.com")
+
+    assert logged["response_body"] == {"data": [1, 2, 3]}
+
+
+def test_large_response_body_is_truncated_in_log(monkeypatch):
+    """A response body larger than MAX_LOGGED_BODY_BYTES is replaced with a
+    size-only summary in the log, instead of being embedded whole."""
+    _enable_enhanced(monkeypatch)
+    logged = {}
+    orig_info = rest_module.logger.info
+
+    def capture_info(event, **kwargs):
+        if event == "api_request_success":
+            logged.update(kwargs)
+        return orig_info(event, **kwargs)
+
+    monkeypatch.setattr(rest_module.logger, "info", capture_info)
+    client = RESTClientObject(DummyConfig())
+
+    huge_payload = {"items": ["x" * 100] * 100}
+    with requests_mock.Mocker() as m:
+        m.get("https://test.com", json=huge_payload)
+        resp = client.request(method="GET", url="https://test.com")
+
+    assert logged["response_body"]["truncated"] is True
+    assert logged["response_body"]["size_bytes"] == len(resp.content)
+    # The caller still gets the full, untruncated body.
+    assert resp.json() == huge_payload
 
 
 def test_get_rate_limit_status_with_limiter():
@@ -441,3 +531,37 @@ def test_explicit_x_forwarded_for_header_not_overwritten():
             headers={"X-Forwarded-For": "9.9.9.9"},
         )
         assert m.last_request.headers.get("X-Forwarded-For") == "9.9.9.9"
+
+
+# ---- Log context: real "environment" instead of always "unknown" ----------
+
+
+def test_init_binds_environment_from_configuration_host(monkeypatch):
+    """Constructing a client with configuration.host="prod" makes every
+    subsequent log entry carry environment="prod" instead of the
+    NEO_ENVIRONMENT-env-var/"unknown" fallback (which most users never set,
+    since it's only read from a real OS env var, not a .env file)."""
+    _enable_enhanced(monkeypatch)
+    RESTClientObject(_EnvConfig("prod"))
+
+    import structlog
+
+    from neo_api_client.logger import add_app_context
+
+    event_dict = structlog.contextvars.merge_contextvars(None, None, {})
+    result = add_app_context(None, None, event_dict)
+    assert result["environment"] == "prod"
+
+
+def test_init_without_host_leaves_environment_unbound(monkeypatch):
+    """No configuration.host (e.g. DummyConfig) -> no binding is made."""
+    _enable_enhanced(monkeypatch)
+    RESTClientObject(DummyConfig())
+
+    import structlog
+
+    from neo_api_client.logger import add_app_context
+
+    event_dict = structlog.contextvars.merge_contextvars(None, None, {})
+    result = add_app_context(None, None, event_dict)
+    assert result["environment"] == "unknown"

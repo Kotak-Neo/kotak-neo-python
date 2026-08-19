@@ -321,6 +321,38 @@ def test_authenticate_timeout(monkeypatch):
         asyncio.run(run())
 
 
+def test_connect_authenticate_subscribe_unsubscribe_log_at_info(monkeypatch):
+    """Successful connect/auth/subscribe/unsubscribe are visible at INFO --
+    a customer running at the recommended INFO level (not the SDK-internal
+    DEBUG level) must see confirmation the feed is healthy, not just errors."""
+
+    async def run():
+        fake = FakeAsyncWS(incoming=[_AUTH_OK])
+        _patch_connect(monkeypatch, fake)
+
+        logged_events = []
+        orig_info = _client_mod.logger.info
+
+        def capture_info(event, **kwargs):
+            logged_events.append(event)
+            return orig_info(event, **kwargs)
+
+        monkeypatch.setattr(_client_mod.logger, "info", capture_info)
+
+        ws = SFeedWebSocket(url="wss://fake/feed", ack_wait_timeout=0.05)
+        await ws.connect()
+        await ws.subscribe_scrips([WsToken("nse_cm", "11536")])
+        await ws.unsubscribe_scrips([WsToken("nse_cm", "11536")])
+        await ws.close()
+        return logged_events
+
+    logged_events = asyncio.run(run())
+    assert "sfeed_connected" in logged_events
+    assert "sfeed_authenticated" in logged_events
+    assert "sfeed_subscribed" in logged_events
+    assert "sfeed_unsubscribed" in logged_events
+
+
 def test_subscribe_over_live_connection(monkeypatch):
     """Subscribe/unsubscribe send frames over a live (fake) connection."""
 

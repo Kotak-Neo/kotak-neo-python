@@ -423,7 +423,16 @@ The unsubscribe cases also confirm the feed goes quiet after unsubscribing.
 
 Both `SFeedWebSocket` and `OrderFeedWebSocket` log connect/reconnect/
 disconnect/authentication/subscription events through the SDK's shared
-logger. Call `setup_logging(...)` (`from neo_api_client.logger import
+logger, at:
+
+- **`INFO`** — a successful connect, authentication, reconnect, subscribe, or
+  unsubscribe.
+- **`WARNING`** — a disconnect, or a connect/reconnect attempt failing before
+  the next retry.
+- **`ERROR`** — authentication failure, a connect/subscribe/unsubscribe
+  failure, or reconnect attempts exhausted.
+
+Call `setup_logging(...)` (`from neo_api_client.logger import
 setup_logging`) to control where those go and at what level:
 
 ```python

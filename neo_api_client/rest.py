@@ -16,7 +16,7 @@ except ImportError:  # pragma: no cover - fallback when version metadata is unav
     __version__ = "unknown"
 
 try:
-    from neo_api_client.logger import get_logger
+    from neo_api_client.logger import get_logger, set_environment
     from neo_api_client.rate_limiter import get_rate_limiter
 
     _ENHANCED_FEATURES = True
@@ -26,6 +26,13 @@ except ImportError:  # pragma: no cover - fallback when optional deps are unavai
 DEFAULT_TIMEOUT = 30
 DEFAULT_POOL_CONNECTIONS = 10
 DEFAULT_POOL_MAXSIZE = 20
+
+# Response bodies larger than this are replaced with a size-only summary in
+# the log (e.g. scrip master downloads), so a single large response can't
+# blow up the rotating log file. This only affects what's written to the
+# log -- the body returned to the caller (and raised in ApiException) is
+# never truncated.
+MAX_LOGGED_BODY_BYTES = 4096
 
 # Context variable for request correlation
 correlation_id_context: ContextVar[str | None] = ContextVar("correlation_id", default=None)
@@ -56,6 +63,11 @@ class RESTClientObject:
         self.session = self._create_session()
         self.rate_limiter = None
         self.raise_on_error = raise_on_error
+
+        if _ENHANCED_FEATURES:
+            host = str(getattr(configuration, "host", "") or "").strip().lower()
+            if host:
+                set_environment(host)
 
         if _ENHANCED_FEATURES and enable_rate_limiting:
             self.rate_limiter = get_rate_limiter()
@@ -105,6 +117,21 @@ class RESTClientObject:
         for param in sensitive_params:
             url = re.sub(rf"({param})=[^&]*", r"\1=***", url, flags=re.IGNORECASE)
         return url
+
+    def _parse_response_body(self, response: httpx.Response) -> Any:
+        """Parse a response body as JSON, falling back to raw text."""
+        try:
+            return response.json()
+        except Exception:
+            return response.text
+
+    def _response_body_for_logging(self, response: httpx.Response) -> Any:
+        """Size-capped representation of a response body, safe to write to
+        the log file. Sensitive fields are censored downstream by the shared
+        structlog processor (`censor_sensitive_data`)."""
+        if len(response.content) > MAX_LOGGED_BODY_BYTES:
+            return {"truncated": True, "size_bytes": len(response.content)}
+        return self._parse_response_body(response)
 
     def request(
         self,
@@ -196,11 +223,13 @@ class RESTClientObject:
             if hasattr(self.configuration, "consumer_key") and self.configuration.consumer_key:
                 headers["X-Client-ID"] = self.configuration.consumer_key[:8] + "***"
 
-            logger.debug(
+            logger.info(
                 "api_request_start",
                 request_id=request_id,
                 method=method,
                 url=self._sanitize_url_for_logging(url),
+                query_params=query_params,
+                body=body,
             )
 
         try:
@@ -241,16 +270,31 @@ class RESTClientObject:
             # Log success if enhanced features available
             if _ENHANCED_FEATURES and request_id and start_time:
                 duration_ms = (time.time() - start_time) * 1000
-                logger.debug(
+                logger.info(
                     "api_request_success",
                     request_id=request_id,
                     status_code=response.status_code,
                     duration_ms=round(duration_ms, 2),
+                    response_body=self._response_body_for_logging(response),
                 )
 
-            # Check for error status codes (only if raise_on_error is enabled)
+            # Error responses are always logged (for monitoring), independent
+            # of raise_on_error, which only controls whether they also raise.
+            if response.status_code >= 400 and _ENHANCED_FEATURES:
+                logger.error(
+                    "api_error_response",
+                    request_id=request_id,
+                    status_code=response.status_code,
+                    reason=response.reason_phrase,
+                    response_body=self._response_body_for_logging(response),
+                )
+
             if response.status_code >= 400 and _ENHANCED_FEATURES and self.raise_on_error:
-                self._handle_error_response(response, request_id)
+                raise ApiException(
+                    status=response.status_code,
+                    reason=response.reason_phrase,
+                    body=self._parse_response_body(response),
+                )
 
             return response
 
@@ -295,41 +339,6 @@ class RESTClientObject:
                 status=0,
                 reason=str(exc),
             ) from exc
-
-    def _handle_error_response(self, response: httpx.Response, request_id: str | None) -> None:
-        """
-        Handle error responses and raise appropriate exceptions.
-
-        Parameters
-        ----------
-        response : httpx.Response
-            HTTP response object
-        request_id : str, optional
-            Request correlation ID
-
-        Raises
-        ------
-        ApiException
-            With details about the error
-        """
-        try:
-            error_body = response.json()
-        except Exception:
-            error_body = response.text
-
-        if _ENHANCED_FEATURES:
-            logger.error(
-                "api_error_response",
-                request_id=request_id,
-                status_code=response.status_code,
-                reason=response.reason_phrase,
-            )
-
-        raise ApiException(
-            status=response.status_code,
-            reason=response.reason_phrase,
-            body=error_body,
-        )
 
     def get_rate_limit_status(self) -> dict | None:
         """

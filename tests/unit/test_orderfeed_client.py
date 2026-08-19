@@ -262,6 +262,34 @@ def test_connect_sends_payload_and_streams(monkeypatch):
     assert closed is True
 
 
+def test_connect_logs_connected_and_authenticated_at_info(monkeypatch):
+    """A healthy connect must be visible at INFO -- a customer running at the
+    recommended INFO level (not the SDK-internal DEBUG level) should see
+    confirmation the order feed is up, not just errors."""
+
+    async def run():
+        fake = FakeAsyncWS(incoming=[])
+        _patch_connect(monkeypatch, fake)
+
+        logged_events = []
+        orig_info = _client_mod.logger.info
+
+        def capture_info(event, **kwargs):
+            logged_events.append(event)
+            return orig_info(event, **kwargs)
+
+        monkeypatch.setattr(_client_mod.logger, "info", capture_info)
+
+        ws = OrderFeedWebSocket(base_url="https://e21.kotaksecurities.com", auth="TOK", sid="SID")
+        await ws.connect()
+        await ws.close()
+        return logged_events
+
+    logged_events = asyncio.run(run())
+    assert "orderfeed_connected" in logged_events
+    assert "orderfeed_authenticated" in logged_events
+
+
 def test_context_manager_and_async_iter(monkeypatch):
     async def run():
         fake = FakeAsyncWS(incoming=['{"type":"position","data":{"sym":"ITBEES","netQty":10}}'])

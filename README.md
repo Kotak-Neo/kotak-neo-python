@@ -20,6 +20,7 @@ Official Python SDK for Kotak Neo Trading APIs - a modern, well-tested trading c
 ✅ **SFeed WebSocket Streaming** - Modern async/await live market feed with typed messages, enriched with `trading_symbol`  
 ✅ **HTTP/2 Transport** - REST calls use HTTP/2 (via httpx) with automatic HTTP/1.1 fallback  
 ✅ **Optional Reliability Utilities** - Opt-in rate limiting, plus retry and circuit-breaker helpers  
+✅ **Enhanced Logging** - Rotating log file with REST/WebSocket tracking and automatic masking of sensitive data  
 ✅ **Comprehensive Error Handling** - Detailed exception hierarchy with input validation  
 ✅ **Type Safety** - Full mypy type checking support  
 ✅ **Extensive Testing** - 100% test coverage (unit, integration, and E2E tests)  
