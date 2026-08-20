@@ -311,6 +311,23 @@ def test_file_logging_failure_is_swallowed_not_raised(tmp_path, monkeypatch):
     )
 
 
+def test_file_logging_with_bare_filename_skips_makedirs(tmp_path, monkeypatch):
+    """A file_path with no directory component (e.g. "app.log", written to
+    the current working directory) has no parent_dir to create -- os.makedirs
+    must not be called, and the file still gets created."""
+    monkeypatch.chdir(tmp_path)
+
+    def _boom(*args, **kwargs):
+        raise AssertionError("os.makedirs should not be called for a bare filename")
+
+    monkeypatch.setattr("os.makedirs", _boom)
+
+    setup_logging(file_enabled=True, file_path="bare.log")
+    get_logger("test_bare_filename").warning("written_next_to_cwd")
+
+    assert (tmp_path / "bare.log").exists()
+
+
 def test_default_file_path_is_hyphenated():
     """Default file path is logs/neo-api-client.log (hyphenated, not
     logs/neo_api_client.log)."""

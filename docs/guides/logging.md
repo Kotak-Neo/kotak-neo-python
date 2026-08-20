@@ -69,3 +69,27 @@ headers, etc.) are automatically masked before anything is written.
 
 The SDK never prints warnings/errors to stdout directly — everything goes through
 structured logging as described above.
+
+## Troubleshooting an issue? Share the log file
+
+If you run into an issue — a failed order, an unexpected disconnect, a REST error
+that's hard to reproduce — enable file logging at `INFO` before you reproduce it, then
+share the resulting `logs/neo-api-client.log` with support. It carries the full
+request/response detail (REST and WebSocket) needed to diagnose the problem, with
+sensitive fields already masked (see [What every entry carries](#what-every-entry-carries)) —
+no need to redact anything yourself before sharing.
+
+```python
+from neo_api_client.logger import setup_logging
+
+setup_logging(file_level="INFO")
+```
+
+Then reproduce the issue and attach `logs/neo-api-client.log` (or the specific day's
+rotated file) when you:
+
+- Open a [GitHub Issue](https://github.com/Kotak-Neo/kotak-neo-python/issues)
+- Email support@kotakneo.com
+
+Include the approximate time the issue occurred so the relevant entries are easy to
+find.
