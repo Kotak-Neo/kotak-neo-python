@@ -405,6 +405,11 @@ kotak-neo-python/
 - **Issues**: [GitHub Issues](https://github.com/Kotak-Neo/kotak-neo-python/issues)
 - **Email**: support@kotakneo.com
 
+Reporting a bug? Enable file logging with `setup_logging(file_level="INFO")` (see the
+[Logging Guide](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/guides/logging.md)),
+reproduce the issue, and attach the resulting `logs/neo-api-client.log` to your issue —
+sensitive fields are already masked, so it's safe to share as-is.
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
