@@ -14,6 +14,7 @@ client.place_order(
     amo="NO",
     disclosed_quantity="0",
     trigger_price="0",
+    tag="",
 )
 ```
 
@@ -44,6 +45,7 @@ try:
         amo="NO",
         disclosed_quantity="0",
         trigger_price="0",
+        tag="",
     )
 except Exception as e:
     print("Exception when calling OrderApi->place_order: %s\n" % e)
@@ -64,6 +66,7 @@ except Exception as e:
 | *amo*                | YES/NO - (Default Value - NO)                                                                                                                                                                                                                                                                                                                                     | Str [optional] |
 | *disclosed_quantity* | (Default Value - 0)                                                                                                                                                                                                                                                                                                                                               | Str [optional] |
 | *trigger_price*      | Required for SL/SL-M stop-loss orders. Optional for L/MKT — if omitted (or passed as `None`), the SDK sends `"0"` to the API automatically, since the REST field is mandatory even though its value doesn't matter for those order types.                                                                                                                          | Str [optional] |
+| *tag*                | Caller-defined marker for tracking this order. Sent on the wire as `ig`, and echoed back as `GuiOrdId` in [`order_report()`](order_report.md)/[`trade_report()`](trade_report.md) — use it to correlate an order with your own system (e.g. a strategy or client order ID) without depending on the exchange-assigned order number. Must be a non-blank string if provided. (Default Value - None) | Str [optional] |
 
 
 ### Return type

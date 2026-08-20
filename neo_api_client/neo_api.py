@@ -169,6 +169,7 @@ class NeoAPI:
         amo: str = "NO",
         disclosed_quantity: str = "0",
         trigger_price: str | None = "0",
+        tag: str | None = None,
     ) -> dict[str, Any]:
         """
         Places an order on the specified exchange segment and product, for a given trading symbol, transaction type,
@@ -186,6 +187,8 @@ class NeoAPI:
         amo (str, optional): Flag to indicate whether it is an AMO order. Defaults to "NO".
         disclosed_quantity (str, optional): Disclosed quantity for the order. Defaults to "0".
         trigger_price (str, optional): Trigger price for Stop Loss orders. Defaults to "0".
+        tag (str, optional): Caller-defined marker for tracking this order — echoed back
+            as "GuiOrdId" in order_report()/trade_report(). Defaults to None.
 
         Note:
         Market protection ("mp") is always sent as "0" — it is not caller-configurable.
@@ -205,6 +208,7 @@ class NeoAPI:
                     validity,
                     trading_symbol,
                     transaction_type,
+                    tag=tag,
                 )
 
                 exchange_segment = settings.exchange_segment[exchange_segment]
@@ -228,6 +232,7 @@ class NeoAPI:
                     amo=amo,
                     disclosed_quantity=disclosed_quantity,
                     trigger_price=trigger_price,
+                    tag=tag,
                 )
 
                 return place_order

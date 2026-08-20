@@ -56,6 +56,49 @@ def test_order_placing_with_optional_params(api_client, requests_mock):
     assert result["nOrdNo"] == "12345"
 
 
+def test_order_placing_sends_tag_as_ig(api_client, requests_mock):
+    """tag is sent on the wire as "ig" (GuiOrdId on the way back in
+    order_report()/trade_report()), matching the v2 SDK's field name."""
+    order_api_instance = OrderAPI(api_client)
+    url = api_client.configuration.get_url_details("place_order")
+    requests_mock.post(url, json={"stat": "Ok", "nOrdNo": "12345"})
+
+    order_api_instance.order_placing(
+        exchange_segment="nse_cm",
+        product="CNC",
+        price="100.50",
+        order_type="L",
+        quantity="10",
+        validity="DAY",
+        trading_symbol="RELIANCE-EQ",
+        transaction_type="B",
+        tag="my-order-1",
+    )
+
+    assert _sent_body(requests_mock)["ig"] == "my-order-1"
+
+
+def test_order_placing_without_tag_sends_ig_none(api_client, requests_mock):
+    """tag is optional -- omitting it sends "ig" as null, same as the other
+    optional fields (dq, tp) when not provided."""
+    order_api_instance = OrderAPI(api_client)
+    url = api_client.configuration.get_url_details("place_order")
+    requests_mock.post(url, json={"stat": "Ok", "nOrdNo": "12345"})
+
+    order_api_instance.order_placing(
+        exchange_segment="nse_cm",
+        product="CNC",
+        price="100.50",
+        order_type="L",
+        quantity="10",
+        validity="DAY",
+        trading_symbol="RELIANCE-EQ",
+        transaction_type="B",
+    )
+
+    assert _sent_body(requests_mock)["ig"] is None
+
+
 def test_order_placing_api_exception(api_client, monkeypatch):
     """Test order placement with API exception"""
     from neo_api_client.exceptions import ApiException

@@ -87,7 +87,13 @@ def test_place_order_validation_optional_fields_ok():
         amo="NO",
         disclosed_quantity="0",
         trigger_price="0",
+        tag="my-order-1",
     )
+
+
+def test_place_order_validation_tag_none_ok():
+    # tag is optional -- omitting it entirely must not raise.
+    place_order_validation(**_valid_place_kwargs())
 
 
 @pytest.mark.parametrize(
@@ -163,7 +169,7 @@ def test_place_order_validation_value_errors(field, value):
 
 @pytest.mark.parametrize(
     "field",
-    ["amo", "disclosed_quantity", "trigger_price"],
+    ["amo", "disclosed_quantity", "trigger_price", "tag"],
 )
 def test_place_order_validation_optional_type_errors(field):
     with pytest.raises(ApiValueError):
@@ -193,9 +199,10 @@ def test_place_order_validation_blank_mandatory_fields(field, blank):
         place_order_validation(**_valid_place_kwargs(**{field: blank}))
 
 
-@pytest.mark.parametrize("field", ["amo", "disclosed_quantity"])
+@pytest.mark.parametrize("field", ["amo", "disclosed_quantity", "tag"])
 def test_place_order_validation_blank_optional_mandatory_fields(field):
-    """am/dq carry defaults but must not be blank when explicitly passed."""
+    """am/dq/tag carry defaults or are optional, but must not be blank when
+    explicitly passed."""
     with pytest.raises(ApiValueError, match="cannot be blank|mandatory"):
         place_order_validation(**_valid_place_kwargs(), **{field: ""})
 

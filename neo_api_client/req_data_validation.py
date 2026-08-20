@@ -109,6 +109,7 @@ def place_order_validation(
     amo=None,
     disclosed_quantity=None,
     trigger_price=None,
+    tag=None,
 ):
     # Exchange Segment validation (mandatory, non-blank). Only the exact
     # canonical codes are accepted — generic aliases (e.g. "NSE", "BSE") are
@@ -169,6 +170,11 @@ def place_order_validation(
     if trigger_price is not None:
         _require_non_blank(trigger_price, "trigger_price")
         _require_numeric(trigger_price, "trigger_price")
+
+    # tag validation (optional; a caller-defined marker echoed back as
+    # "GuiOrdId" in order_report()/trade_report() for tracking the order)
+    if tag is not None:
+        _require_non_blank(tag, "tag")
 
 
 def cancel_order_validation(order_id, amo=None):

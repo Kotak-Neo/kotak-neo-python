@@ -71,6 +71,49 @@ def test_place_order_with_optional_params(authenticated_client, requests_mock):
     assert result["stat"] == "Ok"
 
 
+def test_place_order_with_tag_sends_ig(authenticated_client, requests_mock):
+    """tag is a caller-defined marker for tracking the order, sent on the
+    wire as "ig" -- echoed back as "GuiOrdId" in order_report()/trade_report()."""
+    import json
+    from urllib.parse import parse_qs
+
+    url = authenticated_client.configuration.get_url_details("place_order")
+    requests_mock.post(url, json={"stat": "Ok", "nOrdNo": "240101000000003"}, status_code=200)
+
+    result = authenticated_client.place_order(
+        exchange_segment="nse_cm",
+        product="CNC",
+        price="1500",
+        order_type="L",
+        quantity="1",
+        validity="DAY",
+        trading_symbol="RELIANCE-EQ",
+        transaction_type="B",
+        tag="my-strategy-1",
+    )
+
+    assert result["stat"] == "Ok"
+    sent_body = json.loads(parse_qs(requests_mock.last_request.text)["jData"][0])
+    assert sent_body["ig"] == "my-strategy-1"
+
+
+def test_place_order_invalid_tag_type_returns_error(authenticated_client):
+    """A non-string tag is rejected before any API call, as an Error dict."""
+    result = authenticated_client.place_order(
+        exchange_segment="nse_cm",
+        product="CNC",
+        price="1500",
+        order_type="L",
+        quantity="1",
+        validity="DAY",
+        trading_symbol="RELIANCE-EQ",
+        transaction_type="B",
+        tag=12345,
+    )
+
+    assert "Error" in result
+
+
 def test_place_order_defaults_trigger_price_for_limit_when_none(authenticated_client, monkeypatch):
     """trigger_price=None is coerced to '0' for L/MKT order types — the REST
     API still requires the "tp" field, but the value doesn't matter for these

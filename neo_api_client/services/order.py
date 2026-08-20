@@ -21,6 +21,7 @@ class OrderAPI:
         amo=None,
         disclosed_quantity=None,
         trigger_price=None,
+        tag=None,
     ):
         try:
             header_params = {
@@ -47,6 +48,7 @@ class OrderAPI:
                 "tp": trigger_price,
                 "ts": trading_symbol,
                 "tt": transaction_type,
+                "ig": tag,
                 "os": self.order_source,
             }
 

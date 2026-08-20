@@ -60,7 +60,6 @@ DROPPED_KWARGS: dict[str, set[str]] = {
     "place_order": {
         "market_protection",
         "pf",
-        "tag",
         "scrip_token",
         "square_off_type",
         "square_off_value",
