@@ -25,6 +25,19 @@ body:
     validations:
       required: false
 
+  - type: textarea
+    id: log-file
+    attributes:
+      label: Log file (optional)
+      description: |
+        If your question is about unexpected SDK behavior, drag and drop your
+        `logs/neo-api-client.log` file here (or paste its relevant lines) — see the
+        [Logging Guide](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/guides/logging.md#troubleshooting-an-issue-share-the-log-file)
+        for how to enable it. Sensitive fields are already masked, so it's safe to share as-is.
+        **Only `.log` files are accepted** — please don't attach other file formats.
+    validations:
+      required: false
+
   - type: dropdown
     id: sdk-version
     attributes:
