@@ -381,10 +381,8 @@ Add Neo API snippets:
     "Neo Login": {
         "prefix": "neo-login",
         "body": [
-            "import pyotp",
-            "",
-            "# Step 1: Login with TOTP",
-            "totp_code = pyotp.TOTP(config(\"NEO_TOTP_SECRET\")).now()",
+            "# Step 1: Login with TOTP (live 6-digit code from your authenticator app)",
+            "totp_code = \"${1:000000}\"",
             "client.totp_login(",
             "    mobile_number=config(\"NEO_MOBILE_NUMBER\"),",
             "    ucc=config(\"NEO_UCC\"),",

@@ -149,9 +149,11 @@ Create `.env` file:
 NEO_CONSUMER_KEY=your-consumer-key-token-here
 NEO_MOBILE_NUMBER=+91XXXXXXXXXX
 NEO_UCC=XXXXX
-NEO_TOTP_SECRET=XXXXXXXXXXXXXXXXXXXXXXXXXX
 NEO_MPIN=XXXXXX
 ```
+
+> TOTP is a 2FA factor and is intentionally not stored in `.env` here — the sample
+> script below prompts for the live 6-digit code from your authenticator app instead.
 
 Create `.gitignore` file:
 ```
@@ -188,7 +190,6 @@ pip install python-decouple
 
 Create `main.py`:
 ```python
-import pyotp
 from neo_api_client import NeoAPI
 from decouple import config
 
@@ -198,8 +199,8 @@ client = NeoAPI(
     environment="prod",
 )
 
-# Generate the current 6-digit TOTP code from the base32 secret
-totp_code = pyotp.TOTP(config("NEO_TOTP_SECRET")).now()
+# Enter the live 6-digit code from your authenticator app.
+totp_code = input("Enter TOTP code: ").strip()
 
 # Step 1: Login with TOTP
 client.totp_login(

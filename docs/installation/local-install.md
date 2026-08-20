@@ -234,7 +234,6 @@ NEO_CONSUMER_KEY=your-consumer-key-here
 
 NEO_MOBILE_NUMBER=+91XXXXXXXXXX
 NEO_UCC=XXXXX
-NEO_TOTP_SECRET=your-totp-secret-here
 NEO_MPIN=123456
 ```
 
@@ -244,6 +243,11 @@ NEO_MPIN=123456
 3. Click **Generate application**
 4. Copy the token from default application
 5. Paste it above as `NEO_CONSUMER_KEY`
+
+> TOTP is a 2FA factor and is intentionally not stored in `.env` here — pass the live
+> 6-digit code from your authenticator app to `totp_login(totp=...)` each time. The
+> smoke test (`tests/e2e/smoke_test.py`) prompts for it by default, or auto-generates
+> it if you've added a `NEO_TOTP_SECRET` to your own local `.env` for faster iteration.
 
 ## Running Tests
 

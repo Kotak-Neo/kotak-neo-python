@@ -221,7 +221,6 @@ runner = APITestRunner()
 try:
     MOBILE_NUMBER = config("NEO_MOBILE_NUMBER")
     UCC = config("NEO_UCC")
-    TOTP_SECRET = config("NEO_TOTP_SECRET")
     MPIN = config("NEO_MPIN")
 except Exception as e:
     print("\n" + "=" * 80)
@@ -231,26 +230,23 @@ except Exception as e:
     print("\nPlease ensure .env file exists with the following variables:")
     print("  - NEO_MOBILE_NUMBER")
     print("  - NEO_UCC")
-    print("  - NEO_TOTP_SECRET")
     print("  - NEO_MPIN")
     print("\nSee .env.example for template")
     print("=" * 80)
     exit(1)
 
-# Ask whether to auto-generate the TOTP from NEO_TOTP_SECRET (via pyotp) or
-# enter it manually. Automatic is the default; answer "y" to type it in by
-# hand instead (e.g. to test with a different authenticator/device).
-enter_totp_manually = input(
-    "\nEnter TOTP manually instead of auto-generating it? (y/N): "
-).strip().lower() in ("y", "yes")
+# NEO_TOTP_SECRET is optional (not in .env.example -- TOTP is a 2FA factor
+# and shouldn't be automated by default). If it's set in your own local
+# .env, the TOTP is auto-generated via pyotp; otherwise you're asked for it.
+TOTP_SECRET = config("NEO_TOTP_SECRET", default=None)
 
-if enter_totp_manually:
-    totp_code = input("Enter TOTP code: ").strip()
-    print(f"\n[MANUAL TOTP]: {totp_code}")
-else:
+if TOTP_SECRET:
     totp_generator = pyotp.TOTP(TOTP_SECRET)
     totp_code = totp_generator.now()
     print(f"\n[AUTO-GENERATED TOTP]: {totp_code}")
+else:
+    totp_code = input("\nNEO_TOTP_SECRET not set -- enter TOTP code: ").strip()
+    print(f"\n[MANUAL TOTP]: {totp_code}")
 
 totp_login_params = {
     "mobile_number": MOBILE_NUMBER,

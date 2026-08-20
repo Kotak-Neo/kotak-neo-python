@@ -258,10 +258,6 @@ NEO_MOBILE_NUMBER=+919876543210
 # Your UCC (User Client Code) from NEO app Profile section
 NEO_UCC=YOUR_UCC
 
-# TOTP secret key (base32 string from QR code during TOTP registration)
-# This is NOT the 6-digit code - it's the secret key from authenticator setup
-NEO_TOTP_SECRET=YOUR_TOTP_SECRET_KEY
-
 # Your trading MPIN
 NEO_MPIN=123456
 ```
@@ -269,7 +265,8 @@ NEO_MPIN=123456
 **How to get credentials:**
 - **Consumer Key**: NEO app → More → Trade API → Generate application → Copy token
 - **UCC**: NEO app → Profile section
-- **TOTP Secret**: https://www.kotakneo.com/platform/kotak-neo-trade-api/ → Register for TOTP → Note the secret from QR code setup
+
+> TOTP is a 2FA factor and is intentionally not automated via a `.env` secret here — `totp_login()` expects the live 6-digit code. See [`tests/e2e/smoke_test.py`](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/tests/e2e/smoke_test.py) for an example that prompts for it (or optionally auto-generates it from a `NEO_TOTP_SECRET` you add to your own local `.env`, for faster local iteration only).
 
 
 
