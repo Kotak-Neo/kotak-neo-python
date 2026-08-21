@@ -460,7 +460,9 @@ Key differences:
   `message.model_dump()` for a dict.
 - **`trading_symbol` included.** Each message carries a human-readable
   `trading_symbol` (resolved from the subscribe acknowledgement) alongside
-  `exchange_segment` and `instrument_token`.
+  `exchange_segment` and `instrument_token` — except `SFeedMarketStatus`
+  (from `subscribe_exchange()`), which has neither, since it isn't tied to a
+  specific instrument.
 - **Subscribe methods by data level:** `subscribe_scrips` (touch line),
   `subscribe_scrips_lite`, `subscribe_depth`, `subscribe_full_depth`,
   `subscribe_index` — each with a matching `unsubscribe_*`.

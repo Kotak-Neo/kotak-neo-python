@@ -34,6 +34,7 @@ from neo_api_client.websocket.feed.exceptions import (
 from neo_api_client.websocket.feed.models import (
     EXCHANGE_NAME_TO_ID,
     SFeedIndex,
+    SFeedMarketStatus,
     SFeedMessage,
     WsToken,
 )
@@ -207,6 +208,9 @@ class SFeedWebSocket:
         self._message_queue: asyncio.Queue[SFeedMessage] = asyncio.Queue()
         # Remember (token, intent) so we can re-subscribe after a reconnect.
         self._subscriptions: set[tuple[WsToken, str]] = set()
+        # subscribe_exchange() has no tokens to remember -- just a flag, so
+        # it can be re-sent after a reconnect same as the per-token ones.
+        self._exchange_subscribed = False
         self._reconnect_count = 0
         # Price dividers keyed by exchange_id (from the auth response).
         self._dividers: dict[int, int] = {}
@@ -541,12 +545,17 @@ class SFeedWebSocket:
     def _trading_symbol_for(self, message: SFeedMessage) -> str | None:
         """Look up the trading symbol for a decoded message, if known.
 
+        SFeedMarketStatus has no instrument_token at all (there's no
+        instrument to resolve a symbol for) -- always None for it.
+
         Indices are subscribed by name (e.g. ``WsToken("nse_cm", "Nifty 50")``),
         not by the numeric ``instrument_token`` the server resolves them to in
         the streamed message -- the subscribe ack's ``trading_symbols`` map is
         keyed by that name, so index messages fall back to a name-keyed lookup
         when the token-keyed one misses.
         """
+        if isinstance(message, SFeedMarketStatus):
+            return None
         key = f"{message.exchange_segment}|{message.instrument_token}"
         symbol = self._trading_symbols.get(key)
         if symbol is None and isinstance(message, SFeedIndex):
@@ -566,10 +575,16 @@ class SFeedWebSocket:
             return None
 
     def _deliver_message(self, message: SFeedMessage) -> None:
-        """Enrich a decoded message with its trading_symbol and deliver it."""
-        symbol = self._trading_symbol_for(message)
-        if symbol is not None:
-            message.trading_symbol = symbol
+        """Enrich a decoded message with its trading_symbol and deliver it.
+
+        SFeedMarketStatus has no specific instrument (instrument_token is
+        always "") and no trading_symbol field at all -- skip enrichment
+        for it entirely rather than looking up a symbol that can't exist.
+        """
+        if not isinstance(message, SFeedMarketStatus):
+            symbol = self._trading_symbol_for(message)
+            if symbol is not None:
+                message.trading_symbol = symbol
         self._message_queue.put_nowait(message)
         if self.on_message:
             with contextlib.suppress(Exception):
@@ -674,6 +689,8 @@ class SFeedWebSocket:
                 by_intent.setdefault(intent, []).append(token)
             for intent, tokens in by_intent.items():
                 await self._send_subscribe(_SUBSCRIBE_EVENTS[intent], tokens)
+            if self._exchange_subscribed:
+                await self._ws.send(json.dumps({"event": "subscribeExchange"}))
             logger.info("sfeed_reconnected", url=self.url, reconnect_count=self._reconnect_count)
         except Exception as e:
             logger.warning("sfeed_reconnect_attempt_failed", url=self.url, error=str(e))
@@ -854,6 +871,35 @@ class SFeedWebSocket:
     async def unsubscribe_index(self, tokens: list[WsToken]) -> None:
         """Unsubscribe from index data."""
         await self._unsubscribe(tokens, "index")
+
+    async def subscribe_exchange(self) -> None:
+        """Subscribe to market status updates (delivered as SFeedMarketStatus).
+
+        Unlike the other subscribe_* methods, this takes no tokens -- it's a
+        single ``{"event": "subscribeExchange"}`` frame, not a per-instrument
+        one, so it doesn't go through ``_subscribe``/``_subscriptions``.
+        """
+        if not self.is_connected:
+            raise NotConnectedError("WebSocket is not connected")
+        try:
+            await self._ws.send(json.dumps({"event": "subscribeExchange"}))
+        except Exception as e:
+            logger.error("sfeed_subscribe_exchange_failed", error=str(e))
+            raise SubscriptionError(f"Failed to subscribe (exchange): {e}") from e
+        self._exchange_subscribed = True
+        logger.info("sfeed_subscribed_exchange")
+
+    async def unsubscribe_exchange(self) -> None:
+        """Unsubscribe from market status updates."""
+        if not self.is_connected:
+            raise NotConnectedError("WebSocket is not connected")
+        try:
+            await self._ws.send(json.dumps({"event": "unsubscribeExchange"}))
+        except Exception as e:
+            logger.error("sfeed_unsubscribe_exchange_failed", error=str(e))
+            raise SubscriptionError(f"Failed to unsubscribe (exchange): {e}") from e
+        self._exchange_subscribed = False
+        logger.info("sfeed_unsubscribed_exchange")
 
     async def snapshot(self, tokens: list[WsToken], intent: str = "scrips") -> None:
         """Request a one-time snapshot. Reply arrives on the live binary feed.

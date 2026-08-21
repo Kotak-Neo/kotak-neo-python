@@ -388,6 +388,153 @@ def test_subscribe_over_live_connection(monkeypatch):
     assert "unsubscribeIndices" in events
 
 
+def test_subscribe_exchange_sends_frame_with_no_tokens(monkeypatch):
+    """subscribe_exchange/unsubscribe_exchange take no arguments and send a
+    plain {"event": ...} frame -- no inputtoken field at all."""
+
+    async def run():
+        fake = FakeAsyncWS(incoming=[_AUTH_OK])
+        _patch_connect(monkeypatch, fake)
+        ws = SFeedWebSocket(url="wss://fake/feed")
+        await ws.connect()
+
+        await ws.subscribe_exchange()
+        await ws.unsubscribe_exchange()
+
+        frames = [json.loads(s) for s in fake.sent if s.startswith("{") and "event" in s]
+        await ws.close()
+        return frames
+
+    frames = asyncio.run(run())
+    sub_frame = next(f for f in frames if f["event"] == "subscribeExchange")
+    unsub_frame = next(f for f in frames if f["event"] == "unsubscribeExchange")
+    assert sub_frame == {"event": "subscribeExchange"}
+    assert unsub_frame == {"event": "unsubscribeExchange"}
+
+
+def test_subscribe_exchange_raises_when_not_connected():
+    ws = SFeedWebSocket(url="wss://fake/feed")
+
+    async def run():
+        await ws.subscribe_exchange()
+
+    with pytest.raises(NotConnectedError):
+        asyncio.run(run())
+
+
+def test_unsubscribe_exchange_raises_when_not_connected():
+    ws = SFeedWebSocket(url="wss://fake/feed")
+
+    async def run():
+        await ws.unsubscribe_exchange()
+
+    with pytest.raises(NotConnectedError):
+        asyncio.run(run())
+
+
+def test_subscribe_exchange_send_failure_wrapped(monkeypatch):
+    """A send failure during subscribe_exchange() is wrapped as SubscriptionError."""
+    from neo_api_client.websocket.feed.exceptions import SubscriptionError
+
+    async def run():
+        fake = FakeAsyncWS(incoming=[_AUTH_OK])
+        _patch_connect(monkeypatch, fake)
+        ws = SFeedWebSocket(url="wss://fake/feed")
+        await ws.connect()
+
+        async def boom(*a, **k):
+            raise RuntimeError("send broke")
+
+        ws._ws.send = boom
+        try:
+            await ws.subscribe_exchange()
+        finally:
+            ws._connected = False
+
+    with pytest.raises(SubscriptionError, match="Failed to subscribe"):
+        asyncio.run(run())
+
+
+def test_unsubscribe_exchange_send_failure_wrapped(monkeypatch):
+    """A send failure during unsubscribe_exchange() is wrapped as SubscriptionError."""
+    from neo_api_client.websocket.feed.exceptions import SubscriptionError
+
+    async def run():
+        fake = FakeAsyncWS(incoming=[_AUTH_OK])
+        _patch_connect(monkeypatch, fake)
+        ws = SFeedWebSocket(url="wss://fake/feed")
+        await ws.connect()
+
+        async def boom(*a, **k):
+            raise RuntimeError("send broke")
+
+        ws._ws.send = boom
+        try:
+            await ws.unsubscribe_exchange()
+        finally:
+            ws._connected = False
+
+    with pytest.raises(SubscriptionError, match="Failed to unsubscribe"):
+        asyncio.run(run())
+
+
+@pytest.mark.parametrize("method_name", ["subscribe_exchange", "unsubscribe_exchange"])
+@pytest.mark.parametrize(
+    "call_args,call_kwargs",
+    [
+        (("nse_cm|11536",), {}),
+        ((), {"tokens": ["nse_cm|11536"]}),
+        ((), {"inputtoken": "nse_cm|11536"}),
+    ],
+)
+def test_subscribe_exchange_rejects_any_argument(method_name, call_args, call_kwargs):
+    """subscribe_exchange()/unsubscribe_exchange() take no arguments at all --
+    a caller must not be able to pass tokens/inputtoken (or anything else),
+    positionally or by keyword. Enforced by Python's own call signature, not
+    just by convention -- this locks that in with a regression test."""
+    ws = SFeedWebSocket(url="wss://fake/feed")
+    method = getattr(ws, method_name)
+
+    with pytest.raises(TypeError):
+        method(*call_args, **call_kwargs)
+
+
+def test_reconnect_resends_subscribe_exchange(monkeypatch):
+    """After a reconnect, subscribe_exchange is re-sent same as per-token
+    subscriptions -- the server forgets it on close, same as everything else."""
+    import websockets
+
+    async def run():
+        class ClosingWS(FakeAsyncWS):
+            async def recv(self):
+                if self._incoming:
+                    return self._incoming.pop(0)
+                raise websockets.exceptions.ConnectionClosed(None, None)
+
+        first = ClosingWS(incoming=[_AUTH_OK])
+        second = FakeAsyncWS(incoming=[_AUTH_OK])
+        sockets = [first, second]
+
+        async def fake_connect(url, **kwargs):
+            return sockets.pop(0)
+
+        monkeypatch.setattr(_client_mod.websockets, "connect", fake_connect)
+
+        ws = SFeedWebSocket(url="wss://fake/feed", reconnect_delay=0, max_reconnect_attempts=2)
+        await ws.connect()
+        await ws.subscribe_exchange()
+
+        # Let the receive loop hit ConnectionClosed and reconnect.
+        await asyncio.sleep(0.05)
+
+        resent = [s for s in second.sent if "subscribeExchange" in s]
+        await ws.close()
+        return resent
+
+    resent = asyncio.run(run())
+    assert len(resent) >= 1
+
+
 def test_reconnect_resubscribes(monkeypatch):
     """On ConnectionClosed the client reconnects and re-sends subscriptions."""
     import websockets
@@ -980,17 +1127,17 @@ def test_index_trading_symbol_resolved_by_name_not_instrument_token():
     assert ws._trading_symbol_for(other) is None
 
 
-def test_binary_frame_stamps_trading_symbol_on_enqueued_message(monkeypatch):
-    """A decoded binary message gets trading_symbol set from the map before
-    being enqueued (end-to-end enrich path)."""
+def test_market_status_frame_never_gets_trading_symbol_enrichment(monkeypatch):
+    """SFeedMarketStatus has no trading_symbol field at all -- even if a
+    coincidental map entry exists at the same "exchange|" (empty token) key
+    a lookup would use, enrichment must be skipped entirely, not attempted
+    (attempting it would crash: there's no attribute to set)."""
 
     async def run():
         fake = FakeAsyncWS(incoming=[_AUTH_OK])
         _patch_connect(monkeypatch, fake)
         ws = SFeedWebSocket(url="wss://fake/feed")
         await ws.connect()
-        # The market-status frame decodes to exchange nse_cm with an empty token,
-        # so its map key is "nse_cm|".
         ws._trading_symbols = {"nse_cm|": "MARKET-STATUS"}
         ws._handle_binary_frame(_market_status_frame())
         msg = await asyncio.wait_for(ws._message_queue.get(), timeout=1.0)
@@ -998,7 +1145,30 @@ def test_binary_frame_stamps_trading_symbol_on_enqueued_message(monkeypatch):
         return msg
 
     msg = asyncio.run(run())
-    assert msg.trading_symbol == "MARKET-STATUS"
+    assert msg.type == "market_status"
+    assert not hasattr(msg, "trading_symbol")
+
+
+def test_scrip_message_with_unresolved_symbol_delivered_with_none(monkeypatch):
+    """A non-market-status message with no matching entry in
+    _trading_symbols (e.g. delivered outside any ack-wait window, or for a
+    token no ack ever covered) is still delivered -- trading_symbol just
+    stays at its default None, the assignment is skipped rather than forced."""
+
+    async def run():
+        fake = FakeAsyncWS(incoming=[_AUTH_OK])
+        _patch_connect(monkeypatch, fake)
+        ws = SFeedWebSocket(url="wss://fake/feed")
+        await ws.connect()
+        assert ws._trading_symbols == {}
+        ws._handle_binary_frame(_mini_frame(11536, 150050))
+        msg = await asyncio.wait_for(ws._message_queue.get(), timeout=1.0)
+        await ws.close()
+        return msg
+
+    msg = asyncio.run(run())
+    assert msg.type == "scrip_lite"
+    assert msg.trading_symbol is None
 
 
 def test_data_frame_ahead_of_ack_is_withheld_then_delivered_enriched(monkeypatch):
@@ -1093,7 +1263,7 @@ def test_binary_frame_delivered_immediately_after_ack_deadline_passes(monkeypatc
         return msg
 
     msg = asyncio.run(run())
-    assert msg.trading_symbol is None  # no ack ever populated the map
+    assert msg.type == "market_status"  # delivered successfully, not stuck withheld
 
 
 def test_dual_feed_same_instrument_both_delivered_during_ack_wait(monkeypatch):

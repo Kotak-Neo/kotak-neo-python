@@ -22,6 +22,7 @@ from neo_api_client.websocket.feed.protocol import (  # noqa: E402
     MSG_MARKET_CLOSE,
     MSG_MARKET_OPEN,
     MSG_MARKET_PICTURE,
+    MSG_MARKET_STATUS,
     decode_packet,
     split_batch,
 )
@@ -34,6 +35,7 @@ _INDEX_BODY = struct.Struct("<IiiiiiQiiidBi21s")
 _MINI_BODY = struct.Struct("<IqIqIiiIBI")
 _MP_BODY = struct.Struct("<IqqqqqIIIIIqIIIIhiIdiIIIIIBI")
 _DEPTH_ROW = struct.Struct("<qii")
+_MARKET_STATUS_BODY = struct.Struct("<H5s")
 
 
 def _header(message_length, message_code, exchange_id=NSE_CM, level=0, auction=0):
@@ -59,6 +61,12 @@ def _index_packet():
     )
     length = HEADER_SIZE + len(body)
     return _header(length, MSG_INDEX, level=0) + body
+
+
+def _market_status_packet(status_code=3, status=b"CLOSE"):
+    body = _MARKET_STATUS_BODY.pack(status_code, status)
+    length = HEADER_SIZE + len(body)
+    return _header(length, MSG_MARKET_STATUS, level=0) + body
 
 
 def _mini_packet():
@@ -154,6 +162,33 @@ def test_decode_index():
     assert msg.net_change_percent == pytest.approx(1.50)
 
 
+def test_decode_market_status():
+    """message_code 105 (sent via subscribe_exchange()) decodes to the same
+    SFeedMarketStatus model as 6511/6521, with status_code/status passed
+    through as-is from the wire (not collapsed into open/close)."""
+    msg = decode_packet(_market_status_packet(status_code=2, status=b"CLOSE"), DIVIDERS)
+    assert isinstance(msg, SFeedMarketStatus)
+    assert msg.exchange_segment == "nse_cm"
+    assert not hasattr(msg, "instrument_token")
+    assert msg.status_code == 2
+    assert msg.status == "CLOSE"
+
+
+def test_decode_market_status_open():
+    msg = decode_packet(_market_status_packet(status_code=1, status=b"OPEN\x00"), DIVIDERS)
+    assert msg.status_code == 1
+    assert msg.status == "OPEN"
+
+
+def test_decode_market_status_non_open_close_code_not_collapsed():
+    """A status_code with no open/close meaning at all (e.g. an auction
+    status change) must pass through unchanged, not get forced into
+    "open"/"close" -- there are 12 distinct codes, not just two."""
+    msg = decode_packet(_market_status_packet(status_code=5, status=b"AUCTN"), DIVIDERS)
+    assert msg.status_code == 5
+    assert msg.status == "AUCTN"
+
+
 def test_decode_mini_touch_line():
     msg = decode_packet(_mini_packet(), DIVIDERS)
     assert isinstance(msg, SFeedScripLite)
@@ -214,12 +249,14 @@ def test_depth_stops_when_packet_has_fewer_rows_than_counts():
 
 
 def test_decode_market_open_close():
+    """No body on 6511/6521 -- status_code is synthesized to line up with
+    MarketStatusCode.BCAST_OPEN_MESSAGE/BCAST_CLOSE_MESSAGE (1/2)."""
     open_pkt = _header(HEADER_SIZE, MSG_MARKET_OPEN)
     close_pkt = _header(HEADER_SIZE, MSG_MARKET_CLOSE)
     om = decode_packet(open_pkt, DIVIDERS)
     cm = decode_packet(close_pkt, DIVIDERS)
-    assert isinstance(om, SFeedMarketStatus) and om.status == "open"
-    assert isinstance(cm, SFeedMarketStatus) and cm.status == "close"
+    assert isinstance(om, SFeedMarketStatus) and om.status == "open" and om.status_code == 1
+    assert isinstance(cm, SFeedMarketStatus) and cm.status == "close" and cm.status_code == 2
 
 
 def test_default_divider_when_exchange_missing():

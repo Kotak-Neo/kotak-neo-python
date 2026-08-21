@@ -11,6 +11,23 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 
+# Market status codes (SFeedMarketStatus.status_code body, message_code 105),
+# from the WebSocket team.
+class MarketStatusCode(IntEnum):
+    BCAST_OPEN_MESSAGE = 1
+    BCAST_CLOSE_MESSAGE = 2
+    BCAST_PREOPEN_SHUTDOWN_MSG = 3
+    BCAST_NORMAL_MKT_PREOPEN_ENDED = 4
+    BCAST_AUCTION_STATUS_CHANGE = 5
+    BCAST_CLOSING_START = 6
+    BCAST_CLOSING_END = 7
+    BCAST_CTS_CLOSE_FOR_CAS = 8
+    BCAST_REVISED_PRICE_BAND_COMPLETED = 9
+    BCAST_CAS_START = 10
+    BCAST_MARKET_ORDER_RESTRICTED = 11
+    BCAST_CAS_END = 12
+
+
 # Exchange enum — transmitted as a signed byte (exchange_id) in binary headers,
 # and as a name string in the JSON control plane.
 class Exchange(IntEnum):
@@ -86,8 +103,17 @@ class SFeedBase(BaseModel):
 
     exchange_segment: str
     instrument_token: str
-    # Resolved from the subscribe acknowledgement (message_code 1109) and
-    # attached by the client. None until the mapping is known for this token.
+
+
+class SFeedInstrumentMessage(SFeedBase):
+    """Base for messages tied to a specific subscribed instrument.
+
+    Adds trading_symbol, resolved from the subscribe acknowledgement
+    (message_code 1109) and attached by the client -- None until the mapping
+    is known for this token. Not used by SFeedMarketStatus, which has no
+    specific instrument to resolve (instrument_token is always "").
+    """
+
     trading_symbol: str | None = None
 
 
@@ -99,7 +125,7 @@ class DepthLevel(BaseModel):
     orders: int
 
 
-class SFeedScrip(SFeedBase):
+class SFeedScrip(SFeedInstrumentMessage):
     """Market picture (touch line / depth / full depth) — level in {2,4,8,16}."""
 
     type: Literal["scrip"] = "scrip"
@@ -132,7 +158,7 @@ class SFeedScrip(SFeedBase):
     sell: list[DepthLevel] = Field(default_factory=list)
 
 
-class SFeedScripLite(SFeedBase):
+class SFeedScripLite(SFeedInstrumentMessage):
     """Mini touch line — level == 1."""
 
     type: Literal["scrip_lite"] = "scrip_lite"
@@ -147,7 +173,7 @@ class SFeedScripLite(SFeedBase):
     multiplier: int
 
 
-class SFeedIndex(SFeedBase):
+class SFeedIndex(SFeedInstrumentMessage):
     """Index message — message_code == 7207."""
 
     type: Literal["index"] = "index"
@@ -166,11 +192,30 @@ class SFeedIndex(SFeedBase):
     multiplier: float
 
 
-class SFeedMarketStatus(SFeedBase):
-    """Market open/close notification — message_code 6511 / 6521 (header only)."""
+class SFeedMarketStatus(BaseModel):
+    """Market status notification.
+
+    Stands apart from SFeedBase/SFeedInstrumentMessage on purpose: the wire
+    packet for this message type carries no instrument token at all (only
+    exchange_segment + status_code + status), so there's no instrument_token
+    or trading_symbol field here -- only what the feed actually sends.
+
+    Delivered from message_code 105 (has a real body -- ``status_code`` +
+    a 5-byte ``status`` string, per exchange segment) while subscribed via
+    ``subscribe_exchange()`` / ``unsubscribe_exchange()`` (which send the
+    "subscribeExchange" / "unsubscribeExchange" events) -- see
+    :class:`MarketStatusCode` for what ``status_code`` means.
+
+    Also delivered from message_code 6511/6521 (header only, in a
+    per-instrument feed context, no real body) -- ``status_code`` is
+    synthesized as 1/2 to line up with :class:`MarketStatusCode`'s
+    BCAST_OPEN_MESSAGE/BCAST_CLOSE_MESSAGE, and ``status`` as "open"/"close".
+    """
 
     type: Literal["market_status"] = "market_status"
-    status: Literal["open", "close"]
+    exchange_segment: str
+    status_code: int
+    status: str
 
 
 # Union of all feed message types

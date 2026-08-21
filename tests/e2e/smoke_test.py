@@ -850,6 +850,84 @@ def _ws_unsubscribe_test(tokens, lite=False):
     return _test
 
 
+def _ws_market_subscribe_test():
+    """Connect, call subscribe_exchange() (no tokens), collect messages briefly."""
+
+    def _test():
+        async def _run():
+            runner.ws_messages.clear()
+            runner.ws_error = None
+
+            ws = runner.client.create_websocket()
+            ws.on_error = runner.on_ws_error
+            print(f"\n[WEBSOCKET URL] SFeed: {ws.url}")
+            _trace_ws_login(ws)
+
+            await ws.connect()
+            runner.ws_connected = ws.is_connected
+            _trace_ws_frames(ws)
+
+            await ws.subscribe_exchange()
+            print("\nSubscribed via subscribe_exchange() (no tokens)")
+
+            print("\nReceiving (5 seconds)...")
+            await _collect_for(ws, 5, on_message=runner.on_ws_message)
+
+            await ws.close()
+
+        asyncio.run(_run())
+
+        if runner.ws_error:
+            raise RuntimeError(f"WebSocket error: {runner.ws_error}")
+
+        return {
+            "subscribed": True,
+            "messages_received": len(runner.ws_messages),
+        }
+
+    return _test
+
+
+def _ws_market_unsubscribe_test():
+    """Call subscribe_exchange(), then unsubscribe_exchange(), confirm it goes quiet."""
+
+    def _test():
+        async def _run():
+            runner.ws_error = None
+
+            ws = runner.client.create_websocket()
+            ws.on_error = runner.on_ws_error
+            print(f"\n[WEBSOCKET URL] SFeed: {ws.url}")
+            _trace_ws_login(ws)
+
+            await ws.connect()
+            _trace_ws_frames(ws)
+
+            await ws.subscribe_exchange()
+            print("\nSubscribed via subscribe_exchange() - receiving briefly (3 seconds)...")
+            await _collect_for(ws, 3)
+
+            await ws.unsubscribe_exchange()
+            print("\nUnsubscribed - confirming feed goes quiet (3 seconds)...")
+            messages_after = await _collect_for(ws, 3)
+
+            await ws.close()
+            return messages_after
+
+        messages_after = asyncio.run(_run())
+
+        if runner.ws_error:
+            raise RuntimeError(f"WebSocket error: {runner.ws_error}")
+
+        print(f"\n[UNSUBSCRIBE] Messages received after unsubscribe: {messages_after}")
+        return {
+            "unsubscribed": True,
+            "messages_after_unsubscribe": messages_after,
+        }
+
+    return _test
+
+
 # LTP subscribe / unsubscribe (touchline feed)
 runner.run_test(
     "WEBSOCKET LTP SUBSCRIBE",
@@ -880,6 +958,19 @@ runner.run_test(
     "WEBSOCKET OPTION CHAIN UNSUBSCRIBE",
     _ws_unsubscribe_test(OPTION_CHAIN_TOKENS),
     request_params={"inputtoken": [t.inputtoken for t in OPTION_CHAIN_TOKENS]},
+)
+
+# subscribe_exchange() / unsubscribe_exchange() -- market status, no tokens
+runner.run_test(
+    "WEBSOCKET MARKET SUBSCRIBE",
+    _ws_market_subscribe_test(),
+    request_params={"event": "subscribeExchange"},
+)
+
+runner.run_test(
+    "WEBSOCKET MARKET UNSUBSCRIBE",
+    _ws_market_unsubscribe_test(),
+    request_params={"event": "unsubscribeExchange"},
 )
 
 # ---------------------------

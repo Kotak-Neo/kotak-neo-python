@@ -115,6 +115,12 @@ Every subscribe/unsubscribe call **batches all tokens into a single frame**.
 | `subscribe_depth(tokens)` | Depth (8) | `SFeedScrip` (with `buy`/`sell` rows) |
 | `subscribe_full_depth(tokens)` | Full depth (16) | `SFeedScrip` (with `buy`/`sell` rows) |
 | `subscribe_index(tokens)` | Index | `SFeedIndex` |
+| `subscribe_exchange()` | Market status | `SFeedMarketStatus` |
+
+`subscribe_exchange()`/`unsubscribe_exchange()` take no tokens — they send a single
+`{"event": "subscribeExchange"}` / `{"event": "unsubscribeExchange"}` frame, not a
+batched one. Like the token-based subscriptions, it's automatically re-sent after a
+reconnect.
 
 Each has a matching `unsubscribe_*` method. A one-time snapshot is available via
 `snapshot(tokens, intent="scrips")` (intents: `scrips`, `scrips_lite`, `depth`, `index`).
@@ -177,8 +183,11 @@ print(ws.subscription_count)  # tokens currently subscribed
 
 All prices are already scaled (divided by the per-exchange divider) before you receive them.
 
-Every message also carries `exchange_segment`, `instrument_token`, and
-`trading_symbol` (see [Trading symbol](#trading-symbol) below).
+Every message carries `exchange_segment`. Instrument-specific messages
+(`SFeedScrip`, `SFeedScripLite`, `SFeedIndex`) also carry `instrument_token`
+and `trading_symbol` (see [Trading symbol](#trading-symbol) below).
+`SFeedMarketStatus` is the one exception — it isn't tied to a specific
+instrument, so it has neither field (see below).
 
 ### `SFeedScrip` — touch line / depth / full depth
 
@@ -229,7 +238,54 @@ async for message in ws:
 
 ### `SFeedMarketStatus`
 
-Market open/close notifications (`status` is `"open"` or `"close"`).
+Received both from touch-line-style subscriptions (message codes 6511/6521 —
+header only, no body) and from [`subscribe_exchange()`](#subscription-api)
+(message code 105, which carries a real body: `status_code` + a `status`
+string) — both decode to this same type:
+
+```python
+from neo_api_client.websocket.feed import MarketStatusCode
+
+await ws.subscribe_exchange()
+
+async for message in ws:
+    if isinstance(message, SFeedMarketStatus):
+        print(f"status_code={message.status_code} status={message.status}")
+        if message.status_code == MarketStatusCode.BCAST_CLOSING_START:
+            ...
+```
+
+Fields: `exchange_segment`, `status_code`, `status`. Unlike every other
+message type, there's no `instrument_token` or `trading_symbol` here — the
+wire packet carries no token field at all, so the model only exposes what
+the feed actually sends.
+
+`status_code` (from `subscribe_exchange()`'s message code 105; synthesized as
+`1`/`2` for the header-only 6511/6521 case) is one of:
+
+| Code | `MarketStatusCode` member |
+|------|---------------------------|
+| 1 | `BCAST_OPEN_MESSAGE` |
+| 2 | `BCAST_CLOSE_MESSAGE` |
+| 3 | `BCAST_PREOPEN_SHUTDOWN_MSG` |
+| 4 | `BCAST_NORMAL_MKT_PREOPEN_ENDED` |
+| 5 | `BCAST_AUCTION_STATUS_CHANGE` |
+| 6 | `BCAST_CLOSING_START` |
+| 7 | `BCAST_CLOSING_END` |
+| 8 | `BCAST_CTS_CLOSE_FOR_CAS` |
+| 9 | `BCAST_REVISED_PRICE_BAND_COMPLETED` |
+| 10 | `BCAST_CAS_START` |
+| 11 | `BCAST_MARKET_ORDER_RESTRICTED` |
+| 12 | `BCAST_CAS_END` |
+
+`status` is the raw status string from the wire (e.g. `"OPEN"`/`"CLOSE"` for
+codes 1/2) — it isn't normalized, since the 12 codes above aren't all
+open/close states.
+
+`subscribe_exchange()`/`unsubscribe_exchange()` take **no arguments at all** —
+not tokens, not an `inputtoken`, nothing. Calling either with any positional
+or keyword argument raises `TypeError` (enforced by the method signature
+itself, not just documented convention).
 
 ### Handling multiple types
 
@@ -410,12 +466,14 @@ pytest tests/unit/test_feed_client.py tests/unit/test_feed_protocol.py -v
 
 An end-to-end example lives at [`examples/feed_websocket_example.py`](../../examples/feed_websocket_example.py).
 The smoke test ([`tests/e2e/smoke_test.py`](../../tests/e2e/smoke_test.py)) exercises live
-subscribe/receive/unsubscribe cycles for both documented flows:
+subscribe/receive/unsubscribe cycles for these flows:
 
 - **WEBSOCKET LTP SUBSCRIBE** / **WEBSOCKET LTP UNSUBSCRIBE** — a single index token
   (`nse_cm|Nifty 50`)
 - **WEBSOCKET OPTION CHAIN SUBSCRIBE** / **WEBSOCKET OPTION CHAIN UNSUBSCRIBE** — a batch
   of `nse_fo` option tokens sent in one frame
+- **WEBSOCKET MARKET SUBSCRIBE** / **WEBSOCKET MARKET UNSUBSCRIBE** — `subscribe_exchange()`
+  / `unsubscribe_exchange()` (no tokens), receiving `SFeedMarketStatus`
 
 The unsubscribe cases also confirm the feed goes quiet after unsubscribing.
 

@@ -3,7 +3,7 @@
 import asyncio
 
 from neo_api_client import NeoAPI
-from neo_api_client.websocket.feed import SFeedScrip, WsToken
+from neo_api_client.websocket.feed import MarketStatusCode, SFeedMarketStatus, SFeedScrip, WsToken
 
 
 async def main():
@@ -124,6 +124,29 @@ async def example_multiple_subscriptions():
                     print(f"Market {message.status} for {message.exchange_segment}")
 
 
+async def example_market_status():
+    """Example: subscribe_exchange() -- market status, no tokens."""
+
+    client = NeoAPI(consumer_key="...", environment="prod")
+    client.totp_login(mobile_number="+91...", ucc="...", totp="...")
+    client.totp_validate(mpin="...")
+
+    async with client.create_websocket() as ws:
+        # Takes no arguments at all -- not tokens, not an inputtoken.
+        await ws.subscribe_exchange()
+
+        async for message in ws:
+            if isinstance(message, SFeedMarketStatus):
+                print(
+                    f"{message.exchange_segment}: status_code={message.status_code} "
+                    f"status={message.status}"
+                )
+                if message.status_code == MarketStatusCode.BCAST_CLOSING_START:
+                    print("Closing session starting soon")
+
+        await ws.unsubscribe_exchange()
+
+
 if __name__ == "__main__":
     # Run main example
     asyncio.run(main())
@@ -131,3 +154,4 @@ if __name__ == "__main__":
     # Or run alternative examples:
     # asyncio.run(example_with_callbacks())
     # asyncio.run(example_multiple_subscriptions())
+    # asyncio.run(example_market_status())

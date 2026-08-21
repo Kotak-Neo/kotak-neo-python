@@ -148,12 +148,14 @@ Detailed documentation for all SDK functions with examples and real API response
 
 Live market data is delivered through the modern async/await **SFeed** WebSocket
 client. It uses `async for` iteration and returns type-safe Pydantic messages,
-each enriched with its `trading_symbol` (resolved from the subscribe ack).
+each enriched with its `trading_symbol` (resolved from the subscribe ack) —
+except `SFeedMarketStatus`, which isn't tied to a specific instrument (see
+below).
 
 ```python
 import asyncio
 from neo_api_client import NeoAPI
-from neo_api_client.websocket.feed import WsToken, SFeedScrip
+from neo_api_client.websocket.feed import WsToken, SFeedScrip, SFeedMarketStatus
 
 
 async def main():
@@ -179,6 +181,21 @@ async def main():
 
 asyncio.run(main())
 ```
+
+Market status (open/close/pre-open/etc., not tied to a specific instrument) is a
+separate subscription — `subscribe_exchange()` takes no tokens and delivers
+`SFeedMarketStatus`:
+
+```python
+await ws.subscribe_exchange()
+
+async for message in ws:
+    if isinstance(message, SFeedMarketStatus):
+        print(f"status_code={message.status_code} status={message.status}")
+```
+
+See [Message Types](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/guides/websocket.md#message-types)
+in the guide for the full `MarketStatusCode` table.
 
 > **Note:** The SFeed client works out of the box — its dependencies
 > (`websockets`, `pydantic`) ship with the base install. The legacy callback-based
