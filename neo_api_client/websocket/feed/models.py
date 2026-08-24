@@ -28,6 +28,28 @@ class MarketStatusCode(IntEnum):
     BCAST_CAS_END = 12
 
 
+# Static, human-readable text per MarketStatusCode, from the WebSocket team.
+# Used instead of the raw wire status string, which is unreliable -- e.g. the
+# live feed sends an empty string for status_code 2 (BCAST_CLOSE_MESSAGE) on
+# most segments, not "CLOSE".
+MARKET_STATUS_TEXT: dict[int, str] = {
+    MarketStatusCode.BCAST_OPEN_MESSAGE: "Market open",
+    MarketStatusCode.BCAST_CLOSE_MESSAGE: "Market closed",
+    MarketStatusCode.BCAST_PREOPEN_SHUTDOWN_MSG: "Pre-open session ending",
+    MarketStatusCode.BCAST_NORMAL_MKT_PREOPEN_ENDED: "Pre-open ended, normal market open",
+    MarketStatusCode.BCAST_AUCTION_STATUS_CHANGE: "Auction status changed",
+    MarketStatusCode.BCAST_CLOSING_START: "Closing session started",
+    MarketStatusCode.BCAST_CLOSING_END: "Closing session ended",
+    MarketStatusCode.BCAST_CTS_CLOSE_FOR_CAS: (
+        "Continuous trading closed, closing auction starting soon"
+    ),
+    MarketStatusCode.BCAST_REVISED_PRICE_BAND_COMPLETED: "Closing auction price band set",
+    MarketStatusCode.BCAST_CAS_START: "Closing auction (CAS) started",
+    MarketStatusCode.BCAST_MARKET_ORDER_RESTRICTED: "Market orders restricted",
+    MarketStatusCode.BCAST_CAS_END: "Closing auction (CAS) ended",
+}
+
+
 # Exchange enum — transmitted as a signed byte (exchange_id) in binary headers,
 # and as a name string in the JSON control plane.
 class Exchange(IntEnum):
@@ -209,7 +231,12 @@ class SFeedMarketStatus(BaseModel):
     Also delivered from message_code 6511/6521 (header only, in a
     per-instrument feed context, no real body) -- ``status_code`` is
     synthesized as 1/2 to line up with :class:`MarketStatusCode`'s
-    BCAST_OPEN_MESSAGE/BCAST_CLOSE_MESSAGE, and ``status`` as "open"/"close".
+    BCAST_OPEN_MESSAGE/BCAST_CLOSE_MESSAGE.
+
+    ``status`` is always the static, human-readable text from
+    :data:`MARKET_STATUS_TEXT` for the given ``status_code`` (e.g. "Market
+    open"), not the raw wire string -- the wire string is unreliable (often
+    blank except for status_code 1/2).
     """
 
     type: Literal["market_status"] = "market_status"
@@ -218,5 +245,21 @@ class SFeedMarketStatus(BaseModel):
     status: str
 
 
+class SFeedCasChange(SFeedInstrumentMessage):
+    """Call auction session (CAS) reference-price/order-imbalance update —
+    message_code 104.
+
+    Unlike SFeedMarketStatus, this has a real per-instrument token, so it
+    extends SFeedInstrumentMessage (instrument_token + trading_symbol) same
+    as SFeedScrip/SFeedScripLite/SFeedIndex. Delivered on subscribe_scrips()/
+    subscribe_depth() -- not a separate subscription.
+    """
+
+    type: Literal["cas_change"] = "cas_change"
+    ref_price: float
+    imbalance_qty: int
+    imbalance_qty_at_market: int
+
+
 # Union of all feed message types
-SFeedMessage = SFeedScrip | SFeedScripLite | SFeedIndex | SFeedMarketStatus
+SFeedMessage = SFeedScrip | SFeedScripLite | SFeedIndex | SFeedMarketStatus | SFeedCasChange

@@ -246,7 +246,7 @@ def test_resolve_dynamic_urls_uat_success(requests_mock):
                     "E22_ks_broadcast_endpoint": "https://uat.kotaksecurities.com/ufeed",
                     "E22_ks_interactive_endpoint": "https://uat.kotaksecurities.com/uinteractive",
                     # Present but must NOT be used, since broadcast_source is "ks", not "sh".
-                    "E22_sh_broadcast_endpoint": "https://sfeed.kotaksecurities.com/betafeed",
+                    "E22_sh_broadcast_endpoint": "https://sfeed.kotaksecurities.com/apifeed",
                     "E22_sh_interactive_endpoint": "https://e22.kotaksecurities.com/realtime",
                 }
             }
@@ -327,7 +327,7 @@ def test_resolve_dynamic_urls_no_broadcast_source_leaves_none(requests_mock):
                 # E21 has an sh_broadcast_endpoint but no broadcast_source key,
                 # so it must not be picked up without going through that lookup.
                 "configs": {
-                    "E21_sh_broadcast_endpoint": "https://sfeed.kotaksecurities.com/betafeed"
+                    "E21_sh_broadcast_endpoint": "https://sfeed.kotaksecurities.com/apifeed"
                 }
             }
         },

@@ -470,7 +470,7 @@ def test_create_websocket_returns_client(authenticated_client):
     assert ws.access_token == authenticated_client.configuration.edit_token
     assert ws.sid == authenticated_client.configuration.edit_sid
     # Defaults to the SFeed production URL when no override is given
-    assert ws.url == "wss://sfeed.kotaksecurities.com/betafeed"
+    assert ws.url == "wss://sfeed.kotaksecurities.com/apifeed"
 
 
 def test_help_no_function():

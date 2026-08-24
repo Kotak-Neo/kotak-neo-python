@@ -4,7 +4,7 @@ Modern **async/await** WebSocket client for Kotak Neo's **SFeed** market-data fe
 (`native_batch` protocol). Introduced in **v2.2.0**, it replaces the legacy
 callback-based WebSocket.
 
-- **URL:** `wss://sfeed.kotaksecurities.com/betafeed`
+- **URL:** `wss://sfeed.kotaksecurities.com/apifeed`
 - **Control plane:** JSON text frames (auth, subscribe, unsubscribe, snapshot)
 - **Data plane:** binary frames (little-endian, packed, batched) — decoded for you
   into typed Pydantic messages
@@ -18,7 +18,7 @@ callback-based WebSocket.
 ## Features
 
 - **Async/await API** with `async for` iteration
-- **Type-safe** Pydantic messages (`SFeedScrip`, `SFeedScripLite`, `SFeedIndex`, `SFeedMarketStatus`)
+- **Type-safe** Pydantic messages (`SFeedScrip`, `SFeedScripLite`, `SFeedIndex`, `SFeedCasChange`, `SFeedMarketStatus`)
 - **Context manager** for automatic connect/close
 - **Batched subscriptions** — any number of instruments in a single frame
 - **Retries on initial connect failure** (e.g. a transient network error) before raising
@@ -184,10 +184,10 @@ print(ws.subscription_count)  # tokens currently subscribed
 All prices are already scaled (divided by the per-exchange divider) before you receive them.
 
 Every message carries `exchange_segment`. Instrument-specific messages
-(`SFeedScrip`, `SFeedScripLite`, `SFeedIndex`) also carry `instrument_token`
-and `trading_symbol` (see [Trading symbol](#trading-symbol) below).
-`SFeedMarketStatus` is the one exception — it isn't tied to a specific
-instrument, so it has neither field (see below).
+(`SFeedScrip`, `SFeedScripLite`, `SFeedIndex`, `SFeedCasChange`) also carry
+`instrument_token` and `trading_symbol` (see [Trading symbol](#trading-symbol)
+below). `SFeedMarketStatus` is the one exception — it isn't tied to a
+specific instrument, so it has neither field (see below).
 
 ### `SFeedScrip` — touch line / depth / full depth
 
@@ -211,7 +211,14 @@ Key fields: `last_traded_price`, `open_price`, `high_price`, `low_price`,
 `close_price`, `average_trade_price`, `net_change`, `net_change_percent`,
 `total_buy_quantity`, `total_sell_quantity`, `volume_traded_today`, `open_interest`,
 `upper_circuit_limit`, `lower_circuit_limit`, `yearly_high`, `yearly_low`,
-`total_traded_value`, `market_lot`, `precision`, `buy` / `sell` (lists of `DepthLevel`).
+`total_traded_value`, `market_lot`, `precision`, `last_trade_time`,
+`last_update_time`, `buy` / `sell` (lists of `DepthLevel`).
+
+`last_update_time` is `0` for an instrument that has never been updated,
+same convention as `last_trade_time` — the exchange actually sends a
+negative sentinel (`1900-01-01 00:00:00 IST` as a signed Unix timestamp,
+e.g. `-2209008600`) for this case, but the SDK normalizes it to `0` before
+delivering the message.
 
 ### `SFeedScripLite` — mini touch line (bandwidth-optimized)
 
@@ -235,6 +242,36 @@ async for message in ws:
     if isinstance(message, SFeedIndex):
         print(f"{message.name}: {message.last_traded_price} (chg {message.change})")
 ```
+
+### `SFeedCasChange`
+
+Call auction session (CAS) reference-price/order-imbalance update
+(message code 104). Delivered on `subscribe_scrips()`/`subscribe_depth()`
+alongside normal touch-line/depth data — not a separate subscription:
+
+```python
+from neo_api_client.websocket.feed import SFeedCasChange
+
+await ws.subscribe_scrips([WsToken("nse_cm", "1333")])
+
+async for message in ws:
+    if isinstance(message, SFeedCasChange):
+        print(
+            f"{message.trading_symbol} ({message.instrument_token}) "
+            f"ref_price={message.ref_price} imbalance_qty={message.imbalance_qty} "
+            f"imbalance_qty_at_market={message.imbalance_qty_at_market}"
+        )
+```
+
+Fields: `ref_price` (scaled by the per-exchange divider, like every other
+price field), `imbalance_qty`, `imbalance_qty_at_market`.
+
+Only meaningful during the CAS window — outside it, the exchange still
+broadcasts this packet but with `ref_price`, `imbalance_qty`, and
+`imbalance_qty_at_market` all zero. The SDK drops that case entirely (you
+never see it via `async for`/`on_message`) rather than delivering a message
+with nothing useful in it. A message with only *some* of those three at
+zero is still delivered — it's only dropped when all three are zero.
 
 ### `SFeedMarketStatus`
 
@@ -263,24 +300,26 @@ the feed actually sends.
 `status_code` (from `subscribe_exchange()`'s message code 105; synthesized as
 `1`/`2` for the header-only 6511/6521 case) is one of:
 
-| Code | `MarketStatusCode` member |
-|------|---------------------------|
-| 1 | `BCAST_OPEN_MESSAGE` |
-| 2 | `BCAST_CLOSE_MESSAGE` |
-| 3 | `BCAST_PREOPEN_SHUTDOWN_MSG` |
-| 4 | `BCAST_NORMAL_MKT_PREOPEN_ENDED` |
-| 5 | `BCAST_AUCTION_STATUS_CHANGE` |
-| 6 | `BCAST_CLOSING_START` |
-| 7 | `BCAST_CLOSING_END` |
-| 8 | `BCAST_CTS_CLOSE_FOR_CAS` |
-| 9 | `BCAST_REVISED_PRICE_BAND_COMPLETED` |
-| 10 | `BCAST_CAS_START` |
-| 11 | `BCAST_MARKET_ORDER_RESTRICTED` |
-| 12 | `BCAST_CAS_END` |
+| Code | `MarketStatusCode` member | `status` text |
+|------|---------------------------|----------------|
+| 1 | `BCAST_OPEN_MESSAGE` | Market open |
+| 2 | `BCAST_CLOSE_MESSAGE` | Market closed |
+| 3 | `BCAST_PREOPEN_SHUTDOWN_MSG` | Pre-open session ending |
+| 4 | `BCAST_NORMAL_MKT_PREOPEN_ENDED` | Pre-open ended, normal market open |
+| 5 | `BCAST_AUCTION_STATUS_CHANGE` | Auction status changed |
+| 6 | `BCAST_CLOSING_START` | Closing session started |
+| 7 | `BCAST_CLOSING_END` | Closing session ended |
+| 8 | `BCAST_CTS_CLOSE_FOR_CAS` | Continuous trading closed, closing auction starting soon |
+| 9 | `BCAST_REVISED_PRICE_BAND_COMPLETED` | Closing auction price band set |
+| 10 | `BCAST_CAS_START` | Closing auction (CAS) started |
+| 11 | `BCAST_MARKET_ORDER_RESTRICTED` | Market orders restricted |
+| 12 | `BCAST_CAS_END` | Closing auction (CAS) ended |
 
-`status` is the raw status string from the wire (e.g. `"OPEN"`/`"CLOSE"` for
-codes 1/2) — it isn't normalized, since the 12 codes above aren't all
-open/close states.
+`status` is this static, human-readable text (from `MARKET_STATUS_TEXT`,
+keyed by `status_code`) — **not** the raw wire string. The wire string is
+unreliable in practice (the live feed sends an empty string for most codes
+other than 1); a `status_code` not yet in the table above falls back to the
+wire string, then to a placeholder, in that order.
 
 `subscribe_exchange()`/`unsubscribe_exchange()` take **no arguments at all** —
 not tokens, not an `inputtoken`, nothing. Calling either with any positional
@@ -372,7 +411,7 @@ Details:
 
 | Argument | Default | Purpose |
 |----------|---------|---------|
-| `url` | `wss://sfeed.kotaksecurities.com/betafeed` | Feed endpoint (auto-resolved per account; see note above — pass explicitly to override) |
+| `url` | `wss://sfeed.kotaksecurities.com/apifeed` | Feed endpoint (auto-resolved per account; see note above — pass explicitly to override) |
 | `user` / `auth` | `ucc` / `sid` | SFeed credentials — `user` is your UCC, `auth` is your `sid` (both from the `totp_validate()` response), auto-filled from your session; no need to set these yourself |
 | `source` / `platform` / `version` / `sdk_version` / `sdk_date` | `"NEOTRADEAPI"` / internal defaults | Client/build identification sent to the feed. `source` is always `"NEOTRADEAPI"` — no need to change these |
 | `session_validation` | `False` | `sessionValidation` auth field |

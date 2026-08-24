@@ -51,6 +51,15 @@ asyncio.run(main())
 | `subscribe_index(tokens)` | Index | `SFeedIndex` |
 | `subscribe_exchange()` | Market status (no tokens) | `SFeedMarketStatus` |
 
+`subscribe_scrips(tokens)` and `subscribe_depth(tokens)` may also deliver
+`SFeedCasChange` (call auction session reference-price/order-imbalance
+updates, message code 104) for the same tokens — not a separate
+subscription. Outside the CAS window this arrives with `ref_price`,
+`imbalance_qty`, and `imbalance_qty_at_market` all zero; the SDK drops that
+case, so you only ever see it with real data. See
+[Message Types → `SFeedCasChange`](../../guides/websocket.md#sfeedcaschange)
+in the guide.
+
 ### LTP (single instrument)
 
 ```python
@@ -80,7 +89,9 @@ async for message in ws:
         print(f"status_code={message.status_code} status={message.status}")
 ```
 
-See [Message Types → `SFeedMarketStatus`](../../guides/websocket.md#sfeedmarketstatus)
+`status` is a static, human-readable string (e.g. `"Market open"`) looked up by
+`status_code` — not the raw wire text, which is unreliable in practice. See
+[Message Types → `SFeedMarketStatus`](../../guides/websocket.md#sfeedmarketstatus)
 in the guide for the full `status_code` table.
 
 ### Subscription limit
@@ -156,11 +167,11 @@ For indices, use the index name as the token, e.g.
 ## Return type
 
 Messages are typed Pydantic models (`SFeedScrip`, `SFeedScripLite`, `SFeedIndex`,
-`SFeedMarketStatus`). All prices are pre-scaled by the per-exchange divider. Call
-`message.model_dump()` for a dict.
+`SFeedCasChange`, `SFeedMarketStatus`). All prices are pre-scaled by the per-exchange
+divider. Call `message.model_dump()` for a dict.
 
-Every message includes `exchange_segment`. `SFeedScrip`/`SFeedScripLite`/`SFeedIndex`
-also include `instrument_token` and `trading_symbol` — the `trading_symbol` (e.g.
+Every message includes `exchange_segment`. `SFeedScrip`/`SFeedScripLite`/`SFeedIndex`/
+`SFeedCasChange` also include `instrument_token` and `trading_symbol` — the `trading_symbol` (e.g.
 `"RELIANCE-EQ"`) is resolved from the subscribe acknowledgement and is `None` until
 that ack arrives or if the server returned no symbol for the token. See the
 [Trading symbol](../../guides/websocket.md#trading-symbol) section of the guide.

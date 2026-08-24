@@ -1,7 +1,7 @@
 #############################################################################
 #                        SFeed WebSocket URLs
 #############################################################################
-SFEED_WEBSOCKET_URL = "wss://sfeed.kotaksecurities.com/betafeed"
+SFEED_WEBSOCKET_URL = "wss://sfeed.kotaksecurities.com/apifeed"
 
 #############################################################################
 #                               UAT BASE URLs

@@ -19,6 +19,7 @@ from neo_api_client.websocket.feed import client as _client_mod  # noqa: E402
 from neo_api_client.websocket.feed.exceptions import NotConnectedError  # noqa: E402
 from neo_api_client.websocket.feed.protocol import (  # noqa: E402
     HEADER_SIZE,
+    MSG_CAS_CHANGE,
     MSG_MARKET_OPEN,
     MSG_MARKET_PICTURE,
 )
@@ -36,6 +37,17 @@ _DEPTH_ROW = struct.Struct("<qii")
 
 def _market_status_frame():
     return struct.Struct("<HHbBBBB").pack(HEADER_SIZE, MSG_MARKET_OPEN, 1, 0, 0, 0, 0)
+
+
+def _cas_change_frame(token, ref_price_paise, imbalance_qty=0, imbalance_qty_at_market=0):
+    """A message_code 104 (CAS reference-price/imbalance) frame for `token`,
+    decodes to nse_cm|<token> -- same instrument-token shape as scrip/depth,
+    so trading_symbol enrichment applies to it too."""
+    body = struct.Struct("<IIqq").pack(
+        token, ref_price_paise, imbalance_qty, imbalance_qty_at_market
+    )
+    header = struct.Struct("<HHbBBBB").pack(HEADER_SIZE + len(body), MSG_CAS_CHANGE, 1, 0, 0, 0, 0)
+    return header + body
 
 
 def _mini_frame(token, last_traded_price_paise):
@@ -611,8 +623,8 @@ def test_feed_module_reexports():
 
 def test_to_websocket_scheme_https_becomes_wss():
     assert (
-        _client_mod._to_websocket_scheme("https://sfeed.kotaksecurities.com/betafeed")
-        == "wss://sfeed.kotaksecurities.com/betafeed"
+        _client_mod._to_websocket_scheme("https://sfeed.kotaksecurities.com/apifeed")
+        == "wss://sfeed.kotaksecurities.com/apifeed"
     )
 
 
@@ -632,8 +644,8 @@ def test_to_websocket_scheme_preserves_query_string():
 
 def test_sfeed_websocket_normalizes_https_url_to_wss():
     """A config-service-style https:// URL is usable directly by SFeedWebSocket."""
-    ws = SFeedWebSocket(url="https://sfeed.kotaksecurities.com/betafeed")
-    assert ws.url == "wss://sfeed.kotaksecurities.com/betafeed"
+    ws = SFeedWebSocket(url="https://sfeed.kotaksecurities.com/apifeed")
+    assert ws.url == "wss://sfeed.kotaksecurities.com/apifeed"
 
 
 # ---- TLS verification -------------------------------------------------------
@@ -1171,6 +1183,54 @@ def test_scrip_message_with_unresolved_symbol_delivered_with_none(monkeypatch):
     assert msg.trading_symbol is None
 
 
+def test_cas_change_frame_gets_trading_symbol_enrichment(monkeypatch):
+    """SFeedCasChange has a real instrument_token (unlike SFeedMarketStatus),
+    so it goes through the normal trading_symbol enrichment path -- no
+    special-casing needed, unlike _deliver_message's SFeedMarketStatus skip."""
+
+    async def run():
+        fake = FakeAsyncWS(incoming=[_AUTH_OK])
+        _patch_connect(monkeypatch, fake)
+        ws = SFeedWebSocket(url="wss://fake/feed")
+        await ws.connect()
+        ws._trading_symbols = {"nse_cm|1333": "RELIANCE-EQ"}
+        ws._handle_binary_frame(_cas_change_frame(1333, 72005, 1500, 250))
+        msg = await asyncio.wait_for(ws._message_queue.get(), timeout=1.0)
+        await ws.close()
+        return msg
+
+    msg = asyncio.run(run())
+    assert msg.type == "cas_change"
+    assert msg.instrument_token == "1333"
+    assert msg.trading_symbol == "RELIANCE-EQ"
+    assert msg.ref_price == pytest.approx(720.05)
+    assert msg.imbalance_qty == 1500
+    assert msg.imbalance_qty_at_market == 250
+
+
+def test_all_zero_cas_change_frame_never_reaches_queue(monkeypatch):
+    """Outside the CAS window the exchange still broadcasts this packet but
+    with everything zeroed -- must be dropped end-to-end (never delivered),
+    not just decoded-then-ignored. Verified by sending a real frame right
+    after it and confirming that's the ONLY thing that comes out the queue."""
+
+    async def run():
+        fake = FakeAsyncWS(incoming=[_AUTH_OK])
+        _patch_connect(monkeypatch, fake)
+        ws = SFeedWebSocket(url="wss://fake/feed")
+        await ws.connect()
+        ws._handle_binary_frame(_cas_change_frame(1333, 0, 0, 0))  # all zero -- dropped
+        ws._handle_binary_frame(_mini_frame(11536, 150050))  # real data -- delivered
+        msg = await asyncio.wait_for(ws._message_queue.get(), timeout=1.0)
+        assert ws._message_queue.empty()  # nothing else queued -- the zero frame was dropped
+        await ws.close()
+        return msg
+
+    msg = asyncio.run(run())
+    assert msg.type == "scrip_lite"
+    assert msg.instrument_token == "11536"
+
+
 def test_data_frame_ahead_of_ack_is_withheld_then_delivered_enriched(monkeypatch):
     """A price tick that arrives on the wire BEFORE its subscribe ack must
     still be delivered eventually, enriched with the correct trading_symbol
@@ -1321,7 +1381,10 @@ def test_dual_feed_same_instrument_both_delivered_during_ack_wait(monkeypatch):
         return delivered_types, remaining
 
     delivered_types, remaining = asyncio.run(run())
-    assert delivered_types == {("market_status", "open"), ("market_status", "close")}
+    assert delivered_types == {
+        ("market_status", "Market open"),
+        ("market_status", "Market closed"),
+    }
     remaining_types = {msg.type for msg in remaining}
     assert remaining_types == {"scrip", "scrip_lite"}
     assert all(msg.trading_symbol == "RELIANCE-EQ" for msg in remaining)

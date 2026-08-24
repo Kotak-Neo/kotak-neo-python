@@ -749,10 +749,31 @@ def _trace_ws_login(ws):
     ws._build_auth_frame = build_and_print
 
 
-def _ws_subscribe_test(tokens, lite=False):
+def _summarize_cas_change_messages(messages):
+    """Pull out the decoded SFeedCasChange messages (message_code 104) from
+    a batch of received messages and print/return a compact summary.
+
+    CasChange arrives alongside normal touch-line/depth data on
+    subscribe_scrips()/subscribe_depth() -- not a separate subscription --
+    so it's easy to miss among everything else in the feed; this makes it
+    visible on its own.
+    """
+    cas_changes = [m for m in messages if m.type == "cas_change"]
+    print(f"\n[CAS CHANGE] {len(cas_changes)} message(s):")
+    for msg in cas_changes:
+        print(
+            f"  {msg.trading_symbol} ({msg.instrument_token}): "
+            f"ref_price={msg.ref_price} imbalance_qty={msg.imbalance_qty} "
+            f"imbalance_qty_at_market={msg.imbalance_qty_at_market}"
+        )
+    return cas_changes
+
+
+def _ws_subscribe_test(tokens, lite=False, depth=False):
     """Connect, subscribe to `tokens`, collect messages for a few seconds.
 
-    Uses subscribe_scrips_lite() when `lite=True`, subscribe_scrips() otherwise.
+    Uses subscribe_scrips_lite() when `lite=True`, subscribe_depth() when
+    `depth=True`, subscribe_scrips() otherwise.
 
     Returns a callable suitable for runner.run_test().
     """
@@ -772,7 +793,12 @@ def _ws_subscribe_test(tokens, lite=False):
             runner.ws_connected = ws.is_connected
             _trace_ws_frames(ws)
 
-            subscribe = ws.subscribe_scrips_lite if lite else ws.subscribe_scrips
+            if depth:
+                subscribe = ws.subscribe_depth
+            elif lite:
+                subscribe = ws.subscribe_scrips_lite
+            else:
+                subscribe = ws.subscribe_scrips
             await subscribe(tokens)
             print(f"\nSubscribed to {len(tokens)} token(s)")
             print("[TRADING SYMBOLS MAP] (from subscribe ack):")
@@ -790,19 +816,23 @@ def _ws_subscribe_test(tokens, lite=False):
         if runner.ws_error:
             raise RuntimeError(f"WebSocket error: {runner.ws_error}")
 
+        cas_changes = _summarize_cas_change_messages(runner.ws_messages)
+
         return {
             "subscribed_tokens": len(tokens),
             "messages_received": len(runner.ws_messages),
+            "cas_change_messages_received": len(cas_changes),
             "trading_symbols": trading_symbols,
         }
 
     return _test
 
 
-def _ws_unsubscribe_test(tokens, lite=False):
+def _ws_unsubscribe_test(tokens, lite=False, depth=False):
     """Subscribe to `tokens`, unsubscribe, then confirm the feed goes quiet.
 
-    Uses the *_scrips_lite() variants when `lite=True`, *_scrips() otherwise.
+    Uses the *_scrips_lite() variants when `lite=True`, *_depth() when
+    `depth=True`, *_scrips() otherwise.
 
     Returns a callable suitable for runner.run_test().
     """
@@ -819,8 +849,12 @@ def _ws_unsubscribe_test(tokens, lite=False):
             await ws.connect()
             _trace_ws_frames(ws)
 
-            subscribe = ws.subscribe_scrips_lite if lite else ws.subscribe_scrips
-            unsubscribe = ws.unsubscribe_scrips_lite if lite else ws.unsubscribe_scrips
+            if depth:
+                subscribe, unsubscribe = ws.subscribe_depth, ws.unsubscribe_depth
+            elif lite:
+                subscribe, unsubscribe = ws.subscribe_scrips_lite, ws.unsubscribe_scrips_lite
+            else:
+                subscribe, unsubscribe = ws.subscribe_scrips, ws.unsubscribe_scrips
 
             # Subscribe briefly so we know the feed is live.
             await subscribe(tokens)
@@ -929,6 +963,9 @@ def _ws_market_unsubscribe_test():
 
 
 # LTP subscribe / unsubscribe (touchline feed)
+# SFeedCasChange (message_code 104) can arrive here too, alongside normal
+# scrip data -- _ws_subscribe_test() reports it separately in the response
+# (see _summarize_cas_change_messages()).
 runner.run_test(
     "WEBSOCKET LTP SUBSCRIBE",
     _ws_subscribe_test(LTP_TOKENS),
@@ -957,6 +994,23 @@ runner.run_test(
 runner.run_test(
     "WEBSOCKET OPTION CHAIN UNSUBSCRIBE",
     _ws_unsubscribe_test(OPTION_CHAIN_TOKENS),
+    request_params={"inputtoken": [t.inputtoken for t in OPTION_CHAIN_TOKENS]},
+)
+
+# Depth subscribe / unsubscribe -- not exercised anywhere else in this
+# script; SFeedCasChange can arrive here too, not just on subscribe_scrips.
+runner.run_test(
+    "WEBSOCKET DEPTH SUBSCRIBE",
+    _ws_subscribe_test(OPTION_CHAIN_TOKENS, depth=True),
+    request_params={
+        "inputtoken": [t.inputtoken for t in OPTION_CHAIN_TOKENS],
+        "ack_symbol": True,
+    },
+)
+
+runner.run_test(
+    "WEBSOCKET DEPTH UNSUBSCRIBE",
+    _ws_unsubscribe_test(OPTION_CHAIN_TOKENS, depth=True),
     request_params={"inputtoken": [t.inputtoken for t in OPTION_CHAIN_TOKENS]},
 )
 

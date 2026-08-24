@@ -194,7 +194,9 @@ async for message in ws:
         print(f"status_code={message.status_code} status={message.status}")
 ```
 
-See [Message Types](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/guides/websocket.md#message-types)
+`status` is a static, human-readable string (e.g. `"Market open"`) looked up by
+`status_code` — not the raw wire text, which is unreliable in practice. See
+[Message Types](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/guides/websocket.md#message-types)
 in the guide for the full `MarketStatusCode` table.
 
 > **Note:** The SFeed client works out of the box — its dependencies
