@@ -769,8 +769,8 @@ def _summarize_cas_change_messages(messages):
     return cas_changes
 
 
-def _ws_subscribe_test(tokens, lite=False, depth=False):
-    """Connect, subscribe to `tokens`, collect messages for a few seconds.
+def _ws_subscribe_test(tokens, lite=False, depth=False, duration=5):
+    """Connect, subscribe to `tokens`, collect messages for `duration` seconds.
 
     Uses subscribe_scrips_lite() when `lite=True`, subscribe_depth() when
     `depth=True`, subscribe_scrips() otherwise.
@@ -804,8 +804,8 @@ def _ws_subscribe_test(tokens, lite=False, depth=False):
             print("[TRADING SYMBOLS MAP] (from subscribe ack):")
             print(json.dumps(ws.trading_symbols, indent=2))
 
-            print("\nReceiving (5 seconds)...")
-            await _collect_for(ws, 5, on_message=runner.on_ws_message)
+            print(f"\nReceiving ({duration} seconds)...")
+            await _collect_for(ws, duration, on_message=runner.on_ws_message)
 
             await ws.close()
 
@@ -968,7 +968,7 @@ def _ws_market_unsubscribe_test():
 # (see _summarize_cas_change_messages()).
 runner.run_test(
     "WEBSOCKET LTP SUBSCRIBE",
-    _ws_subscribe_test(LTP_TOKENS),
+    _ws_subscribe_test(LTP_TOKENS, duration=120),
     request_params={
         "inputtoken": [t.inputtoken for t in LTP_TOKENS],
         "ack_symbol": True,
