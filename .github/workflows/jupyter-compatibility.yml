@@ -1,0 +1,91 @@
+name: Jupyter Notebook Compatibility
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - develop
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  jupyter-sfeed-smoke:
+    name: Jupyter (${{ matrix.os }}, Python ${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+        python-version:
+          - "3.10"
+          - "3.11"
+          - "3.12"
+          - "3.13"
+          - "3.14"
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install SDK and Jupyter Test Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[jupyter]"
+
+      - name: Register Jupyter Kernel
+        run: |
+          python -m ipykernel install --user --name neo_test_kernel --display-name "Neo Test Kernel"
+
+      # Runs the SFeed smoke notebook through a real ipykernel subprocess
+      # (not just a plain script) -- this is what actually reproduces a
+      # kernel-crashes-silently failure mode: nbconvert/nbclient surfaces a
+      # dead kernel as a nonzero exit, distinct from a normal Python
+      # exception raised inside a cell.
+      - name: Run SFeed Jupyter Smoke Test
+        run: >
+          jupyter nbconvert --to notebook --execute
+          --ExecutePreprocessor.kernel_name=neo_test_kernel
+          --ExecutePreprocessor.timeout=60
+          --output executed_sfeed_smoke.ipynb
+          --output-dir tests/jupyter
+          tests/jupyter/sfeed_smoke.ipynb
+
+      - name: Show Executed Notebook Output
+        if: always()
+        run: |
+          python -c "
+          import pathlib
+          import nbformat
+
+          path = pathlib.Path('tests/jupyter/executed_sfeed_smoke.ipynb')
+          if not path.exists():
+              print('Executed notebook not found -- kernel likely crashed before producing output')
+          else:
+              nb = nbformat.read(path, as_version=4)
+              for i, cell in enumerate(nb.cells):
+                  print(f'--- Cell {i} ---')
+                  for out in cell.get('outputs', []):
+                      if out.get('output_type') == 'stream':
+                          print(out['text'].strip())
+                      elif out.get('output_type') == 'error':
+                          print('ERROR:', out.get('ename'), out.get('evalue'))
+          "
+
+      - name: Upload Executed Notebook
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: jupyter-notebook-${{ matrix.os }}-py${{ matrix.python-version }}
+          path: tests/jupyter/executed_sfeed_smoke.ipynb
+          if-no-files-found: ignore

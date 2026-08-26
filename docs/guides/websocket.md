@@ -65,6 +65,13 @@ async def main():
 asyncio.run(main())
 ```
 
+> **Running this from a Jupyter notebook instead of a script?** Don't wrap it
+> in `asyncio.run()` — Jupyter's kernel already runs its own event loop, and
+> `asyncio.run()` raises `RuntimeError: asyncio.run() cannot be called from a
+> running event loop` when called from one. Use `await` directly in a cell
+> instead. See the [Jupyter Notebook guide](../installation/jupyter.md#asyncawait-in-jupyter)
+> for the notebook-adapted version of this example.
+
 ### Constructing the client directly
 
 `create_websocket()` is the convenient path, but you can build the client yourself:
