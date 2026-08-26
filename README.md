@@ -137,6 +137,7 @@ Detailed documentation for all SDK functions with examples and real API response
 - **[Installation Overview](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/installation/README.md)** - All installation options
 - **[Local Installation](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/installation/local-install.md)** - Install from source (for contributors)
 - **[Platform-Specific Guides](https://github.com/Kotak-Neo/kotak-neo-python/tree/main/docs/installation)** - Windows, macOS, Linux, VS Code
+- **[Jupyter Notebook Setup](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/installation/jupyter.md)** - Kernel setup and using `await` directly in cells (no `asyncio.run()`)
 
 **API Documentation:**
 - **[Complete API Reference](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/README.md)** - All SDK functions
@@ -204,6 +205,11 @@ in the guide for the full `MarketStatusCode` table.
 > WebSocket (`client.subscribe(...)`, `on_message`, etc.) was **removed in v2.2.0** —
 > see the [SFeed WebSocket guide](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/guides/websocket.md) for the full API and a
 > migration reference.
+
+> **Running this in Jupyter Notebook instead of a script?** Don't wrap it in
+> `asyncio.run()` — Jupyter's kernel already runs its own event loop, so
+> `await` the client's coroutines directly in a cell instead. See the
+> [Jupyter Notebook Setup guide](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/installation/jupyter.md) for the notebook-adapted version of this example and Jupyter-specific troubleshooting.
 
 ## Order & Position Streaming Example
 
