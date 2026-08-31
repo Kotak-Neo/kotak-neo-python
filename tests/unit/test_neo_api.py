@@ -1,3 +1,4 @@
+import httpx
 import pytest
 
 from neo_api_client import NeoAPI
@@ -33,6 +34,46 @@ def test_neo_api_init_prod():
     assert client.configuration.host == "prod"
     assert client.configuration.consumer_key == "test_key"
     assert client.api_client is not None
+
+
+def test_neo_api_custom_transport_reaches_rest_client():
+    """transport= on NeoAPI is the migration hook for custom proxy/mTLS/pooling
+    deployments that used to monkey-patch the old requests-based client."""
+    custom_transport = httpx.HTTPTransport()
+
+    client = NeoAPI(environment="prod", consumer_key="test_key", transport=custom_transport)
+
+    assert client.api_client.rest_client.session._transport is custom_transport
+
+
+def test_neo_api_custom_limits_reaches_rest_client():
+    """limits= on NeoAPI lets callers resize the connection pool without a
+    full custom transport."""
+    custom_limits = httpx.Limits(max_connections=1, max_keepalive_connections=1)
+
+    client = NeoAPI(environment="prod", consumer_key="test_key", limits=custom_limits)
+
+    assert client.api_client.rest_client.session._transport._pool._max_connections == 1
+
+
+def test_neo_api_custom_transport_with_access_token():
+    """The access_token branch of NeoAPI.__init__ also threads transport/limits
+    through, not just the consumer_key branch."""
+    custom_transport = httpx.HTTPTransport()
+
+    client = NeoAPI(environment="prod", access_token="token123", transport=custom_transport)
+
+    assert client.api_client.rest_client.session._transport is custom_transport
+
+
+def test_neo_api_http2_and_timeout_reach_rest_client():
+    """http2=/timeout= on NeoAPI are the published knobs for the httpx stack's
+    protocol negotiation and default request timeout."""
+    client = NeoAPI(environment="prod", consumer_key="test_key", http2=False, timeout=45)
+
+    session = client.api_client.rest_client.session
+    assert session._transport._pool._http2 is False
+    assert session.timeout.connect == 45
 
 
 def test_neo_api_init_uat():

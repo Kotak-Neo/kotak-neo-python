@@ -6,8 +6,18 @@ client.trade_report()
 ```
 
 > **Note:** Fetching the trade report filtered by a single order ID is not
-> supported — `trade_report()` always returns the full list of trades. To
-> look up a single order's status, use [order_report(order_id=...)](./order_report.md).
+> supported server-side — `trade_report()` always returns the full list of
+> trades for the day; filter the `data` list client-side on `nOrdNo` (the
+> Nest order ID, shown in the sample response below) to reconcile fills for
+> one specific order.
+>
+> [`order_report(order_id=...)`](./order_report.md) is **not** a substitute
+> for this: it returns that order's current *status* from
+> `/quick/user/orders/<order_id>` (e.g. pending/complete/rejected), not its
+> executed *fills* (price, quantity, fill time, exchange order ID, etc.).
+> Order status and fill-level trade data are different concerns — use
+> `order_report()` to check where an order stands, and this endpoint
+> (filtered client-side as above) to reconcile what actually executed.
 
 ### Example
 

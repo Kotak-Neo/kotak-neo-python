@@ -31,11 +31,26 @@ Modern async/await streaming client for live market data (v3.0.0+).
 - Batched subscribe/unsubscribe and snapshot
 - Typed messages (`SFeedScrip`, `SFeedScripLite`, `SFeedIndex`, `SFeedMarketStatus`)
 - Configuration, error handling, and callbacks
-- Migration from the legacy callback-based WebSocket (removed in v3.0.0)
+- Migration from the legacy callback-based WebSocket (removed in v3.0.X)
 
 **Who should read:**
 - Anyone consuming real-time market data
 - Developers migrating from the pre-2.0.2 WebSocket API
+
+---
+
+#### [Sync/Multi-Process Integration Guide](sync-integration.md)
+Production pattern for consuming the async SFeed/order-feed clients from a
+synchronous, multi-process app (gunicorn/uWSGI sync workers, Celery).
+
+**Topics Covered:**
+- Background-thread + thread-safe-queue bridge for the async clients
+- gunicorn (`post_fork`) and Celery (`worker_process_init`) wiring
+- Fork-safety and one-connection-per-process considerations
+
+**Who should read:**
+- Anyone running Django/Flask behind sync workers, or Celery, that needs
+  live market data without becoming asyncio-native
 
 ---
 
@@ -64,7 +79,7 @@ Modern async/await streaming client for live market data (v3.0.0+).
 - **[VS Code Setup](../installation/vscode.md)** - IDE configuration
 
 ### Upgrading
-- **[Migration Guide (v2.0.2 → v3.0.0)](MIGRATION.md)** - Upgrade existing code
+- **[Migration Guide (v2.0.2 → v3.0.X)](MIGRATION.md)** - Upgrade existing code
 - **[Migration Scanner](../scripts/migrate_from_v2.py)** - Automated script that flags v2-only calls in your code
 
 ### API Documentation
@@ -105,8 +120,9 @@ Modern async/await streaming client for live market data (v3.0.0+).
 docs/
 ├── guides/                          # 📖 You are here
 │   ├── README.md                    # This file
-│   ├── MIGRATION.md                 # v2.0.2 → v3.0.0 upgrade guide
+│   ├── MIGRATION.md                 # v2.0.2 → v3.0.X upgrade guide
 │   ├── websocket.md                 # Async SFeed WebSocket guide
+│   ├── sync-integration.md          # Sync/multi-process bridge for the async feeds
 │   └── logging.md                   # setup_logging(), log levels & configuration
 │
 ├── installation/                    # Platform-specific guides
@@ -118,7 +134,7 @@ docs/
 │   └── vscode.md
 │
 ├── scripts/                         # Standalone helper scripts
-│   └── migrate_from_v2.py           # v2 -> v3.0.0 migration scanner (read-only)
+│   └── migrate_from_v2.py           # v2 -> v3.0.X migration scanner (read-only)
 │
 └── functions/                       # API documentation
     ├── README.md

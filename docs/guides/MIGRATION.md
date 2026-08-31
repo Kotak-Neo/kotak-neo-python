@@ -1,7 +1,7 @@
 # Migration Guide — v2.0.2 → v3.0.X
 
 This guide helps you upgrade the **Kotak Neo Python SDK** (`neo_api_client`) from
-**v2.0.2** to **v3.0.0**.
+**v2.0.2** to **v3.0.X**.
 
 The package import name is unchanged (`neo_api_client`), so your `import`
 statements keep working. However, several APIs changed in ways that **require
@@ -25,7 +25,7 @@ your codebase — it finds most of the issues covered in this document for you.
 ## 0. Automated scan: `docs/scripts/migrate_from_v2.py`
 
 The SDK repo ships a read-only scanner that walks your project's `.py` files
-looking for exactly the v2 → v3.0.0 breakages described in this guide —
+looking for exactly the v2 → v3.0.X breakages described in this guide —
 removed methods and imports, dropped keyword arguments, unsafe positional
 `NeoAPI(...)` construction, rejected `exchange_segment`/`product`/`order_type`/
 `validity` alias literals (§3), `price="0"` on `L`/`SL` orders, and legacy
@@ -70,7 +70,7 @@ in static analysis," not "fully migrated" — still read §3 and test against
 
 ## 1. Installation & requirements
 
-| | v2.0.2 | v3.0.0 |
+| | v2.0.2 | v3.0.X |
 |---|---|---|
 | Python | 3.7+ | **3.10 – 3.14** |
 | HTTP transport | `requests` | **`httpx` (HTTP/2)** |
@@ -83,6 +83,44 @@ pip install --upgrade kotakneoapi
 If you previously pinned transitive packages (e.g. `urllib3`, `certifi`) to match
 the old SDK's exact pins, remove those pins — the new SDK uses loose ranges and
 `httpx`, and old pins may now conflict.
+
+### 1.1 Package coexistence and rollback
+
+The legacy SDK is **not published on PyPI** — it's installed directly from
+GitHub (`pip install "git+https://github.com/Kotak-Neo/Kotak-neo-api-v2.git@v2.0.2#egg=neo_api_client"`,
+per its own README) — but pip still registers it under the package name
+**`neo-api-client`** declared in its `setup.py`, same as it would for a
+PyPI install. This SDK's PyPI distribution is **`kotakneoapi`** — a
+different package name, but **both install files under the identical Python
+import package `neo_api_client`.** pip tracks installed packages by that
+registered name, not by the import namespace they populate, so it cannot
+detect or warn about this: installing one over the other in the same
+environment (without uninstalling the first) silently overwrites its files
+under `site-packages/neo_api_client/`, with no error or conflict message
+from pip.
+
+**To upgrade safely, uninstall the legacy package first** (or migrate in a
+fresh virtual environment) — `pip uninstall` works the same regardless of
+where a package was originally installed from:
+
+```bash
+pip uninstall neo-api-client
+pip install kotakneoapi
+```
+
+**To roll back** if you need to revert to the legacy SDK in production —
+note this reinstalls from GitHub, not PyPI, since the legacy SDK was never
+published there:
+
+```bash
+pip uninstall kotakneoapi
+pip install "git+https://github.com/Kotak-Neo/Kotak-neo-api-v2.git@v2.0.2#egg=neo_api_client"
+```
+
+Either direction, do it in a single environment change (ideally a fresh venv
+if you can) rather than pip-installing the target version over the other
+package without uninstalling first — that's the sequence that produces a
+partially-overwritten, broken `neo_api_client` package.
 
 ---
 
@@ -143,7 +181,7 @@ a clear error for invalid input, instead of forwarding it to the exchange.
 ### 3.1 Product type — only `CNC`, `NRML`, `MIS`, `MTF`
 
 ```python
-# v3.0.0: allowed product values
+# v3.0.X: allowed product values
 client.place_order(..., product="CNC")  # or "NRML", "MIS", or "MTF"
 ```
 
@@ -224,7 +262,7 @@ the order lives on.
 ### 3.5 Price — must be positive for `L`/`SL` orders
 
 ```python
-# v3.0.0: price=0 is now rejected for Limit and Stop-Loss-Limit orders
+# v3.0.X: price=0 is now rejected for Limit and Stop-Loss-Limit orders
 client.place_order(..., order_type="L", price="0")  # raises ApiValueError
 client.place_order(..., order_type="L", price="1500")  # OK — a real limit price
 client.place_order(..., order_type="MKT", price="0")  # still OK — market orders ignore price
@@ -254,7 +292,7 @@ none of them are required by the backend for a modify request, and the
 gone. Drop them from any call:
 
 ```python
-# Before (v3.0.0, "quick-modify" path)
+# Before (v3.0.X, "quick-modify" path)
 client.modify_order(
     order_id="250101000000001",
     price="1450",
@@ -285,12 +323,12 @@ flag only ever existed on `cancel_order()`/`cancel_cover_order()`/
 `cancel_bracket_order()` (see §5), triggering an order-book re-check before
 cancelling. If you copy-pasted `isVerify=True` from a `cancel_order()` call
 into a `modify_order()` call, drop it — it raises `TypeError` in both
-versions, this isn't a v3.0.0 behavior change. `modify_order()` now always
+versions, this isn't a v3.0.X behavior change. `modify_order()` now always
 returns the raw OMS acknowledgement (`stat: "Ok"` on acceptance); confirm the
 final state via the order feed or order history.
 
 ```python
-# Invalid in both v2.0.2 and v3.0.0 — isVerify was never a modify_order() param
+# Invalid in both v2.0.2 and v3.0.X — isVerify was never a modify_order() param
 client.modify_order(
     order_id="250101000000001",
     price="1450",
@@ -417,8 +455,16 @@ Calling `subscribe` / `un_subscribe` / `subscribe_to_orderfeed` now raises
 ## 6. WebSocket — from callbacks to async/await
 
 The biggest code change. v2.0.2 used a callback model (assign `on_message`,
-`on_error`, then call `subscribe`). v3.0.0 uses a modern **async/await** client
-with typed Pydantic messages.
+`on_error`, then call `subscribe`), driven by a background thread the SDK
+managed for you — trivial to use from a synchronous, multi-process app.
+v3.0.X uses a modern **async/await** client with typed Pydantic messages,
+which needs a running event loop.
+
+> **Running a synchronous, multi-process app (gunicorn/uWSGI sync workers,
+> Celery) rather than an asyncio-native one?** See the
+> [Sync/Multi-Process Integration Guide](sync-integration.md) for a
+> background-thread bridge that reproduces v2.0.2's experience on top of the
+> new async client.
 
 ### 6.1 Market data (LTP, option chain, depth)
 
@@ -434,7 +480,7 @@ client.on_error = lambda e: print(e)
 client.subscribe(instrument_tokens=[{"instrument_token": "11536", "exchange_segment": "nse_cm"}])
 ```
 
-**After (v3.0.0):**
+**After (v3.0.X):**
 
 ```python
 import asyncio
@@ -520,8 +566,13 @@ See **[Order Feed](../functions/websocket/order_feed.md)**.
   It's always sent as `"0"`. Drop the argument if you were passing it.
 - **`trade_report()` no longer accepts `order_id`.** Fetching the trade report
   filtered by a single order ID isn't backend-supported — it always returns
-  the full trade list now. To look up a single order's status, use
-  `order_report(order_id=...)` instead.
+  the full trade list now; filter the `data` list client-side on `nOrdNo` to
+  reconcile fills for one order. **`order_report(order_id=...)` is not a
+  substitute** — it returns that order's current status
+  (`/quick/user/orders/<order_id>`), not its executed fills. Use
+  `order_report()` for order status and the client-side-filtered
+  `trade_report()` above for fill-level reconciliation — see
+  [trade_report()](../functions/orders/trade_report.md) for details.
 - **`margin_required()` — `exchange_segment`/`order_type` aliases no longer
   accepted.** Only the exact canonical codes are accepted: `nse_cm`, `bse_cm`,
   `nse_fo`, `bse_fo`, `mcx_fo` for `exchange_segment`, and `L`, `MKT`, `SL`,
@@ -557,7 +608,7 @@ See **[Order Feed](../functions/websocket/order_feed.md)**.
 - [ ] Drop the bracket/cover-order-only `place_order()` params (`pf`, `scrip_token`, `square_off_type`, `stop_loss_type`, `stop_loss_value`, `square_off_value`, `last_traded_price`, `trailing_stop_loss`, `trailing_sl_value`) — `tag` is not one of these; it's a supported general-purpose parameter (see §3.1).
 - [ ] Drop `instrument_token`, `exchange_segment`, `trading_symbol`, `transaction_type`, `product`, `dd`, and `filled_quantity` from `modify_order()` calls.
 - [ ] Don't pass `isVerify` to `modify_order()` — it was never a valid parameter there in either version (it only exists on `cancel_order()`/`cancel_cover_order()`/`cancel_bracket_order()`, see §3.8).
-- [ ] Replace `trade_report(order_id=...)` with `order_report(order_id=...)` for single-order lookups.
+- [ ] Replace `trade_report(order_id=...)` with client-side filtering of `trade_report()`'s `data` list by `nOrdNo` for fill-level reconciliation of one order — `order_report(order_id=...)` is a *different* lookup (order status, not fills) and is not a substitute.
 - [ ] Replace `margin_required()` `exchange_segment`/`order_type` aliases (e.g. `"NSE"`, `"Limit"`) with their exact canonical codes.
 
 ---

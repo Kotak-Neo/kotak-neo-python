@@ -4,6 +4,12 @@ Complete installation guides for kotakneoapi SDK across different platforms and 
 
 > **Quick install:** `pip install kotakneoapi` — see [Quick Start](#-quick-start-any-platform) below.
 > Contributing to the SDK itself? See **[Local Installation Guide](./local-install.md)**.
+>
+> **Upgrading from the legacy `neo-api-client` package?** It shares this
+> package's import name (`neo_api_client`) — `pip uninstall neo-api-client`
+> before installing `kotakneoapi`, or use a fresh virtual environment. See
+> [Migration Guide §1.1](../guides/MIGRATION.md#11-package-coexistence-and-rollback)
+> for the full explanation and a rollback procedure.
 
 ## 📚 Installation Guides by Platform
 

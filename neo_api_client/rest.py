@@ -45,7 +45,14 @@ class RESTClientObject:
     """Enhanced REST API Client with enterprise features."""
 
     def __init__(
-        self, configuration, enable_rate_limiting: bool = False, raise_on_error: bool = False
+        self,
+        configuration,
+        enable_rate_limiting: bool = False,
+        raise_on_error: bool = False,
+        transport: httpx.BaseTransport | None = None,
+        limits: httpx.Limits | None = None,
+        http2: bool = True,
+        timeout: float | None = None,
     ):
         """
         Initialize the API client.
@@ -58,8 +65,33 @@ class RESTClientObject:
             Enable rate limiting (default: False for backward compatibility)
         raise_on_error : bool, optional
             Raise exception on HTTP error status codes (400+) (default: False for backward compatibility)
+        transport : httpx.BaseTransport, optional
+            Custom transport for the underlying httpx.Client -- the migration
+            hook for deployment architectures that need a corporate proxy,
+            mTLS, custom connection pooling, or request/response
+            instrumentation (the httpx equivalent of mounting a custom
+            `requests.adapters.HTTPAdapter`). Defaults to httpx's standard
+            transport when not given. Overrides `http2` for connections made
+            through it, since a custom transport owns its own protocol
+            negotiation.
+        limits : httpx.Limits, optional
+            Custom connection pool limits. Ignored if `transport` is given,
+            since a custom transport owns its own pooling. Defaults to
+            max_connections=20, max_keepalive_connections=10 when not given.
+        http2 : bool, optional
+            Whether to negotiate HTTP/2 (with automatic HTTP/1.1 fallback)
+            on the default transport. Default: True. Ignored if `transport`
+            is given.
+        timeout : float, optional
+            Default request timeout in seconds for the underlying httpx.Client.
+            Individual calls to `request(..., timeout=...)` still override this
+            per-call. Default: 30 seconds when not given.
         """
         self.configuration = configuration
+        self._transport = transport
+        self._limits = limits
+        self._http2 = http2
+        self._timeout = timeout if timeout is not None else DEFAULT_TIMEOUT
         self.session = self._create_session()
         self.rate_limiter = None
         self.raise_on_error = raise_on_error
@@ -74,7 +106,7 @@ class RESTClientObject:
             logger.debug(
                 "rest_client_initialized",
                 rate_limiting=enable_rate_limiting,
-                timeout=DEFAULT_TIMEOUT,
+                timeout=self._timeout,
             )
 
     def _create_session(self) -> httpx.Client:
@@ -90,15 +122,16 @@ class RESTClientObject:
         httpx.Client
             Configured HTTP/2 client.
         """
-        limits = httpx.Limits(
+        limits = self._limits or httpx.Limits(
             max_connections=DEFAULT_POOL_MAXSIZE,
             max_keepalive_connections=DEFAULT_POOL_CONNECTIONS,
         )
 
         return httpx.Client(
-            http2=True,
+            http2=self._http2,
             limits=limits,
-            timeout=DEFAULT_TIMEOUT,
+            transport=self._transport,
+            timeout=self._timeout,
             follow_redirects=True,
             headers={
                 "User-Agent": f"NeoSDK-Python/{__version__}",
@@ -239,7 +272,7 @@ class RESTClientObject:
                 "url": url,
                 "headers": headers,
                 "params": query_params,
-                "timeout": timeout or DEFAULT_TIMEOUT,
+                "timeout": timeout or self._timeout,
             }
 
             if method in {"POST", "PUT", "PATCH", "DELETE"}:
@@ -304,12 +337,12 @@ class RESTClientObject:
                 logger.error(
                     "api_request_timeout",
                     request_id=request_id,
-                    timeout=timeout or DEFAULT_TIMEOUT,
+                    timeout=timeout or self._timeout,
                     duration_ms=round(duration_ms, 2),
                 )
             raise ApiException(
                 status=0,
-                reason=f"Request timeout after {timeout or DEFAULT_TIMEOUT} seconds",
+                reason=f"Request timeout after {timeout or self._timeout} seconds",
             ) from exc
 
         except httpx.ConnectError as exc:

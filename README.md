@@ -142,6 +142,7 @@ Detailed documentation for all SDK functions with examples and real API response
 **API Documentation:**
 - **[Complete API Reference](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/README.md)** - All SDK functions
 - **[SFeed WebSocket Guide](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/guides/websocket.md)** - Async streaming client, protocol & migration
+- **[Sync/Multi-Process Integration Guide](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/guides/sync-integration.md)** - Bridging the async feeds into gunicorn/Celery-style sync, multi-process apps
 - **[Logging Guide](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/guides/logging.md)** - `setup_logging()`, log levels & configuration
 - **[All Guides](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/guides/README.md)** - Complete guide index
 
@@ -342,6 +343,63 @@ into the request path by default** — you opt in):
 - **Rate Limiter** - Token-bucket throttling (per second/minute/hour) to avoid tripping API quotas. Enable with `RESTClientObject(..., enable_rate_limiting=True)`.
 - **Retry Logic** - Exponential backoff with jitter for transient errors, via the `with_retry` / `create_retry_decorator` decorators in `neo_api_client.retry`.
 - **Circuit Breaker** - `CircuitBreaker` in `neo_api_client.circuit_breaker` to stop calling a failing service and let it recover.
+
+### Custom Transport (Migration Hook)
+
+Deployments that previously patched the legacy `requests`-based client's
+connection pool/adapter (custom proxy, mTLS, non-default pool sizing,
+transport-level instrumentation) have the equivalent hook here via `httpx`'s
+own extension points, passed straight through to `NeoAPI(...)`:
+
+```python
+import httpx
+from neo_api_client import NeoAPI
+
+# Full control: mount a custom transport (proxy, mTLS, custom pooling, etc.)
+client = NeoAPI(
+    consumer_key="your-consumer-key-token",
+    transport=httpx.HTTPTransport(
+        proxy="https://proxy.internal:8080", cert=("client.pem", "client.key")
+    ),
+)
+
+# Or just resize the connection pool without a full custom transport:
+client = NeoAPI(
+    consumer_key="your-consumer-key-token",
+    limits=httpx.Limits(max_connections=50, max_keepalive_connections=20),
+)
+```
+
+`limits` is ignored when `transport` is also given, since a custom transport
+owns its own pooling. Both default to the SDK's existing behavior
+(`max_connections=20`, `max_keepalive_connections=10`, standard `httpx`
+transport) when omitted.
+
+**HTTP/2 and timeouts** are also configurable per client:
+
+```python
+client = NeoAPI(
+    consumer_key="your-consumer-key-token",
+    http2=False,  # force HTTP/1.1 only; default is True (HTTP/2 with automatic HTTP/1.1 fallback)
+    timeout=45,  # default request timeout in seconds for every call; default is 30
+)
+```
+
+`http2` is ignored when `transport` is also given, since a custom transport
+owns its own protocol negotiation. `timeout` sets the client-wide default —
+individual REST calls can still override it per-call via the lower-level
+`RESTClientObject.request(..., timeout=...)`.
+
+**Mutating requests (place/modify/cancel order) are never automatically
+retried or replayed by the SDK.** `RESTClientObject.request()` makes exactly
+one HTTP call per invocation — on a timeout or connection error it raises
+immediately rather than resending, so an ambiguous failure (e.g. the broker
+received the order but the response was lost) never risks a silent duplicate
+order from client-side retry logic. The opt-in retry helpers in
+`neo_api_client.retry` (see below) are not wired into `place_order`/
+`modify_order`/`cancel_order` and must be applied explicitly by the caller if
+wanted — and doing so for a mutating call is the caller's decision to make
+with full awareness of the idempotency risk, not something the SDK does for you.
 
 ## Development
 
