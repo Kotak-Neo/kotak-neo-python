@@ -8,9 +8,12 @@ import httpx
 from neo_api_client import req_data_validation, settings
 from neo_api_client.api_client import ApiClient
 from neo_api_client.services.client_ip import ClientIpAPI
+from neo_api_client.services.expiries import ExpiriesAPI
+from neo_api_client.services.historical_data import HistoricalDataAPI
 from neo_api_client.services.limits import LimitsAPI
 from neo_api_client.services.margin import MarginAPI
 from neo_api_client.services.modify_order import ModifyOrder
+from neo_api_client.services.option_chain import OptionChainAPI
 from neo_api_client.services.order import OrderAPI
 from neo_api_client.services.order_history import OrderHistoryAPI
 from neo_api_client.services.order_report import OrderReportAPI
@@ -1102,3 +1105,104 @@ class NeoAPI:
             instrument_tokens=instrument_tokens, quote_type=quote_type
         )
         return quotes_response
+
+    def expiries(
+        self, exchange: str, underlying: str, instrument_type: str | None = None
+    ) -> dict[str, Any]:
+        """
+        Retrieves available expiry dates for an exchange + underlying.
+
+        Note: unlike quotes()/scrip_master(), this requires totp_validate()
+        to have been called first -- not because the endpoint itself needs a
+        session token (it's authenticated with consumer_key alone, same as
+        quotes()), but because the SDK resolves this service's URL from your
+        account's base_url, which totp_validate() is what populates.
+
+        Args:
+            exchange (str): Exchange segment, e.g. "nse_fo", "mcx_fo".
+            underlying (str): Underlying name, e.g. "RELIANCE", "NIFTY".
+            instrument_type (str, optional): "Option" or "Fut". Default: None
+                (backend default applies).
+
+        Returns:
+            JSON-encoded expiries response.
+
+        Raises:
+            ValueError: If totp_validate() hasn't been called yet.
+        """
+        return ExpiriesAPI(self.api_client).get_expiries(
+            exchange=exchange, underlying=underlying, instrument_type=instrument_type
+        )
+
+    def option_chain(
+        self,
+        exchange: str,
+        underlying: str,
+        expiry: str | None = None,
+        instrument_type: str | None = None,
+        count: int | None = None,
+    ) -> dict[str, Any]:
+        """
+        Retrieves the option chain (or futures chain) for an underlying.
+
+        Note: requires totp_validate() first -- see expiries() docstring for why.
+
+        Args:
+            exchange (str): Exchange segment, e.g. "nse_fo", "mcx_fo".
+            underlying (str): Underlying name, e.g. "RELIANCE", "NIFTY".
+            expiry (str, optional): ISO expiry date (YYYY-MM-DD) from
+                expiries(). Default: None (backend picks the nearest expiry).
+            instrument_type (str, optional): "Option" or "Fut". Default: None
+                (backend default is "Option").
+            count (int, optional): Number of strikes -- backend expects a
+                multiple of 10; not validated client-side. Default: None
+                (backend default is 40).
+
+        Returns:
+            JSON-encoded option chain response.
+
+        Raises:
+            ValueError: If totp_validate() hasn't been called yet.
+        """
+        return OptionChainAPI(self.api_client).get_option_chain(
+            exchange=exchange,
+            underlying=underlying,
+            expiry=expiry,
+            instrument_type=instrument_type,
+            count=count,
+        )
+
+    def historical_data(
+        self,
+        neosymbol: str,
+        interval: str,
+        from_date: str | None = None,
+        to_date: str | None = None,
+    ) -> dict[str, Any]:
+        """
+        Retrieves historical candle data for an instrument.
+
+        Note: requires totp_validate() first -- see expiries() docstring for why.
+
+        Args:
+            neosymbol (str): Instrument in "{exchange_segment}|{instrument_token}"
+                form, e.g. "nse_cm|1333".
+            interval (str): Only "10min" is confirmed working against live
+                traffic. Other values (including "day") have been tried and
+                rejected, or are unverified -- see
+                docs/functions/market_data/historical_data.md. An
+                unsupported value is rejected by the backend, not the SDK.
+            from_date (str, optional): Start date (YYYY-MM-DD).
+            to_date (str, optional): End date (YYYY-MM-DD).
+
+        Returns:
+            JSON-encoded historical candle response. See
+            docs/functions/market_data/historical_data.md for the response
+            shape and each interval's maximum date range per request.
+
+        Raises:
+            ValueError: If totp_validate() hasn't been called yet.
+        """
+        return HistoricalDataAPI(self.api_client).get_historical_data(
+            neosymbol=neosymbol, interval=interval, from_date=from_date, to_date=to_date
+        )

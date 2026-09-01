@@ -133,6 +133,28 @@ class NeoUtility:
 
         return f"{domain_info}/{endpoint}"
 
+    def get_market_data_url(self, path: str) -> str:
+        """Build a URL for the market-data/1.0 REST service (expiries,
+        option chain, historical candles).
+
+        Unlike ``get_url_details()``, this service lives on the account's
+        own data-center domain (e.g. ``https://e22.kotaksecurities.com``),
+        not the shared gateway domain -- so it uses ``self.base_url``, the
+        same account-resolved domain ``get_domain()`` falls back to for prod
+        (see above), populated by ``totp_validate()``'s ``baseUrl`` field.
+        The wire call itself needs no session token (just
+        ``Authorization: <consumer_key>``), but the SDK still can't pick the
+        right domain until totp_validate() has run.
+        """
+        if not self.base_url:
+            raise ValueError(
+                "Market-data service URL is unavailable. Complete totp_validate() "
+                "first -- it's needed to resolve your account's base URL, even "
+                "though this endpoint itself only requires consumer_key."
+            )
+
+        return f"{self.base_url.rstrip('/')}/market-data/1.0/{path.lstrip('/')}"
+
     def resolve_dynamic_urls(self, rest_client):
         """Fetch this account's data-center-specific feed URLs from the dynamic
         config service, called once right after totp_validate() learns

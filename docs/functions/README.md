@@ -53,6 +53,9 @@ client.totp_validate(mpin="123456")
 - [Quotes](./market_data/quotes.md) - Get real-time quotes
 - [Scrip Master](./market_data/scrip_master.md) - Download scrip master files
 - [Search Scrip](./market_data/search_scrip.md) - Search for instruments
+- [Expiries](./market_data/expiries.md) - Get available expiry dates for an underlying
+- [Option Chain](./market_data/option_chain.md) - Get the option/futures chain for an underlying
+- [Historical Data](./market_data/historical_data.md) - Get historical candle data
 
 ### 5. WebSocket (SFeed, async/await — v2.2.0+)
 - [Market Feed](./websocket/market_feed.md) - Subscribe/unsubscribe to live market data

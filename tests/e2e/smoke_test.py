@@ -3,7 +3,7 @@ import json
 import socket
 import time
 import traceback
-from datetime import date
+from datetime import date, timedelta
 
 import pyotp
 import websockets.exceptions as ws_exceptions
@@ -338,6 +338,76 @@ if quotes_response and isinstance(quotes_response, dict):
     except (ValueError, TypeError, KeyError) as e:
         print(f"\n[WARNING] Error extracting LTP: {e}")
         ltp = None
+
+# ---------------------------
+# EXPIRIES / OPTION CHAIN / HISTORICAL DATA
+# ---------------------------
+# All three require totp_validate() to have run (for base_url resolution --
+# see docs/functions/market_data/expiries.md), which by this point in the
+# script it already has.
+
+expiries_response = runner.run_test(
+    "EXPIRIES",
+    lambda: runner.client.expiries(exchange="nse_fo", underlying="NIFTY"),
+    request_params={"exchange": "nse_fo", "underlying": "NIFTY"},
+)
+
+# Use the nearest expiry from the EXPIRIES response (if available) so OPTION
+# CHAIN exercises the same expiry a real caller would pick, instead of
+# relying on the backend's own "nearest expiry" default.
+nearest_expiry = None
+if expiries_response and isinstance(expiries_response, dict):
+    expiry_list = expiries_response.get("expiries")
+    if isinstance(expiry_list, list) and expiry_list:
+        nearest_expiry = expiry_list[0]
+        print(f"\n[NEAREST EXPIRY] {nearest_expiry}")
+
+runner.run_test(
+    "OPTION CHAIN",
+    lambda: runner.client.option_chain(
+        exchange="nse_fo", underlying="NIFTY", expiry=nearest_expiry, count=40
+    ),
+    request_params={
+        "exchange": "nse_fo",
+        "underlying": "NIFTY",
+        "expiry": nearest_expiry,
+        "count": 40,
+    },
+)
+
+runner.run_test(
+    "OPTION CHAIN (FUTURES)",
+    lambda: runner.client.option_chain(
+        exchange="nse_fo", underlying="NIFTY", instrument_type="Fut"
+    ),
+    request_params={"exchange": "nse_fo", "underlying": "NIFTY", "instrument_type": "Fut"},
+)
+
+# Reuse the same instrument QUOTES above already fetched a live LTP for
+# (nse_cm|19084), so this exercises a real, currently-tradable instrument
+# rather than a hardcoded token that might get delisted.
+historical_from = (date.today() - timedelta(days=7)).isoformat()
+historical_to = date.today().isoformat()
+
+runner.run_test(
+    "HISTORICAL DATA",
+    lambda: runner.client.historical_data(
+        # "10min" is the only interval value confirmed against live traffic
+        # so far. The CRF's documented names (e.g. "day", "10minute") don't
+        # match the backend's actual expected values -- "day" was tried here
+        # and rejected with "Invalid interval value". See historical_data.md.
+        neosymbol="nse_cm|19084",
+        interval="10min",
+        from_date=historical_from,
+        to_date=historical_to,
+    ),
+    request_params={
+        "neosymbol": "nse_cm|19084",
+        "interval": "10min",
+        "from_date": historical_from,
+        "to_date": historical_to,
+    },
+)
 
 # ---------------------------
 # REPORTS
@@ -968,7 +1038,7 @@ def _ws_market_unsubscribe_test():
 # (see _summarize_cas_change_messages()).
 runner.run_test(
     "WEBSOCKET LTP SUBSCRIBE",
-    _ws_subscribe_test(LTP_TOKENS, duration=120),
+    _ws_subscribe_test(LTP_TOKENS, duration=10),
     request_params={
         "inputtoken": [t.inputtoken for t in LTP_TOKENS],
         "ack_symbol": True,

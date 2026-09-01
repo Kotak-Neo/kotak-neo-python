@@ -390,3 +390,33 @@ def test_get_url_details_strips_slashes():
     # Should not have double slashes
     assert "//" not in url.replace("https://", "")
     assert url == "https://gw-napi.kotaksecurities.com/quick/user/limits"
+
+
+def test_get_market_data_url_uses_base_url():
+    """get_market_data_url() builds on self.base_url, the same account-
+    resolved domain from totp_validate()'s baseUrl -- not a hardcoded
+    per-data-center map."""
+    utility = NeoUtility(host="prod")
+    utility.base_url = "https://e22.kotaksecurities.com"
+
+    url = utility.get_market_data_url("watchlist/expiries")
+
+    assert url == "https://e22.kotaksecurities.com/market-data/1.0/watchlist/expiries"
+
+
+def test_get_market_data_url_strips_slashes():
+    utility = NeoUtility(host="prod")
+    utility.base_url = "https://e22.kotaksecurities.com/"
+
+    url = utility.get_market_data_url("/watchlist/option-chain")
+
+    assert url == "https://e22.kotaksecurities.com/market-data/1.0/watchlist/option-chain"
+
+
+def test_get_market_data_url_missing_base_url_raises():
+    """Without base_url (i.e. before totp_validate()), a clear error is
+    raised instead of building a broken URL."""
+    utility = NeoUtility(host="prod")
+
+    with pytest.raises(ValueError, match="totp_validate"):
+        utility.get_market_data_url("watchlist/expiries")
