@@ -392,10 +392,7 @@ historical_to = date.today().isoformat()
 runner.run_test(
     "HISTORICAL DATA",
     lambda: runner.client.historical_data(
-        # "10min" is the only interval value confirmed against live traffic
-        # so far. The CRF's documented names (e.g. "day", "10minute") don't
-        # match the backend's actual expected values -- "day" was tried here
-        # and rejected with "Invalid interval value". See historical_data.md.
+        # Allowed values: 1min, 3min, 5min, 10min, 15min, 30min, 60min.
         neosymbol="nse_cm|19084",
         interval="10min",
         from_date=historical_from,

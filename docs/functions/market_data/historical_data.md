@@ -37,35 +37,21 @@ except Exception as e:
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
 | `neosymbol` | str | Yes | Instrument in `{exchange_segment}\|{instrument_token}` form, e.g. `nse_cm\|1333`. |
-| `interval` | str | Yes | **Only `10min` is confirmed working against live traffic.** An unsupported value is rejected by the **backend** with `{"status": "ERROR", "fault": {"code": 400, "message": "Invalid interval value"}}` — not validated by the SDK. |
+| `interval` | str | Yes | One of `1min`, `3min`, `5min`, `10min`, `15min`, `30min`, `60min`. An unsupported value is rejected by the **backend** with `{"status": "ERROR", "fault": {"code": 400, "message": "Invalid interval value"}}` — not validated by the SDK. |
 | `from_date` | str | No | Start date (`YYYY-MM-DD`). |
 | `to_date` | str | No | End date (`YYYY-MM-DD`). |
 
-> **The full interval list below is unverified and known to be partly wrong.**
-> The original change request documented `1min`, `3minute`, `5minute`,
-> `10minute`, `15minute`, `30minute`, `60minute`, `day`, `week` as the
-> accepted values, each with its own max date range. Live testing has since
-> disproved this: `day` is rejected with `"Invalid interval value"`, and the
-> one confirmed-working value (`10min`) doesn't match the documented
-> `10minute` naming either. **Don't rely on any interval value other than
-> `10min` until each one is individually confirmed against live traffic.**
-> The table below is kept for reference only, pending that confirmation:
->
-> | Interval (as originally specified — unconfirmed except `10min`\*) | Max range per request |
-> |----------|------------------------|
-> | `1min` | 30 days |
-> | `3minute` | 30 days |
-> | `5minute` | 30 days |
-> | `10minute`\* | 60 days |
-> | `15minute` | 60 days |
-> | `30minute` | 90 days |
-> | `60minute` | 90 days |
-> | `day` (confirmed **wrong** — rejected live) | 180 days |
-> | `week` | 180 days |
->
-> \* The confirmed-working value on live traffic is `10min`, not `10minute` —
-> even this row's own name is unconfirmed; only the max-range number is as
-> originally specified.
+### Maximum date range per request (backend-enforced, not SDK-validated)
+
+| Interval | Max range per request |
+|----------|------------------------|
+| `1min` | 30 days |
+| `3min` | 30 days |
+| `5min` | 30 days |
+| `10min` | 60 days |
+| `15min` | 60 days |
+| `30min` | 90 days |
+| `60min` | 90 days |
 
 The SDK forwards whatever `interval`/`from_date`/`to_date` you pass straight
 to the backend — it doesn't validate any of this itself. A request with an

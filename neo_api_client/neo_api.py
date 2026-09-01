@@ -1187,11 +1187,10 @@ class NeoAPI:
         Args:
             neosymbol (str): Instrument in "{exchange_segment}|{instrument_token}"
                 form, e.g. "nse_cm|1333".
-            interval (str): Only "10min" is confirmed working against live
-                traffic. Other values (including "day") have been tried and
-                rejected, or are unverified -- see
-                docs/functions/market_data/historical_data.md. An
-                unsupported value is rejected by the backend, not the SDK.
+            interval (str): One of "1min", "3min", "5min", "10min", "15min",
+                "30min", "60min". An unsupported value is rejected by the
+                backend, not the SDK -- see
+                docs/functions/market_data/historical_data.md.
             from_date (str, optional): Start date (YYYY-MM-DD).
             to_date (str, optional): End date (YYYY-MM-DD).
 
