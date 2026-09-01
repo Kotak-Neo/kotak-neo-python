@@ -16,7 +16,7 @@ Official Python SDK for Kotak Neo Trading APIs - a modern, well-tested trading c
 ✅ **Authentication** - TOTP-based secure login with 2FA  
 ✅ **Order Management** - Place, modify, cancel orders (Regular/AMO)  
 ✅ **Portfolio & Positions** - Real-time holdings, positions, and limits  
-✅ **Market Data** - Live quotes, scrip master, search functionality  
+✅ **Market Data** - Live quotes, scrip master, search functionality, expiries, option chain, and historical candle data  
 ✅ **SFeed WebSocket Streaming** - Modern async/await live market feed with typed messages, enriched with `trading_symbol`  
 ✅ **HTTP/2 Transport** - REST calls use HTTP/2 (via httpx) with automatic HTTP/1.1 fallback  
 ✅ **Optional Reliability Utilities** - Opt-in rate limiting, plus retry and circuit-breaker helpers  
@@ -121,6 +121,7 @@ Detailed documentation for all SDK functions with examples and real API response
 
 **Market Data**
 - [Quotes](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/market_data/quotes.md) | [Scrip Master](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/market_data/scrip_master.md) | [Search Scrip](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/market_data/search_scrip.md)
+- [Expiries](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/market_data/expiries.md) | [Option Chain](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/market_data/option_chain.md) | [Historical Data](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/market_data/historical_data.md)
 
 **WebSocket**
 - Market data (SFeed): [Market Feed (Subscribe/Unsubscribe)](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/websocket/market_feed.md)
