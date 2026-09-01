@@ -1085,6 +1085,8 @@ class NeoAPI:
 
         Args:
             instrument_tokens (List): A JSON-encoded list of instrument tokens to subscribe to.
+                Limited to 50 per call -- enforced by the backend API, not validated
+                by the SDK. See docs/functions/market_data/quotes.md.
             quote_type (str): The type of quote to subscribe to.
 
         Returns:

@@ -33,11 +33,29 @@ except Exception as e:
 
 > **Multiple instruments:** Pass multiple entries in `instrument_tokens` to fetch quotes for several instruments in a single request. The SDK combines them the same way the REST API expects, e.g. two tokens become one request to `.../neosymbol/nse_cm|1333,nse_cm|2885/all`.
 
+> **Limit: 50 instruments per call.** This limit is implemented at the
+> backend API, not by the SDK — `quotes()` does not validate or cap
+> `instrument_tokens` client-side; it simply forwards whatever you pass to
+> the endpoint. The limit bounds the response packet size. The endpoint is
+> also rate-limited to 25 requests/second. To fetch quotes for more than 50
+> instruments, split them across multiple calls of up to 50 each, paced to
+> stay under 25 requests/second:
+> ```python
+> import time
+>
+> all_quotes = []
+> for i in range(0, len(all_instrument_tokens), 50):
+>     batch = all_instrument_tokens[i : i + 50]
+>     response = client.quotes(instrument_tokens=batch, quote_type="all")
+>     all_quotes.extend(response)
+>     time.sleep(0.04)  # 25 requests/second ceiling
+> ```
+
 ## Parameters
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `instrument_tokens` | list | Yes | List of instrument dictionaries. Supports one or many instruments per call. |
+| `instrument_tokens` | list | Yes | List of instrument dictionaries. Up to 50 per call (broker-enforced; see the limit note above). |
 | `quote_type` | str | No | Type of quote data to fetch (default: 'all') |
 
 ### Quote Types
