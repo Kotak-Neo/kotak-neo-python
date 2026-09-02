@@ -527,5 +527,7 @@ The unsubscribe cases also confirm the feed goes quiet after unsubscribing.
 
 Both `SFeedWebSocket` and `OrderFeedWebSocket` log connect/reconnect/
 disconnect/authentication/subscription events through the SDK's shared
-logger. See the [Logging Guide](logging.md) for the full set of log levels,
+logger, plus every received packet at `INFO` (SFeed ticks, and order-feed
+updates with `order_id`/`order_status`). See the
+[Logging Guide](logging.md) for the full set of log levels,
 `setup_logging(...)` usage, and configuration.

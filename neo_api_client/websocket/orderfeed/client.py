@@ -280,6 +280,7 @@ class OrderFeedWebSocket:
                 message = self._parse_message(raw)
                 if message is None:
                     continue
+                self._log_received_message(message)
                 self._message_queue.put_nowait(message)
                 if self.on_message:
                     with contextlib.suppress(Exception):
@@ -339,6 +340,29 @@ class OrderFeedWebSocket:
 
         # Unknown message type: surface the raw dict rather than dropping it.
         return data
+
+    def _log_received_message(self, message: Any) -> None:
+        """Log every received packet -- order updates prominently carry
+        order_id + order_status (the actual audit trail QA needs), other
+        packet types (positions, unrecognized frames) still get a summary.
+        Fields here aren't credentials, so nothing here needs masking."""
+        if isinstance(message, OrderUpdate):
+            logger.info(
+                "orderfeed_order_update",
+                order_id=message.data.order_id,
+                order_status=message.data.order_status,
+                exchange_order_id=message.data.exchange_order_id,
+                trading_symbol=message.data.trading_symbol,
+            )
+        elif isinstance(message, PositionUpdate):
+            logger.info(
+                "orderfeed_position_update",
+                symbol=message.data.symbol,
+                exchange_segment=message.data.exchange_segment,
+                product=message.data.product,
+            )
+        else:
+            logger.info("orderfeed_message_received", message_type=type(message).__name__)
 
     async def _handle_disconnect(self) -> None:
         """Reconnect from scratch (server pushes state again on reconnect)."""

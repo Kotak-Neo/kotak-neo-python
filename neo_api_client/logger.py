@@ -9,10 +9,27 @@ import logging
 import logging.handlers
 import os
 import sys
+from datetime import datetime
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import structlog
 from structlog.types import FilteringBoundLogger
+
+# All SDK log timestamps are IST (Asia/Kolkata), regardless of the host
+# process's own timezone -- structlog's built-in TimeStamper defaults to UTC,
+# which QA flagged as confusing next to IST-based trade timestamps elsewhere
+# on the platform.
+_IST = ZoneInfo("Asia/Kolkata")
+
+
+def add_ist_timestamp(
+    logger: logging.Logger, method_name: str, event_dict: dict[str, Any]
+) -> dict[str, Any]:
+    """Stamp the event with the current time in IST."""
+    event_dict["timestamp"] = datetime.now(_IST).isoformat()
+    return event_dict
+
 
 # Configure log level from environment. Defaults to WARNING so the SDK is
 # quiet out of the box -- request/response tracing (api_request_start/
@@ -89,10 +106,13 @@ def censor_sensitive_data(
     logger: logging.Logger, method_name: str, event_dict: dict[str, Any]
 ) -> dict[str, Any]:
     """Censor sensitive information from logs."""
+    # Deliberately explicit, credential-shaped field names rather than a
+    # bare "token" substring -- a bare "token" catches non-sensitive fields
+    # too (e.g. quotes()'s exchange_token, WsToken's instrument_token), which
+    # are instrument identifiers, not credentials, and shouldn't be masked.
     sensitive_keys = {
         "password",
         "secret",
-        "token",
         "auth",
         "api_key",
         "consumer_key",
@@ -100,6 +120,7 @@ def censor_sensitive_data(
         "bearer_token",
         "edit_token",
         "view_token",
+        "access_token",
         "sid",
         "otp",
         "mpin",
@@ -167,15 +188,13 @@ def setup_logging(
     Returns:
         Configured logger instance
     """
-    timestamper = structlog.processors.TimeStamper(fmt="iso")
-
     shared_processors = [
         structlog.contextvars.merge_contextvars,
         structlog.stdlib.add_log_level,
         structlog.stdlib.add_logger_name,
         add_correlation_id,
         add_app_context,
-        timestamper,
+        add_ist_timestamp,
     ]
 
     if show_caller:
@@ -224,7 +243,7 @@ def setup_logging(
         structlog.stdlib.add_log_level,
         structlog.stdlib.add_logger_name,
         add_app_context,
-        timestamper,
+        add_ist_timestamp,
         censor_sensitive_data,
     ]
 

@@ -262,6 +262,37 @@ def test_connect_sends_payload_and_streams(monkeypatch):
     assert closed is True
 
 
+def test_order_update_packet_logs_order_id_and_status(monkeypatch):
+    """Every received order packet is logged with order_id + order_status --
+    QA's audit-trail ask -- not just connection lifecycle events."""
+
+    async def run():
+        order_frame = '{"type":"order","data":{"nOrdNo":"1","ordSt":"open","sym":"ITBEES"}}'
+        fake = FakeAsyncWS(incoming=[order_frame])
+        _patch_connect(monkeypatch, fake)
+
+        logged = {}
+        orig_info = _client_mod.logger.info
+
+        def capture_info(event, **kwargs):
+            if event == "orderfeed_order_update":
+                logged.update(kwargs, event=event)
+            return orig_info(event, **kwargs)
+
+        monkeypatch.setattr(_client_mod.logger, "info", capture_info)
+
+        ws = OrderFeedWebSocket(base_url="https://e21.kotaksecurities.com", auth="TOK", sid="SID")
+        await ws.connect()
+        await asyncio.wait_for(ws._message_queue.get(), timeout=1.0)
+        await ws.close()
+        return logged
+
+    logged = asyncio.run(run())
+    assert logged["order_id"] == "1"
+    assert logged["order_status"] == "open"
+    assert logged["trading_symbol"] is None  # sym maps to `symbol`, not `trading_symbol`
+
+
 def test_connect_logs_connected_and_authenticated_at_info(monkeypatch):
     """A healthy connect must be visible at INFO -- a customer running at the
     recommended INFO level (not the SDK-internal DEBUG level) should see

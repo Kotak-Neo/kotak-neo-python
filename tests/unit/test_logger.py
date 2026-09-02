@@ -10,6 +10,7 @@ import structlog
 from neo_api_client.logger import (
     add_app_context,
     add_correlation_id,
+    add_ist_timestamp,
     censor_sensitive_data,
     get_logger,
     setup_logging,
@@ -95,6 +96,51 @@ def test_censor_sensitive_data_nested():
     # Username should remain
     assert result["user"]["username"] == "john"
     assert result["data"]["value"] == 100
+
+
+def test_censor_sensitive_data_does_not_mask_exchange_token():
+    """exchange_token (quotes() response field) is an instrument identifier,
+    not a credential -- it must not be swept up by a bare "token" rule."""
+    event_dict = {"exchange_token": "1333", "display_symbol": "HDFCBANK-EQ"}
+
+    result = censor_sensitive_data(None, None, event_dict)
+
+    assert result["exchange_token"] == "1333"
+
+
+def test_censor_sensitive_data_does_not_mask_instrument_token():
+    """instrument_token (WsToken / SFeed message field) is likewise not a
+    credential and must stay visible in websocket logs."""
+    event_dict = {"instrument_token": "19084", "exchange_segment": "nse_cm"}
+
+    result = censor_sensitive_data(None, None, event_dict)
+
+    assert result["instrument_token"] == "19084"
+
+
+def test_censor_sensitive_data_still_masks_credential_tokens():
+    """The narrowed rule set must still mask the specific credential-shaped
+    fields it's meant for."""
+    event_dict = {
+        "bearer_token": "supersecretvalue123",
+        "edit_token": "anothersecretvalue1",
+        "view_token": "yetanothersecretval1",
+    }
+
+    result = censor_sensitive_data(None, None, event_dict)
+
+    assert result["bearer_token"] != "supersecretvalue123"
+    assert result["edit_token"] != "anothersecretvalue1"
+    assert result["view_token"] != "yetanothersecretval1"
+
+
+def test_add_ist_timestamp_uses_ist_offset():
+    """Log timestamps are IST (+05:30), not UTC/GMT."""
+    event_dict = {}
+
+    result = add_ist_timestamp(None, None, event_dict)
+
+    assert result["timestamp"].endswith("+05:30")
 
 
 def test_add_correlation_id_processor():

@@ -56,6 +56,28 @@ def test_subscribe_batches_tokens_into_single_frame():
     assert "json" not in frame
 
 
+def test_subscribe_logs_instrument_tokens(monkeypatch):
+    """subscribe_scrips() logs the actual instrument tokens, not just a
+    count -- safe now that instrument_token is exempt from masking."""
+    import neo_api_client.websocket.feed.client as feed_client_module
+
+    logged = {}
+
+    def capture_info(event, **kw):
+        if event == "sfeed_subscribed":
+            logged.update(kw, event=event)
+
+    monkeypatch.setattr(feed_client_module.logger, "info", capture_info)
+
+    async def run():
+        ws, _ = _client_with_fake_socket()
+        await ws.subscribe_scrips([WsToken("nse_fo", "44498"), WsToken("nse_fo", "44500")])
+
+    asyncio.run(run())
+
+    assert logged["instrument_tokens"] == ["nse_fo|44498", "nse_fo|44500"]
+
+
 def test_subscribe_supports_name_token():
     async def run():
         ws, fake = _client_with_fake_socket()
@@ -271,6 +293,29 @@ def test_handle_binary_frame_ignores_unknown_packet():
 
     ws._handle_binary_frame(frame)
     assert ws._message_queue.qsize() == 0
+
+
+def test_deliver_message_logs_at_info(monkeypatch):
+    """Every delivered message gets an INFO-level summary log -- QA's ask for
+    at least a per-packet summary on the LTP feed, at the same level as the
+    order feed's per-packet logging."""
+    import neo_api_client.websocket.feed.client as feed_client_module
+
+    ws, _ = _client_with_fake_socket()
+    logged = {}
+    orig_info = feed_client_module.logger.info
+
+    def capture_info(event, **kw):
+        if event == "sfeed_message_received":
+            logged.update(kw, event=event)
+        return orig_info(event, **kw)
+
+    monkeypatch.setattr(feed_client_module.logger, "info", capture_info)
+
+    ws._handle_binary_frame(_market_status_frame())
+
+    assert logged["event"] == "sfeed_message_received"
+    assert logged["message_type"] == "market_status"
 
 
 # ---- close ------------------------------------------------------------------

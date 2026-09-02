@@ -585,6 +585,15 @@ class SFeedWebSocket:
             symbol = self._trading_symbol_for(message)
             if symbol is not None:
                 message.trading_symbol = symbol
+        # INFO, matching the order feed's per-packet logging level.
+        # instrument_token is safe to log as-is (not a credential).
+        logger.info(
+            "sfeed_message_received",
+            message_type=message.type,
+            exchange_segment=getattr(message, "exchange_segment", None),
+            instrument_token=getattr(message, "instrument_token", None),
+            trading_symbol=getattr(message, "trading_symbol", None),
+        )
         self._message_queue.put_nowait(message)
         if self.on_message:
             with contextlib.suppress(Exception):
@@ -807,7 +816,12 @@ class SFeedWebSocket:
             logger.error("sfeed_subscribe_failed", intent=intent, error=str(e))
             raise SubscriptionError(f"Failed to subscribe ({intent}): {e}") from e
 
-        logger.info("sfeed_subscribed", intent=intent, tokens=len(tokens))
+        logger.info(
+            "sfeed_subscribed",
+            intent=intent,
+            tokens=len(tokens),
+            instrument_tokens=[t.inputtoken for t in tokens],
+        )
         await self._wait_for_subscribe_ack()
 
     async def _unsubscribe(self, tokens: list[WsToken], intent: str) -> None:
@@ -828,7 +842,12 @@ class SFeedWebSocket:
             logger.error("sfeed_unsubscribe_failed", intent=intent, error=str(e))
             raise SubscriptionError(f"Failed to unsubscribe ({intent}): {e}") from e
 
-        logger.info("sfeed_unsubscribed", intent=intent, tokens=len(tokens))
+        logger.info(
+            "sfeed_unsubscribed",
+            intent=intent,
+            tokens=len(tokens),
+            instrument_tokens=[t.inputtoken for t in tokens],
+        )
 
     # ---- Public subscription API -------------------------------------------
 

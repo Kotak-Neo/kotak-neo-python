@@ -2,6 +2,7 @@
 
 import pytest
 
+import neo_api_client.neo_api as neo_api_module
 from neo_api_client import NeoAPI
 
 
@@ -298,6 +299,33 @@ def test_totp_login_success(requests_mock):
     )
 
     assert result["data"]["token"] == "view_token_123"
+
+
+def test_totp_login_logs_function_call_and_result(requests_mock, monkeypatch):
+    """totp_login() emits a function-call snapshot (name + params + result) --
+    QA's ask for at least a function-level trace on login, distinct from the
+    lower-level REST request/response logging."""
+    client = NeoAPI(environment="prod", consumer_key="test_key")
+    login_url = "https://mis.kotaksecurities.com/login/1.0/tradeApiLogin"
+    requests_mock.post(login_url, json={"data": {"token": "view_token_123"}}, status_code=200)
+
+    logged_events = []
+    orig_info = neo_api_module.logger.info
+
+    def capture_info(event, **kwargs):
+        logged_events.append((event, kwargs))
+        return orig_info(event, **kwargs)
+
+    monkeypatch.setattr(neo_api_module.logger, "info", capture_info)
+
+    client.totp_login(mobile_number="+919999999999", ucc="TEST01", totp="123456")
+
+    call_events = [kw for event, kw in logged_events if event == "function_call"]
+    result_events = [kw for event, kw in logged_events if event == "function_result"]
+    assert call_events[0]["function"] == "totp_login"
+    assert call_events[0]["params"]["ucc"] == "TEST01"
+    assert result_events[0]["function"] == "totp_login"
+    assert result_events[0]["result"]["data"]["token"] == "view_token_123"
 
 
 def test_totp_validate_success(requests_mock):

@@ -44,26 +44,39 @@ everything above it.
 
 | Level | What's logged |
 |-------|----------------|
-| `INFO` | Trade REST request/response tracing — `api_request_start` (method, URL, query params, body) and `api_request_success` (status, duration, response body) — plus rate-limiter/circuit-breaker lifecycle events and a successful WebSocket connect/authenticate/reconnect/subscribe/unsubscribe. |
+| `INFO` | Trade REST request/response tracing — `api_request_start` (method, URL, query params, body) and `api_request_success` (status, duration, response body) — a `function_call`/`function_result` snapshot (function name, params, result) for `totp_login()`/`totp_validate()`, rate-limiter/circuit-breaker lifecycle events, a successful WebSocket connect/authenticate/reconnect/subscribe/unsubscribe (SFeed's `sfeed_subscribed`/`sfeed_unsubscribed` include the actual `instrument_tokens` list, not just a count), every SFeed message (`sfeed_message_received` per delivered tick, with `instrument_token`/`exchange_segment`/`trading_symbol`), and every order-feed packet (`orderfeed_order_update` with `order_id`+`order_status`, `orderfeed_position_update`, or `orderfeed_message_received` for anything else). |
 | `WARNING` | Recoverable issues: a WebSocket connect/reconnect attempt failing (before the next retry), a disconnect, a retried request, or a circuit breaker reopening/rejecting a call. |
 | `ERROR` | Failures: REST 4xx/5xx responses (`api_error_response` — logged even if you don't pass `raise_on_error`, which only controls whether it's *also* raised), request timeouts/connection errors, WebSocket authentication/connect/subscribe/unsubscribe failures, exhausted reconnect attempts, and circuit breaker opening. |
 
-Response bodies over 4KB are logged as a size summary instead of in full (e.g. the
-scrip master download), so one large response can't bloat the log file — the object
-returned to your code is never truncated, only what gets written to the log.
+Response bodies over 4KB get a size summary **plus** a preview (the first 1000
+characters of the raw response text) instead of being logged in full, so one
+large response (e.g. the scrip master download, a big `option_chain()`/
+`historical_data()` payload) can't bloat the log file while an error message
+near the start of the body stays visible for debugging — the object returned
+to your code is never truncated, only what gets written to the log.
 
 ## What every entry carries
 
 Every entry — including ones logged by third-party libraries the SDK depends on, like
 `httpx` — carries:
 
-- `timestamp`, `level`, `logger` name
+- `timestamp` (always IST/Asia-Kolkata, regardless of the host process's own
+  timezone), `level`, `logger` name
 - `environment` (`"prod"`/`"uat"`, taken from the `NeoAPI(environment=...)` your
   client was actually constructed with, once it's been created — `"unknown"` before
   that, or if none was ever created in this process)
 
-Sensitive fields (passwords, tokens, `sid`, `mpin`, OTP/TOTP, `Authorization`/`Auth`
-headers, etc.) are automatically masked before anything is written.
+**Request/response headers are not logged at all** — `api_request_start` records
+method, URL, query params, and body, but never headers, so an actual
+`Authorization` header value never reaches the log file in the first place.
+Credential-shaped *field* names that do appear in a logged body or params dict
+(passwords, `consumer_key`/`consumer_secret`, `bearer_token`/`edit_token`/
+`view_token`/`access_token`, `sid`, `mpin`, OTP/TOTP, `auth`, etc.) are
+automatically masked before anything is written. **Instrument identifiers are
+not masked** — `exchange_token` (`quotes()`) and `instrument_token` (SFeed
+subscribe/unsubscribe and per-message logs) are logged in full, since they're
+not credentials and masking them made feed/quote logs useless for tracing a
+specific instrument.
 
 ## No stdout printing from the library
 

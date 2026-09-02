@@ -235,7 +235,9 @@ def test_request_success_logs_response_body(monkeypatch):
 
 def test_large_response_body_is_truncated_in_log(monkeypatch):
     """A response body larger than MAX_LOGGED_BODY_BYTES is replaced with a
-    size-only summary in the log, instead of being embedded whole."""
+    size summary plus a text preview in the log, instead of being embedded
+    whole -- not discarded entirely, so an error near the start of a large
+    body (e.g. option_chain()/historical_data() responses) is still visible."""
     _enable_enhanced(monkeypatch)
     logged = {}
     orig_info = rest_module.logger.info
@@ -255,8 +257,39 @@ def test_large_response_body_is_truncated_in_log(monkeypatch):
 
     assert logged["response_body"]["truncated"] is True
     assert logged["response_body"]["size_bytes"] == len(resp.content)
+    assert logged["response_body"]["preview"] == resp.text[:1000]
+    assert logged["response_body"]["preview"].startswith('{"items"')
     # The caller still gets the full, untruncated body.
     assert resp.json() == huge_payload
+
+
+def test_large_error_response_body_preview_shows_error_message(monkeypatch):
+    """The preview is captured on the error path too, not just success --
+    QA's actual concern: a large error envelope's message must stay visible
+    even when the full body exceeds MAX_LOGGED_BODY_BYTES."""
+    _enable_enhanced(monkeypatch)
+    logged = {}
+    orig_error = rest_module.logger.error
+
+    def capture_error(event, **kwargs):
+        if event == "api_error_response":
+            logged.update(kwargs)
+        return orig_error(event, **kwargs)
+
+    monkeypatch.setattr(rest_module.logger, "error", capture_error)
+    client = RESTClientObject(DummyConfig(), raise_on_error=False)
+
+    huge_error_payload = {
+        "status": "ERROR",
+        "fault": {"code": 400, "message": "Invalid interval value"},
+        "padding": "x" * 5000,
+    }
+    with requests_mock.Mocker() as m:
+        m.get("https://test.com", json=huge_error_payload, status_code=400)
+        client.request(method="GET", url="https://test.com")
+
+    assert logged["response_body"]["truncated"] is True
+    assert "Invalid interval value" in logged["response_body"]["preview"]
 
 
 def test_get_rate_limit_status_with_limiter():

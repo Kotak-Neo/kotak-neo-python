@@ -27,12 +27,17 @@ DEFAULT_TIMEOUT = 30
 DEFAULT_POOL_CONNECTIONS = 10
 DEFAULT_POOL_MAXSIZE = 20
 
-# Response bodies larger than this are replaced with a size-only summary in
-# the log (e.g. scrip master downloads), so a single large response can't
-# blow up the rotating log file. This only affects what's written to the
-# log -- the body returned to the caller (and raised in ApiException) is
-# never truncated.
+# Response bodies larger than this get a size-only summary plus a short
+# preview in the log (e.g. scrip master downloads, option chains, candle
+# arrays), so a single large response can't blow up the rotating log file.
+# This only affects what's written to the log -- the body returned to the
+# caller (and raised in ApiException) is never truncated.
 MAX_LOGGED_BODY_BYTES = 4096
+
+# How much of a truncated body's raw text to keep as a "preview" -- enough to
+# see an error envelope's leading fields (e.g. {"status": "ERROR", "fault":
+# ...) even when the full body is too big to log in full.
+TRUNCATED_BODY_PREVIEW_CHARS = 1000
 
 # Context variable for request correlation
 correlation_id_context: ContextVar[str | None] = ContextVar("correlation_id", default=None)
@@ -163,7 +168,11 @@ class RESTClientObject:
         the log file. Sensitive fields are censored downstream by the shared
         structlog processor (`censor_sensitive_data`)."""
         if len(response.content) > MAX_LOGGED_BODY_BYTES:
-            return {"truncated": True, "size_bytes": len(response.content)}
+            return {
+                "truncated": True,
+                "size_bytes": len(response.content),
+                "preview": response.text[:TRUNCATED_BODY_PREVIEW_CHARS],
+            }
         return self._parse_response_body(response)
 
     def request(

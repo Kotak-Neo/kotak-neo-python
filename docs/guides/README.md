@@ -61,7 +61,7 @@ synchronous, multi-process app (gunicorn/uWSGI sync workers, Celery).
 - `setup_logging(...)` usage (console/file levels, `"NOLOG"`)
 - Rotating log file and its environment variables
 - Log levels used by the SDK (`INFO`/`WARNING`/`ERROR`) and what's logged at each
-- Automatic masking of sensitive fields, and the `environment` field
+- Automatic masking of sensitive fields (and what's deliberately *not* masked), IST timestamps, and the `environment` field
 
 **Who should read:**
 - Anyone monitoring REST/WebSocket traffic or troubleshooting connectivity
@@ -163,15 +163,6 @@ Found an issue or want to improve a guide?
 - 📧 Email: support@kotakneo.com
 - 🐛 GitHub Issues: https://github.com/Kotak-Neo/kotak-neo-python/issues
 - 📖 Main README: [../../README.md](../../README.md)
-
----
-
-## Recent Updates
-
-- **2026-08-19**: Added standalone [Logging Guide](logging.md); logging content moved out of the Migration Guide and WebSocket Guide
-- **2026-08-03**: Added automated migration scanner (`docs/scripts/migrate_from_v2.py`); removed the redundant/stale Installation Reference Guide (see [docs/installation/](../installation/README.md) instead)
-- **2026-07-01**: Added SFeed WebSocket Guide; legacy callback WebSocket removed in v2.2.0
-- **2026-06-25**: Organized guides into dedicated folder
 
 ---
 

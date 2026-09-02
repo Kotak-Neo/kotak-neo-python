@@ -7,6 +7,7 @@ import httpx
 
 from neo_api_client import req_data_validation, settings
 from neo_api_client.api_client import ApiClient
+from neo_api_client.logger import get_logger
 from neo_api_client.services.client_ip import ClientIpAPI
 from neo_api_client.services.expiries import ExpiriesAPI
 from neo_api_client.services.historical_data import HistoricalDataAPI
@@ -31,6 +32,8 @@ from neo_api_client.utils.urls import (
     ORDER_FEED_URL_E41,
     ORDER_FEED_URL_E43,
 )
+
+logger = get_logger(__name__)
 
 # Last-resort order-feed URL, used only when neither the dynamic config
 # service nor totp_validate()'s baseUrl gave us an endpoint for this data
@@ -864,17 +867,29 @@ class NeoAPI:
             case, e.g.:
             {"error": [{"code": "400", "message": "Missing required field 'MobileNumber'"}]}
         """
-        if not mobile_number:
-            return {"error": [{"code": "400", "message": "Missing required field 'MobileNumber'"}]}
-        if not ucc:
-            return {"error": [{"code": "400", "message": "Missing required field 'Ucc'"}]}
-        if not totp:
-            return {"error": [{"code": "400", "message": "Missing required field 'Totp'"}]}
-
-        totp_login = TotpAPI(self.api_client).totp_login(
-            mobile_number=mobile_number, ucc=ucc, totp=totp
+        # Function-call snapshot: name + params (totp/mpin-style fields are
+        # masked automatically downstream by censor_sensitive_data) + result.
+        logger.info(
+            "function_call",
+            function="totp_login",
+            params={"mobile_number": mobile_number, "ucc": ucc, "totp": totp},
         )
-        return totp_login
+
+        if not mobile_number:
+            result = {
+                "error": [{"code": "400", "message": "Missing required field 'MobileNumber'"}]
+            }
+        elif not ucc:
+            result = {"error": [{"code": "400", "message": "Missing required field 'Ucc'"}]}
+        elif not totp:
+            result = {"error": [{"code": "400", "message": "Missing required field 'Totp'"}]}
+        else:
+            result = TotpAPI(self.api_client).totp_login(
+                mobile_number=mobile_number, ucc=ucc, totp=totp
+            )
+
+        logger.info("function_result", function="totp_login", result=result)
+        return result
 
     def totp_validate(self, mpin: str | None = None) -> dict[str, Any]:
         """
@@ -925,11 +940,15 @@ class NeoAPI:
             case:
             {"error": [{"code": "400", "message": "Missing required field 'Mpin'"}]}
         """
-        if not mpin:
-            return {"error": [{"code": "400", "message": "Missing required field 'Mpin'"}]}
+        logger.info("function_call", function="totp_validate", params={"mpin": mpin})
 
-        totp_validate = TotpAPI(self.api_client).totp_validate(mpin=mpin)
-        return totp_validate
+        if not mpin:
+            result = {"error": [{"code": "400", "message": "Missing required field 'Mpin'"}]}
+        else:
+            result = TotpAPI(self.api_client).totp_validate(mpin=mpin)
+
+        logger.info("function_result", function="totp_validate", result=result)
+        return result
 
     def create_websocket(self, url: str | None = None, **kwargs: Any) -> SFeedWebSocket:
         """
