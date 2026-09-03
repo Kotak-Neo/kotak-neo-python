@@ -37,21 +37,19 @@ except Exception as e:
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
 | `neosymbol` | str | Yes | Instrument in `{exchange_segment}\|{instrument_token}` form, e.g. `nse_cm\|1333`. |
-| `interval` | str | Yes | One of `1min`, `3min`, `5min`, `10min`, `15min`, `30min`, `60min`. An unsupported value is rejected by the **backend** with `{"status": "ERROR", "fault": {"code": 400, "message": "Invalid interval value"}}` — not validated by the SDK. |
+| `interval` | str | Yes | One of `1min`, `3min`, `5min`, `10min`, `15min`, `30min`, `60min`, `D` (daily), `W` (weekly). An unsupported value is rejected by the **backend** with `{"status": "ERROR", "fault": {"code": 400, "message": "Invalid interval value"}}` — not validated by the SDK. |
 | `from_date` | str | No | Start date (`YYYY-MM-DD`). |
 | `to_date` | str | No | End date (`YYYY-MM-DD`). |
 
-### Maximum date range per request (backend-enforced, not SDK-validated)
+### Date Range Limits (backend-enforced, not SDK-validated)
 
-| Interval | Max range per request |
-|----------|------------------------|
-| `1min` | 30 days |
-| `3min` | 30 days |
-| `5min` | 30 days |
-| `10min` | 60 days |
-| `15min` | 60 days |
-| `30min` | 90 days |
-| `60min` | 90 days |
+| Interval | Max Days | Example Use Case |
+|----------|----------|------------------|
+| 1min, 3min, 5min | 30 days | Intraday trading charts |
+| 10min, 15min | 60 days | Short-term analysis |
+| 30min, 60min | 90 days | Medium-term analysis |
+| D (Daily) | 180 days | Long-term charts |
+| W (Weekly) | 180 days | Trend analysis |
 
 The SDK forwards whatever `interval`/`from_date`/`to_date` you pass straight
 to the backend — it doesn't validate any of this itself. A request with an
