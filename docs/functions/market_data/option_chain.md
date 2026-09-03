@@ -38,11 +38,11 @@ except Exception as e:
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `exchange` | str | Yes | Exchange segment, e.g. `nse_fo`, `mcx_fo`. |
+| `exchange` | str | Yes | Exchange segment. One of `nse_fo`, `bse_fo`, `mcx_fo`. |
 | `underlying` | str | Yes | Underlying name, e.g. `RELIANCE`, `NIFTY`. Matches `pSymbolName` in the scrip master file. |
 | `expiry` | str | No | ISO expiry date (`YYYY-MM-DD`), from [`expiries()`](./expiries.md). Defaults to the nearest expiry if omitted. |
 | `instrument_type` | str | No | `Option` (default) or `Fut`. |
-| `count` | int | No | Number of strikes. **Must be a multiple of 10 — enforced by the backend, not the SDK.** Default 40 (80 instruments: 40 calls + 40 puts). |
+| `count` | int | No | Number of strikes. Default 40 (80 instruments: 40 calls + 40 puts). |
 
 Passing `instrument_type="Fut"` with `expiry=None` returns every available
 futures contract in the `fut[]` array; passing a specific `expiry` returns
