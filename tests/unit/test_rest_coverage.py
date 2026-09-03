@@ -183,15 +183,16 @@ def test_error_response_logged_even_without_raise_on_error(monkeypatch):
 # ---- Request/response body logging (for API monitoring) --------------------
 
 
-def test_request_start_logs_body_and_query_params(monkeypatch):
-    """api_request_start includes the request body and query params, so
-    Trade REST API calls can be monitored end-to-end from the log file."""
+def test_request_success_logs_body_and_query_params(monkeypatch):
+    """api_request_success includes the request's body and query params
+    alongside the response, so Trade REST API calls can be monitored
+    end-to-end from a single log line instead of a separate start event."""
     _enable_enhanced(monkeypatch)
     logged = {}
     orig_info = rest_module.logger.info
 
     def capture_info(event, **kwargs):
-        if event == "api_request_start":
+        if event == "api_request_success":
             logged.update(kwargs)
         return orig_info(event, **kwargs)
 

@@ -767,17 +767,14 @@ OPTION_CHAIN_TOKENS = [
     for pair in (
         "nse_cm|2885",
         "nse_cm|22",
-        "nse_fo|61593",
-        "nse_fo|58073",
-        "nse_fo|58072",
-        "nse_fo|58067",
-        "nse_fo|58070",
-        "nse_fo|58071",
-        "nse_fo|61153",
-        "nse_fo|61148",
-        "nse_fo|61155",
-        "nse_fo|61172",
-        "nse_fo|61174",
+        "nse_fo|55681",
+        "nse_fo|40970",
+        "nse_fo|40189",
+        "nse_fo|47445",
+        "nse_fo|40883",
+        "nse_fo|59068",
+        "nse_fo|42568",
+        "nse_fo|55763",
     )
 ]
 

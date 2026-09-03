@@ -82,11 +82,11 @@ def test_get_domain_prod_session_init():
 def test_get_domain_prod_normal():
     """Test get_domain for prod with session_init=False."""
     utility = NeoUtility(host="prod")
-    utility.base_url = "https://gw-napi.kotaksecurities.com"
+    utility.base_url = "https://e21.kotaksecurities.com"
 
     domain = utility.get_domain(session_init=False)
 
-    assert domain == "https://gw-napi.kotaksecurities.com"
+    assert domain == "https://e21.kotaksecurities.com"
 
 
 def test_get_domain_uat_session_init():
@@ -130,12 +130,12 @@ def test_get_domain_case_insensitive():
 def test_get_url_details_prod():
     """Test get_url_details for prod environment."""
     utility = NeoUtility(host="prod")
-    utility.base_url = "https://gw-napi.kotaksecurities.com"
+    utility.base_url = "https://e21.kotaksecurities.com"
 
     url = utility.get_url_details("limits")
 
     # PROD_URL for limits is "quick/user/limits"
-    assert url == "https://gw-napi.kotaksecurities.com/quick/user/limits"
+    assert url == "https://e21.kotaksecurities.com/quick/user/limits"
 
 
 def test_get_url_details_uat():
@@ -151,7 +151,7 @@ def test_get_url_details_uat():
 def test_get_url_details_invalid_api():
     """Test get_url_details raises error for invalid api_info."""
     utility = NeoUtility(host="prod")
-    utility.base_url = "https://gw-napi.kotaksecurities.com"
+    utility.base_url = "https://e21.kotaksecurities.com"
 
     with pytest.raises(ValueError) as exc_info:
         utility.get_url_details("invalid_api")
@@ -383,13 +383,13 @@ def test_resolve_dynamic_urls_no_data_center_skips_request(requests_mock):
 def test_get_url_details_strips_slashes():
     """Test that get_url_details properly handles trailing/leading slashes."""
     utility = NeoUtility(host="prod")
-    utility.base_url = "https://gw-napi.kotaksecurities.com/"
+    utility.base_url = "https://e21.kotaksecurities.com/"
 
     url = utility.get_url_details("limits")
 
     # Should not have double slashes
     assert "//" not in url.replace("https://", "")
-    assert url == "https://gw-napi.kotaksecurities.com/quick/user/limits"
+    assert url == "https://e21.kotaksecurities.com/quick/user/limits"
 
 
 def test_get_market_data_url_uses_base_url():

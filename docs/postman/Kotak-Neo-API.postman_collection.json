@@ -6,7 +6,7 @@
   },
   "variable": [
     { "key": "session_base_url", "value": "https://mis.kotaksecurities.com" },
-    { "key": "base_url", "value": "https://gw-napi.kotaksecurities.com" },
+    { "key": "base_url", "value": "https://e21.kotaksecurities.com" },
     { "key": "neo_fin_key", "value": "neotradeapi" },
     { "key": "consumer_key", "value": "" },
     { "key": "mobile_number", "value": "+91XXXXXXXXXX" },

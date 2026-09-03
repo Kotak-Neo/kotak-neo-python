@@ -888,7 +888,14 @@ class NeoAPI:
                 mobile_number=mobile_number, ucc=ucc, totp=totp
             )
 
-        logger.info("function_result", function="totp_login", result=result)
+        # Status only, not the full result -- rest.py's api_request_success/
+        # api_error_response already logged the (size-capped) response body;
+        # repeating it here would duplicate the token on every call.
+        logger.info(
+            "function_result",
+            function="totp_login",
+            status="error" if "error" in result else result.get("data", {}).get("status"),
+        )
         return result
 
     def totp_validate(self, mpin: str | None = None) -> dict[str, Any]:
@@ -947,7 +954,13 @@ class NeoAPI:
         else:
             result = TotpAPI(self.api_client).totp_validate(mpin=mpin)
 
-        logger.info("function_result", function="totp_validate", result=result)
+        # Status only -- see totp_login's function_result for why the full
+        # result isn't repeated here.
+        logger.info(
+            "function_result",
+            function="totp_validate",
+            status="error" if "error" in result else result.get("data", {}).get("status"),
+        )
         return result
 
     def create_websocket(self, url: str | None = None, **kwargs: Any) -> SFeedWebSocket:

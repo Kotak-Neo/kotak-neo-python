@@ -13,7 +13,7 @@ def authenticated_client():
     client.configuration.edit_sid = "edit_sid_123"
     client.configuration.view_token = "view_token_123"
     client.configuration.sid = "sid_123"
-    client.configuration.base_url = "https://gw-napi.kotaksecurities.com"
+    client.configuration.base_url = "https://e21.kotaksecurities.com"
     return client
 
 

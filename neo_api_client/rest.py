@@ -265,15 +265,6 @@ class RESTClientObject:
             if hasattr(self.configuration, "consumer_key") and self.configuration.consumer_key:
                 headers["X-Client-ID"] = self.configuration.consumer_key[:8] + "***"
 
-            logger.info(
-                "api_request_start",
-                request_id=request_id,
-                method=method,
-                url=self._sanitize_url_for_logging(url),
-                query_params=query_params,
-                body=body,
-            )
-
         try:
             content_type = headers.get("Content-Type", "")
 
@@ -309,25 +300,25 @@ class RESTClientObject:
                 **request_kwargs,
             )
 
-            # Log success if enhanced features available
+            # One log line per request, written once the outcome is known --
+            # carries the request context (method/url/body) that used to be
+            # logged separately as "api_request_start", so the request and
+            # its result are never split across two writes. Error responses
+            # (status >= 400) are always logged (for monitoring), independent
+            # of raise_on_error, which only controls whether they also raise.
             if _ENHANCED_FEATURES and request_id and start_time:
                 duration_ms = (time.time() - start_time) * 1000
-                logger.info(
-                    "api_request_success",
+                is_error = response.status_code >= 400
+                (logger.error if is_error else logger.info)(
+                    "api_error_response" if is_error else "api_request_success",
                     request_id=request_id,
+                    method=method,
+                    url=self._sanitize_url_for_logging(url),
+                    query_params=query_params,
+                    body=body,
                     status_code=response.status_code,
+                    reason=response.reason_phrase if is_error else None,
                     duration_ms=round(duration_ms, 2),
-                    response_body=self._response_body_for_logging(response),
-                )
-
-            # Error responses are always logged (for monitoring), independent
-            # of raise_on_error, which only controls whether they also raise.
-            if response.status_code >= 400 and _ENHANCED_FEATURES:
-                logger.error(
-                    "api_error_response",
-                    request_id=request_id,
-                    status_code=response.status_code,
-                    reason=response.reason_phrase,
                     response_body=self._response_body_for_logging(response),
                 )
 
@@ -346,6 +337,10 @@ class RESTClientObject:
                 logger.error(
                     "api_request_timeout",
                     request_id=request_id,
+                    method=method,
+                    url=self._sanitize_url_for_logging(url),
+                    query_params=query_params,
+                    body=body,
                     timeout=timeout or self._timeout,
                     duration_ms=round(duration_ms, 2),
                 )
@@ -360,6 +355,10 @@ class RESTClientObject:
                 logger.error(
                     "api_request_connection_error",
                     request_id=request_id,
+                    method=method,
+                    url=self._sanitize_url_for_logging(url),
+                    query_params=query_params,
+                    body=body,
                     duration_ms=round(duration_ms, 2),
                 )
             raise ApiException(
@@ -373,6 +372,10 @@ class RESTClientObject:
                 logger.error(
                     "api_request_failed",
                     request_id=request_id,
+                    method=method,
+                    url=self._sanitize_url_for_logging(url),
+                    query_params=query_params,
+                    body=body,
                     error=str(exc),
                     duration_ms=round(duration_ms, 2),
                     exc_info=True,

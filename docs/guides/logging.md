@@ -44,9 +44,16 @@ everything above it.
 
 | Level | What's logged |
 |-------|----------------|
-| `INFO` | Trade REST request/response tracing — `api_request_start` (method, URL, query params, body) and `api_request_success` (status, duration, response body) — a `function_call`/`function_result` snapshot (function name, params, result) for `totp_login()`/`totp_validate()`, rate-limiter/circuit-breaker lifecycle events, a successful WebSocket connect/authenticate/reconnect/subscribe/unsubscribe (SFeed's `sfeed_subscribed`/`sfeed_unsubscribed` include the actual `instrument_tokens` list, not just a count), every SFeed message (`sfeed_message_received` per delivered tick, with `instrument_token`/`exchange_segment`/`trading_symbol`), and every order-feed packet (`orderfeed_order_update` with `order_id`+`order_status`, `orderfeed_position_update`, or `orderfeed_message_received` for anything else). |
+| `INFO` | Trade REST request/response tracing — one `api_request_success` line per successful call, written once the response comes back, carrying the request (method, URL, query params, body) *and* the response (status, duration, response body) together — a `function_call` (function name, params) plus a status-only `function_result` for `totp_login()`/`totp_validate()`, rate-limiter/circuit-breaker lifecycle events, a successful WebSocket connect/authenticate/reconnect/subscribe/unsubscribe (SFeed's `sfeed_subscribed`/`sfeed_unsubscribed` include the actual `instrument_tokens` list, not just a count), every SFeed message (`sfeed_message_received` per delivered tick, with `instrument_token`/`exchange_segment`/`trading_symbol`), and every order-feed packet (`orderfeed_order_update` with `order_id`+`order_status`, `orderfeed_position_update`, or `orderfeed_message_received` for anything else). |
 | `WARNING` | Recoverable issues: a WebSocket connect/reconnect attempt failing (before the next retry), a disconnect, a retried request, or a circuit breaker reopening/rejecting a call. |
-| `ERROR` | Failures: REST 4xx/5xx responses (`api_error_response` — logged even if you don't pass `raise_on_error`, which only controls whether it's *also* raised), request timeouts/connection errors, WebSocket authentication/connect/subscribe/unsubscribe failures, exhausted reconnect attempts, and circuit breaker opening. |
+| `ERROR` | Failures: REST 4xx/5xx responses (`api_error_response` — logged even if you don't pass `raise_on_error`, which only controls whether it's *also* raised — one line, carrying the same request+response fields as `api_request_success`), request timeouts/connection errors (`api_request_timeout`/`api_request_connection_error`/`api_request_failed`, each carrying the request's method/URL/query params/body since there's no separate response to log), WebSocket authentication/connect/subscribe/unsubscribe failures, exhausted reconnect attempts, and circuit breaker opening. |
+
+Each REST call logs exactly **one** line — either `api_request_success` or
+`api_error_response`/a timeout/connection-error event, never both a "start" and a
+"result" line for the same call. `totp_login()`/`totp_validate()`'s `function_result`
+deliberately logs only a `status` field, not the full result — the REST-level event
+above already carries the (size-capped) response body, so the token isn't duplicated
+across two log lines.
 
 Response bodies over 4KB get a size summary **plus** a preview (the first 1000
 characters of the raw response text) instead of being logged in full, so one
@@ -57,8 +64,7 @@ to your code is never truncated, only what gets written to the log.
 
 ## What every entry carries
 
-Every entry — including ones logged by third-party libraries the SDK depends on, like
-`httpx` — carries:
+Every entry carries:
 
 - `timestamp` (always IST/Asia-Kolkata, regardless of the host process's own
   timezone), `level`, `logger` name
@@ -66,9 +72,15 @@ Every entry — including ones logged by third-party libraries the SDK depends o
   client was actually constructed with, once it's been created — `"unknown"` before
   that, or if none was ever created in this process)
 
-**Request/response headers are not logged at all** — `api_request_start` records
-method, URL, query params, and body, but never headers, so an actual
-`Authorization` header value never reaches the log file in the first place.
+`httpx` (the underlying HTTP transport) logs its own raw `"HTTP Request: ..."` line
+per call, separate from structlog and with none of the fields above. It's pinned to
+`WARNING` regardless of `NEO_LOG_LEVEL`/`NEO_LOG_FILE_LEVEL`, since `api_request_success`/
+`api_error_response` already cover the same request in structured form — leaving it at
+its default would duplicate every request in the log for no extra information.
+
+**Request/response headers are not logged at all** — `api_request_success`/
+`api_error_response` record method, URL, query params, and body, but never headers, so
+an actual `Authorization` header value never reaches the log file in the first place.
 Credential-shaped *field* names that do appear in a logged body or params dict
 (passwords, `consumer_key`/`consumer_secret`, `bearer_token`/`edit_token`/
 `view_token`/`access_token`, `sid`, `mpin`, OTP/TOTP, `auth`, etc.) are

@@ -16,7 +16,7 @@ def authenticated_client():
     client.configuration.edit_sid = "edit_sid_123"
     client.configuration.view_token = "view_token_123"
     client.configuration.sid = "sid_123"
-    client.configuration.base_url = "https://gw-napi.kotaksecurities.com"
+    client.configuration.base_url = "https://e21.kotaksecurities.com"
 
     return client
 
@@ -302,9 +302,11 @@ def test_totp_login_success(requests_mock):
 
 
 def test_totp_login_logs_function_call_and_result(requests_mock, monkeypatch):
-    """totp_login() emits a function-call snapshot (name + params + result) --
-    QA's ask for at least a function-level trace on login, distinct from the
-    lower-level REST request/response logging."""
+    """totp_login() emits a function-call snapshot (name + params) and a
+    function-result status -- a function-level trace on login, distinct
+    from the lower-level REST request/response logging. The result's full
+    body is deliberately not repeated here (rest.py's api_request_success
+    already logged it), so this only carries a status summary."""
     client = NeoAPI(environment="prod", consumer_key="test_key")
     login_url = "https://mis.kotaksecurities.com/login/1.0/tradeApiLogin"
     requests_mock.post(login_url, json={"data": {"token": "view_token_123"}}, status_code=200)
@@ -325,7 +327,8 @@ def test_totp_login_logs_function_call_and_result(requests_mock, monkeypatch):
     assert call_events[0]["function"] == "totp_login"
     assert call_events[0]["params"]["ucc"] == "TEST01"
     assert result_events[0]["function"] == "totp_login"
-    assert result_events[0]["result"]["data"]["token"] == "view_token_123"
+    assert result_events[0]["status"] is None
+    assert "result" not in result_events[0]
 
 
 def test_totp_validate_success(requests_mock):
@@ -346,7 +349,7 @@ def test_totp_validate_success(requests_mock):
                 "sid": "edit_sid_123",
                 "rid": "edit_rid_123",
                 "dataCenter": "DC1",
-                "baseUrl": "https://gw-napi.kotaksecurities.com",
+                "baseUrl": "https://e21.kotaksecurities.com",
             }
         },
         status_code=200,
@@ -375,7 +378,7 @@ def test_totp_validate_captures_feed_url_and_rt_url(requests_mock):
                 "sid": "edit_sid_123",
                 "rid": "edit_rid_123",
                 "dataCenter": "DC1",
-                "baseUrl": "https://gw-napi.kotaksecurities.com",
+                "baseUrl": "https://e21.kotaksecurities.com",
                 "feedUrl": "https://login-feed.kotaksecurities.com/wsfeed",
                 "rtUrl": "https://login-rt.kotaksecurities.com/realtime",
                 "ucc": "ABC123",
@@ -458,7 +461,7 @@ def test_totp_validate_resolves_dynamic_websocket_url(requests_mock):
                 "sid": "edit_sid_123",
                 "rid": "edit_rid_123",
                 "dataCenter": "E21",
-                "baseUrl": "https://gw-napi.kotaksecurities.com",
+                "baseUrl": "https://e21.kotaksecurities.com",
             }
         },
         status_code=200,

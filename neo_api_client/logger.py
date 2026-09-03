@@ -232,6 +232,14 @@ def setup_logging(
         cache_logger_on_first_use=True,
     )
 
+    # httpx/httpcore emit their own "HTTP Request: ..." record for every call,
+    # duplicating what rest.py's api_request_success/api_error_response
+    # already log in structured form. Pin them to WARNING regardless of our
+    # own level, so opting into NEO_LOG_LEVEL=INFO/DEBUG doesn't also double
+    # every request via httpx's raw logger.
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+    logging.getLogger("httpcore").setLevel(logging.WARNING)
+
     # Third-party libraries (httpx, httpcore, ...) log through plain stdlib
     # `logging`, not structlog, and propagate up to the root logger same as
     # our own events. Without this, ProcessorFormatter renders those "foreign"
