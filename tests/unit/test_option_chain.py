@@ -36,7 +36,7 @@ def test_get_option_chain_with_all_params(requests_mock, api_client):
         exchange="nse_fo",
         underlying="RELIANCE",
         expiry="2026-06-23",
-        instrument_type="Option",
+        instrument_type="option",
         count=40,
     )
 
@@ -44,13 +44,13 @@ def test_get_option_chain_with_all_params(requests_mock, api_client):
 
 
 def test_get_option_chain_futures(requests_mock, api_client):
-    """instrumentType=Fut returns a fut[] array instead of call/put."""
+    """instrumentType=fut returns a fut[] array instead of call/put."""
     url = "https://test-api.kotak.com/market-data/1.0/watchlist/option-chain"
 
     requests_mock.get(url, json={"data": {"call": [], "put": [], "fut": [{"inst": {}}]}})
 
     response = OptionChainAPI(api_client).get_option_chain(
-        exchange="nse_fo", underlying="NIFTY", instrument_type="Fut"
+        exchange="nse_fo", underlying="NIFTY", instrument_type="fut"
     )
 
     assert len(response["data"]["fut"]) == 1

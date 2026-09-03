@@ -34,15 +34,14 @@ def test_get_historical_data_success(requests_mock, api_client):
     assert len(response["data"]["candles"]) == 1
 
 
-def test_get_historical_data_without_date_range(requests_mock, api_client):
-    """from_date/to_date are optional -- the backend applies its own default
-    range when omitted."""
+def test_get_historical_data_with_daily_interval(requests_mock, api_client):
+    """ "D" (daily) is a supported interval alongside the intraday ones."""
     url = "https://test-api.kotak.com/market-data/1.0/historical/details"
 
-    requests_mock.get(url, json={"status": "success", "interval": "1min", "data": {"candles": []}})
+    requests_mock.get(url, json={"status": "success", "interval": "D", "data": {"candles": []}})
 
     response = HistoricalDataAPI(api_client).get_historical_data(
-        neosymbol="nse_cm|1333", interval="1min"
+        neosymbol="nse_cm|1333", interval="D", from_date="2026-01-01", to_date="2026-06-30"
     )
 
     assert response["status"] == "success"
@@ -62,7 +61,7 @@ def test_get_historical_data_json_decode_error(api_client, monkeypatch):
     )
 
     response = HistoricalDataAPI(api_client).get_historical_data(
-        neosymbol="nse_cm|1333", interval="10min"
+        neosymbol="nse_cm|1333", interval="10min", from_date="2026-08-20", to_date="2026-09-01"
     )
 
     assert response["Error"] == "Unexpected response format"
@@ -73,4 +72,9 @@ def test_neo_api_historical_data_requires_totp_validate():
     client = NeoAPI(environment="prod", consumer_key="test_key")
 
     with pytest.raises(ValueError, match="totp_validate"):
-        client.historical_data(neosymbol="nse_cm|1333", interval="10min")
+        client.historical_data(
+            neosymbol="nse_cm|1333",
+            interval="10min",
+            from_date="2026-08-20",
+            to_date="2026-09-01",
+        )

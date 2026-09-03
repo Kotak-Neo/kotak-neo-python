@@ -1153,7 +1153,7 @@ class NeoAPI:
         Args:
             exchange (str): Exchange segment, e.g. "nse_fo", "mcx_fo".
             underlying (str): Underlying name, e.g. "RELIANCE", "NIFTY".
-            instrument_type (str, optional): "Option" or "Fut". Default: None
+            instrument_type (str, optional): "option" or "fut". Default: None
                 (backend default applies).
 
         Returns:
@@ -1184,8 +1184,8 @@ class NeoAPI:
             underlying (str): Underlying name, e.g. "RELIANCE", "NIFTY".
             expiry (str, optional): ISO expiry date (YYYY-MM-DD) from
                 expiries(). Default: None (backend picks the nearest expiry).
-            instrument_type (str, optional): "Option" or "Fut". Default: None
-                (backend default is "Option").
+            instrument_type (str, optional): "option" or "fut". Default: None
+                (backend default is "option").
             count (int, optional): Number of strikes -- backend expects a
                 multiple of 10; not validated client-side. Default: None
                 (backend default is 40).
@@ -1208,8 +1208,8 @@ class NeoAPI:
         self,
         neosymbol: str,
         interval: str,
-        from_date: str | None = None,
-        to_date: str | None = None,
+        from_date: str,
+        to_date: str,
     ) -> dict[str, Any]:
         """
         Retrieves historical candle data for an instrument.
@@ -1220,11 +1220,11 @@ class NeoAPI:
             neosymbol (str): Instrument in "{exchange_segment}|{instrument_token}"
                 form, e.g. "nse_cm|1333".
             interval (str): One of "1min", "3min", "5min", "10min", "15min",
-                "30min", "60min". An unsupported value is rejected by the
-                backend, not the SDK -- see
+                "30min", "60min", "D" (daily), "W" (weekly). An unsupported
+                value is rejected by the backend, not the SDK -- see
                 docs/functions/market_data/historical_data.md.
-            from_date (str, optional): Start date (YYYY-MM-DD).
-            to_date (str, optional): End date (YYYY-MM-DD).
+            from_date (str): Start date (YYYY-MM-DD).
+            to_date (str): End date (YYYY-MM-DD).
 
         Returns:
             JSON-encoded historical candle response. See

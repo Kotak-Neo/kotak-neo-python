@@ -26,7 +26,7 @@ try:
         exchange="nse_fo",
         underlying="RELIANCE",
         expiry="2026-06-23",
-        instrument_type="Option",
+        instrument_type="option",
         count=40,
     )
     print(response)
@@ -41,10 +41,10 @@ except Exception as e:
 | `exchange` | str | Yes | Exchange segment. One of `nse_fo`, `bse_fo`, `mcx_fo`. |
 | `underlying` | str | Yes | Underlying name, e.g. `RELIANCE`, `NIFTY`. Matches `pSymbolName` in the scrip master file. |
 | `expiry` | str | No | ISO expiry date (`YYYY-MM-DD`), from [`expiries()`](./expiries.md). Defaults to the nearest expiry if omitted. |
-| `instrument_type` | str | No | `Option` (default) or `Fut`. |
+| `instrument_type` | str | No | `option` (default) or `fut`. |
 | `count` | int | No | Number of strikes. Default 40 (80 instruments: 40 calls + 40 puts). |
 
-Passing `instrument_type="Fut"` with `expiry=None` returns every available
+Passing `instrument_type="fut"` with `expiry=None` returns every available
 futures contract in the `fut[]` array; passing a specific `expiry` returns
 only that one contract.
 
@@ -100,7 +100,7 @@ previous OI, so every caller gets a consistent value. `close` stays `null`
 intraday and is populated at settlement; `prevClose` is stable for the
 session, so day-change needs no time-of-day logic.
 
-## Sample Response — Futures chain (`instrument_type="Fut"`)
+## Sample Response — Futures chain (`instrument_type="fut"`)
 
 ```json
 {

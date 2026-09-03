@@ -6,7 +6,7 @@ class HistoricalDataAPI:
         self.api_client = api_client
         self.rest_client = api_client.rest_client
 
-    def get_historical_data(self, neosymbol, interval, from_date=None, to_date=None):
+    def get_historical_data(self, neosymbol, interval, from_date, to_date):
         header_params = {
             "Authorization": self.api_client.configuration.consumer_key,
             "Content-Type": "application/x-www-form-urlencoded",
@@ -15,11 +15,12 @@ class HistoricalDataAPI:
         # Wire query params are lowercase (fromdate/todate), unlike this
         # method's snake_case kwargs -- matching the real backend endpoint,
         # not the SDK's own naming convention.
-        query_params = {"neosymbol": neosymbol, "interval": interval}
-        if from_date is not None:
-            query_params["fromdate"] = from_date
-        if to_date is not None:
-            query_params["todate"] = to_date
+        query_params = {
+            "neosymbol": neosymbol,
+            "interval": interval,
+            "fromdate": from_date,
+            "todate": to_date,
+        }
 
         URL = self.api_client.configuration.get_market_data_url("historical/details")
 

@@ -5,7 +5,7 @@ Get historical candle data for an instrument.
 ## Function Signature
 
 ```python
-client.historical_data(neosymbol, interval, from_date=None, to_date=None)
+client.historical_data(neosymbol, interval, from_date, to_date)
 ```
 
 > **Note:** Requires `totp_validate()` to have been called first — see the
@@ -38,8 +38,8 @@ except Exception as e:
 |------|------|----------|-------------|
 | `neosymbol` | str | Yes | Instrument in `{exchange_segment}\|{instrument_token}` form, e.g. `nse_cm\|1333`. |
 | `interval` | str | Yes | One of `1min`, `3min`, `5min`, `10min`, `15min`, `30min`, `60min`, `D` (daily), `W` (weekly). An unsupported value is rejected by the **backend** with `{"status": "ERROR", "fault": {"code": 400, "message": "Invalid interval value"}}` — not validated by the SDK. |
-| `from_date` | str | No | Start date (`YYYY-MM-DD`). |
-| `to_date` | str | No | End date (`YYYY-MM-DD`). |
+| `from_date` | str | Yes | Start date (`YYYY-MM-DD`). |
+| `to_date` | str | Yes | End date (`YYYY-MM-DD`). |
 
 ### Date Range Limits (backend-enforced, not SDK-validated)
 
@@ -53,8 +53,8 @@ except Exception as e:
 
 The SDK forwards whatever `interval`/`from_date`/`to_date` you pass straight
 to the backend — it doesn't validate any of this itself. A request with an
-unsupported interval, or a date range exceeding that interval's limit, is
-rejected by the backend, not the SDK.
+unsupported interval, a missing `from_date`/`to_date`, or a date range
+exceeding that interval's limit, is rejected by the backend, not the SDK.
 
 ## Return Type
 

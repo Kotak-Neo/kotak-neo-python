@@ -378,9 +378,9 @@ runner.run_test(
 runner.run_test(
     "OPTION CHAIN (FUTURES)",
     lambda: runner.client.option_chain(
-        exchange="nse_fo", underlying="NIFTY", instrument_type="Fut"
+        exchange="nse_fo", underlying="NIFTY", instrument_type="fut"
     ),
-    request_params={"exchange": "nse_fo", "underlying": "NIFTY", "instrument_type": "Fut"},
+    request_params={"exchange": "nse_fo", "underlying": "NIFTY", "instrument_type": "fut"},
 )
 
 # Reuse the same instrument QUOTES above already fetched a live LTP for
@@ -392,7 +392,7 @@ historical_to = date.today().isoformat()
 runner.run_test(
     "HISTORICAL DATA",
     lambda: runner.client.historical_data(
-        # Allowed values: 1min, 3min, 5min, 10min, 15min, 30min, 60min.
+        # Allowed values: 1min, 3min, 5min, 10min, 15min, 30min, 60min, D, W.
         neosymbol="nse_cm|19084",
         interval="10min",
         from_date=historical_from,

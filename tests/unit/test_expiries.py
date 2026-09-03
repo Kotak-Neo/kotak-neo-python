@@ -31,7 +31,7 @@ def test_get_expiries_with_instrument_type(requests_mock, api_client):
     requests_mock.get(url, json={"exchange": "mcx_fo", "underlying": "CRUDEOIL", "expiries": []})
 
     response = ExpiriesAPI(api_client).get_expiries(
-        exchange="mcx_fo", underlying="CRUDEOIL", instrument_type="Fut"
+        exchange="mcx_fo", underlying="CRUDEOIL", instrument_type="fut"
     )
 
     assert response["exchange"] == "mcx_fo"
