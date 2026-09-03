@@ -1,8 +1,6 @@
 from json import JSONDecodeError
 from unittest.mock import Mock
 
-import pytest
-
 from neo_api_client import NeoAPI
 from neo_api_client.services.expiries import ExpiriesAPI
 
@@ -56,11 +54,18 @@ def test_get_expiries_json_decode_error(api_client, monkeypatch):
     assert response["StatusCode"] == 500
 
 
-def test_neo_api_expiries_requires_totp_validate():
-    """expiries() needs base_url (populated by totp_validate()) to resolve
-    the market-data service domain, even though the wire call itself only
-    needs consumer_key."""
+def test_neo_api_expiries_without_totp_validate(requests_mock):
+    """Like quotes()/scrip_master(), expiries() doesn't need totp_validate()
+    -- it routes through get_url_details(), which falls back to the shared
+    gateway domain when base_url hasn't been populated yet."""
     client = NeoAPI(environment="prod", consumer_key="test_key")
+    url = "https://mis.kotaksecurities.com/market-data/1.0/watchlist/expiries"
 
-    with pytest.raises(ValueError, match="totp_validate"):
-        client.expiries(exchange="nse_fo", underlying="RELIANCE")
+    requests_mock.get(
+        url,
+        json={"exchange": "nse_fo", "underlying": "RELIANCE", "expiries": ["2026-06-25"]},
+    )
+
+    result = client.expiries(exchange="nse_fo", underlying="RELIANCE")
+
+    assert result["expiries"] == ["2026-06-25"]

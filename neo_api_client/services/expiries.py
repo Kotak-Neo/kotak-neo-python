@@ -16,7 +16,7 @@ class ExpiriesAPI:
         if instrument_type is not None:
             query_params["instrumentType"] = instrument_type
 
-        URL = self.api_client.configuration.get_market_data_url("watchlist/expiries")
+        URL = self.api_client.configuration.get_url_details("expiries")
 
         expiries = self.rest_client.request(
             url=URL,

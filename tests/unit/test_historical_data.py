@@ -1,8 +1,6 @@
 from json import JSONDecodeError
 from unittest.mock import Mock
 
-import pytest
-
 from neo_api_client import NeoAPI
 from neo_api_client.services.historical_data import HistoricalDataAPI
 
@@ -68,13 +66,20 @@ def test_get_historical_data_json_decode_error(api_client, monkeypatch):
     assert response["StatusCode"] == 500
 
 
-def test_neo_api_historical_data_requires_totp_validate():
+def test_neo_api_historical_data_without_totp_validate(requests_mock):
+    """Like quotes()/expiries(), historical_data() doesn't need
+    totp_validate() -- it falls back to the shared gateway domain when
+    base_url isn't set."""
     client = NeoAPI(environment="prod", consumer_key="test_key")
+    url = "https://mis.kotaksecurities.com/market-data/1.0/historical/details"
 
-    with pytest.raises(ValueError, match="totp_validate"):
-        client.historical_data(
-            neosymbol="nse_cm|1333",
-            interval="10min",
-            from_date="2026-08-20",
-            to_date="2026-09-01",
-        )
+    requests_mock.get(url, json={"status": "success", "interval": "10min", "data": {"candles": []}})
+
+    result = client.historical_data(
+        neosymbol="nse_cm|1333",
+        interval="10min",
+        from_date="2026-08-20",
+        to_date="2026-09-01",
+    )
+
+    assert result["status"] == "success"

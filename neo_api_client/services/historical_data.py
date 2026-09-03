@@ -22,7 +22,7 @@ class HistoricalDataAPI:
             "todate": to_date,
         }
 
-        URL = self.api_client.configuration.get_market_data_url("historical/details")
+        URL = self.api_client.configuration.get_url_details("historical_data")
 
         historical_data = self.rest_client.request(
             url=URL,

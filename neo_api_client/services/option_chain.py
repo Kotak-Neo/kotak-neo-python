@@ -20,7 +20,7 @@ class OptionChainAPI:
         if count is not None:
             query_params["count"] = count
 
-        URL = self.api_client.configuration.get_market_data_url("watchlist/option-chain")
+        URL = self.api_client.configuration.get_url_details("option_chain")
 
         option_chain = self.rest_client.request(
             url=URL,

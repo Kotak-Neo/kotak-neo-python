@@ -1144,11 +1144,9 @@ class NeoAPI:
         """
         Retrieves available expiry dates for an exchange + underlying.
 
-        Note: unlike quotes()/scrip_master(), this requires totp_validate()
-        to have been called first -- not because the endpoint itself needs a
-        session token (it's authenticated with consumer_key alone, same as
-        quotes()), but because the SDK resolves this service's URL from your
-        account's base_url, which totp_validate() is what populates.
+        Note: like quotes()/scrip_master(), this does not require a
+        completed 2FA (TOTP) session -- only consumer_key is required, since
+        the underlying API authenticates via the Authorization header alone.
 
         Args:
             exchange (str): Exchange segment, e.g. "nse_fo", "mcx_fo".
@@ -1158,9 +1156,6 @@ class NeoAPI:
 
         Returns:
             JSON-encoded expiries response.
-
-        Raises:
-            ValueError: If totp_validate() hasn't been called yet.
         """
         return ExpiriesAPI(self.api_client).get_expiries(
             exchange=exchange, underlying=underlying, instrument_type=instrument_type
@@ -1177,7 +1172,7 @@ class NeoAPI:
         """
         Retrieves the option chain (or futures chain) for an underlying.
 
-        Note: requires totp_validate() first -- see expiries() docstring for why.
+        Note: does not require totp_validate() -- see expiries() docstring for why.
 
         Args:
             exchange (str): Exchange segment, e.g. "nse_fo", "mcx_fo".
@@ -1192,9 +1187,6 @@ class NeoAPI:
 
         Returns:
             JSON-encoded option chain response.
-
-        Raises:
-            ValueError: If totp_validate() hasn't been called yet.
         """
         return OptionChainAPI(self.api_client).get_option_chain(
             exchange=exchange,
@@ -1214,7 +1206,7 @@ class NeoAPI:
         """
         Retrieves historical candle data for an instrument.
 
-        Note: requires totp_validate() first -- see expiries() docstring for why.
+        Note: does not require totp_validate() -- see expiries() docstring for why.
 
         Args:
             neosymbol (str): Instrument in "{exchange_segment}|{instrument_token}"
@@ -1230,9 +1222,6 @@ class NeoAPI:
             JSON-encoded historical candle response. See
             docs/functions/market_data/historical_data.md for the response
             shape and each interval's maximum date range per request.
-
-        Raises:
-            ValueError: If totp_validate() hasn't been called yet.
         """
         return HistoricalDataAPI(self.api_client).get_historical_data(
             neosymbol=neosymbol, interval=interval, from_date=from_date, to_date=to_date

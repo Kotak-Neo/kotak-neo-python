@@ -9,17 +9,16 @@ per-strike quote and open-interest data.
 client.option_chain(exchange, underlying, expiry=None, instrument_type=None, count=None)
 ```
 
-> **Note:** Requires `totp_validate()` to have been called first — see the
-> [Expiries](./expiries.md) doc's note for why (URL resolution, not wire auth).
+> **Note:** Like `quotes()`/[`expiries()`](./expiries.md), this does not require
+> a completed 2FA (TOTP) session — only `consumer_key` is required.
 
 ### Example
 
 ```python
 from neo_api_client import NeoAPI
 
+# Only consumer_key is required — no totp_login/totp_validate needed
 client = NeoAPI(consumer_key="your-token-from-neo-app", environment="prod")
-client.totp_login(mobile_number="+919876543210", ucc="ABC123", totp="123456")
-client.totp_validate(mpin="123456")
 
 try:
     response = client.option_chain(

@@ -392,31 +392,34 @@ def test_get_url_details_strips_slashes():
     assert url == "https://e21.kotaksecurities.com/quick/user/limits"
 
 
-def test_get_market_data_url_uses_base_url():
-    """get_market_data_url() builds on self.base_url, the same account-
-    resolved domain from totp_validate()'s baseUrl -- not a hardcoded
-    per-data-center map."""
+def test_get_url_details_market_data_uses_base_url_when_available():
+    """expiries/option_chain/historical_data route through get_url_details()
+    like quotes()/scrip_master() -- once base_url is known (post
+    totp_validate()), it resolves to the account's own data-center domain."""
     utility = NeoUtility(host="prod")
     utility.base_url = "https://e22.kotaksecurities.com"
 
-    url = utility.get_market_data_url("watchlist/expiries")
+    assert (
+        utility.get_url_details("expiries")
+        == "https://e22.kotaksecurities.com/market-data/1.0/watchlist/expiries"
+    )
+    assert (
+        utility.get_url_details("option_chain")
+        == "https://e22.kotaksecurities.com/market-data/1.0/watchlist/option-chain"
+    )
+    assert (
+        utility.get_url_details("historical_data")
+        == "https://e22.kotaksecurities.com/market-data/1.0/historical/details"
+    )
 
-    assert url == "https://e22.kotaksecurities.com/market-data/1.0/watchlist/expiries"
 
-
-def test_get_market_data_url_strips_slashes():
+def test_get_url_details_market_data_falls_back_without_base_url():
+    """Without base_url (i.e. before totp_validate()), these still resolve
+    -- via the shared gateway domain -- instead of raising, since the wire
+    call itself only needs consumer_key."""
     utility = NeoUtility(host="prod")
-    utility.base_url = "https://e22.kotaksecurities.com/"
 
-    url = utility.get_market_data_url("/watchlist/option-chain")
-
-    assert url == "https://e22.kotaksecurities.com/market-data/1.0/watchlist/option-chain"
-
-
-def test_get_market_data_url_missing_base_url_raises():
-    """Without base_url (i.e. before totp_validate()), a clear error is
-    raised instead of building a broken URL."""
-    utility = NeoUtility(host="prod")
-
-    with pytest.raises(ValueError, match="totp_validate"):
-        utility.get_market_data_url("watchlist/expiries")
+    assert (
+        utility.get_url_details("expiries")
+        == "https://mis.kotaksecurities.com/market-data/1.0/watchlist/expiries"
+    )

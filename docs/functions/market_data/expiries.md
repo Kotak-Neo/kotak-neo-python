@@ -8,20 +8,17 @@ Get available expiry dates for an exchange + underlying, in ISO (`YYYY-MM-DD`) f
 client.expiries(exchange, underlying, instrument_type=None)
 ```
 
-> **Note:** Requires `totp_validate()` to have been called first. The wire
-> call itself only needs `consumer_key` (same as `quotes()`) — but the SDK
-> resolves this endpoint's URL from your account's `base_url`, which is
-> only populated after `totp_validate()`. Calling this before then raises
-> `ValueError`.
+> **Note:** Like `quotes()`, this does not require a completed 2FA (TOTP)
+> session — only `consumer_key` is required, since the underlying API
+> authenticates via the `Authorization` header alone.
 
 ### Example
 
 ```python
 from neo_api_client import NeoAPI
 
+# Only consumer_key is required — no totp_login/totp_validate needed
 client = NeoAPI(consumer_key="your-token-from-neo-app", environment="prod")
-client.totp_login(mobile_number="+919876543210", ucc="ABC123", totp="123456")
-client.totp_validate(mpin="123456")
 
 try:
     response = client.expiries(exchange="nse_fo", underlying="RELIANCE")
@@ -63,7 +60,7 @@ these directly as `option_chain()`'s `expiry` parameter.
 
 - **Method**: GET
 - **Endpoint**: `market-data/1.0/watchlist/expiries`
-- **Authentication**: `Authorization: <consumer_key>` header (no session token needed on the wire — see the note above about why `totp_validate()` is still required by the SDK)
+- **Authentication**: `Authorization: <consumer_key>` header (no session token needed)
 
 ## HTTP Response Details
 

@@ -19,6 +19,9 @@ UAT_URL = {
     "totp_validate": "api/1.0/login/v6/totp/validate",
     "get_client_ip": "login/1.0/get-client-ip",
     "quotes_neo_symbol": "script-details/1.0/quotes/neosymbol/{neo_symbols}/{quote_type}",
+    "expiries": "market-data/1.0/watchlist/expiries",
+    "option_chain": "market-data/1.0/watchlist/option-chain",
+    "historical_data": "market-data/1.0/historical/details",
 }
 
 PROD_URL = {
@@ -38,6 +41,9 @@ PROD_URL = {
     "totp_validate": "login/1.0/tradeApiValidate",
     "get_client_ip": "login/1.0/get-client-ip",
     "quotes_neo_symbol": "/script-details/1.0/quotes/neosymbol/{neo_symbols}/{quote_type}",
+    "expiries": "market-data/1.0/watchlist/expiries",
+    "option_chain": "market-data/1.0/watchlist/option-chain",
+    "historical_data": "market-data/1.0/historical/details",
 }
 
 # Exchange segments accepted by place order. Only these exact canonical

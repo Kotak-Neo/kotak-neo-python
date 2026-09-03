@@ -1,8 +1,6 @@
 from json import JSONDecodeError
 from unittest.mock import Mock
 
-import pytest
-
 from neo_api_client import NeoAPI
 from neo_api_client.services.option_chain import OptionChainAPI
 
@@ -75,8 +73,14 @@ def test_get_option_chain_json_decode_error(api_client, monkeypatch):
     assert response["StatusCode"] == 500
 
 
-def test_neo_api_option_chain_requires_totp_validate():
+def test_neo_api_option_chain_without_totp_validate(requests_mock):
+    """Like quotes()/expiries(), option_chain() doesn't need totp_validate()
+    -- it falls back to the shared gateway domain when base_url isn't set."""
     client = NeoAPI(environment="prod", consumer_key="test_key")
+    url = "https://mis.kotaksecurities.com/market-data/1.0/watchlist/option-chain"
 
-    with pytest.raises(ValueError, match="totp_validate"):
-        client.option_chain(exchange="nse_fo", underlying="RELIANCE")
+    requests_mock.get(url, json={"data": {"call": [], "put": []}})
+
+    result = client.option_chain(exchange="nse_fo", underlying="RELIANCE")
+
+    assert result["data"]["call"] == []
