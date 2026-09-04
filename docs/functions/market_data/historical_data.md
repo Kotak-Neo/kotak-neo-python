@@ -38,7 +38,10 @@ except Exception as e:
 | `neosymbol` | str | Yes | Instrument in `{exchange_segment}\|{instrument_token}` form, e.g. `nse_cm\|1333`. |
 | `interval` | str | Yes | One of `1min`, `3min`, `5min`, `10min`, `15min`, `30min`, `60min`, `D` (daily), `W` (weekly). An unsupported value is rejected by the **backend** with `{"status": "ERROR", "fault": {"code": 400, "message": "Invalid interval value"}}` — not validated by the SDK. |
 | `from_date` | str | Yes | Start date (`YYYY-MM-DD`). |
-| `to_date` | str | Yes | End date (`YYYY-MM-DD`). |
+| `to_date` | str | Yes | End date (`YYYY-MM-DD`). Can be today's/the current date. |
+
+> **Note:** Historical data is not available for the `mcx_fo` and `nse_com`
+> exchange segments.
 
 ### Date Range Limits (backend-enforced, not SDK-validated)
 
