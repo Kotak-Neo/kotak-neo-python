@@ -14,7 +14,7 @@ class ExpiriesAPI:
 
         query_params = {"exchange": exchange, "underlying": underlying}
         if instrument_type is not None:
-            query_params["instrumentType"] = instrument_type
+            query_params["instrument_type"] = instrument_type
 
         URL = self.api_client.configuration.get_url_details("expiries")
 

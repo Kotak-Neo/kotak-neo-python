@@ -16,7 +16,7 @@ class OptionChainAPI:
         if expiry is not None:
             query_params["expiry"] = expiry
         if instrument_type is not None:
-            query_params["instrumentType"] = instrument_type
+            query_params["instrument_type"] = instrument_type
         if count is not None:
             query_params["count"] = count
 

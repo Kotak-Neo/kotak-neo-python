@@ -42,7 +42,7 @@ def test_get_option_chain_with_all_params(requests_mock, api_client):
 
 
 def test_get_option_chain_futures(requests_mock, api_client):
-    """instrumentType=fut returns a fut[] array instead of call/put."""
+    """instrument_type=fut returns a fut[] array instead of call/put."""
     url = "https://test-api.kotak.com/market-data/1.0/watchlist/option-chain"
 
     requests_mock.get(url, json={"data": {"call": [], "put": [], "fut": [{"inst": {}}]}})
