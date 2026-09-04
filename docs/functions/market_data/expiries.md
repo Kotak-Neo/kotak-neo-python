@@ -33,7 +33,7 @@ except Exception as e:
 |------|------|----------|-------------|
 | `exchange` | str | Yes | Exchange segment. One of `nse_fo`, `bse_fo`, `mcx_fo`. |
 | `underlying` | str | Yes | Underlying name, e.g. `RELIANCE`, `NIFTY`. Matches `pSymbolName` in the scrip master file. |
-| `instrument_type` | str | No | `option` or `fut`. |
+| `instrument_type` | str | No | `option` (default) or `fut`. |
 
 ## Return Type
 
