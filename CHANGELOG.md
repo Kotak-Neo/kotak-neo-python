@@ -11,12 +11,6 @@ All notable changes to this project are documented in this file.
 - **`expiries()`, `option_chain()`, `historical_data()`** — new market-data endpoints
   (expiry dates, option/futures chains, historical candles), with full docs under
   `docs/functions/market_data/`.
-  - `historical_data()`'s `interval` now supports `D` (daily) and `W` (weekly) in
-    addition to intraday intervals (`1min`…`60min`), each with documented date-range
-    limits.
-  - Like `quotes()`/`scrip_master()`, none of these three require `totp_validate()` —
-    only `consumer_key` is required.
-  - Historical data is not available for `mcx_fo` and `nse_com`.
 - **`place_order(tag=...)`** — caller-defined marker for tracking an order, echoed back
   as `GuiOrdId` in `order_report()`/`trade_report()`.
 
@@ -39,14 +33,6 @@ All notable changes to this project are documented in this file.
   internal logger to `WARNING` so it no longer duplicates every request in the log.
 - `totp_login()`/`totp_validate()`'s function-result log now records only a status, not
   the full response (avoids repeating the auth token across two log lines).
-
-### Fixes
-- Wire query param corrected to `instrument_type` (was `instrumentType`) for
-  `expiries()`/`option_chain()`.
-- `instrument_type` values corrected to lowercase (`option`/`fut`) in docs/examples —
-  matches what the backend actually expects.
-- Various documentation corrections: exchange enum lists (`nse_fo`/`bse_fo`/`mcx_fo`),
-  `option_chain()`'s `count` parameter description, Postman collection `base_url`.
 
 ### Dependencies
 - Routine `ruff` version bumps via Dependabot (0.16.2 → 0.16.5).
