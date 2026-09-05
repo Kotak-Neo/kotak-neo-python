@@ -513,7 +513,7 @@ This is the official SDK for Kotak Neo Trading APIs. Trading in financial market
 
 ## Changelog
 
-See [CHANGELOG.md](https://github.com/Kotak-Neo/kotak-neo-python/releases) for version history and updates.
+See [CHANGELOG.md](CHANGELOG.md) for version history and updates.
 
 ---
 
