@@ -30,20 +30,22 @@ days retained, independent of the console level.
 
 | Env var | Purpose | Default |
 |---|---|---|
-| `NEO_LOG_LEVEL` | Console log level | `WARNING` |
+| `NEO_LOG_LEVEL` | Console log level (`DEBUG`/`INFO`/`WARNING`/`ERROR`/`CRITICAL`, or `NOLOG` to disable the console entirely) | `WARNING` |
 | `NEO_LOG_JSON` | Console output as JSON (`false` for colored text) | `true` |
 | `NEO_LOG_FILE_ENABLED` | Enable/disable the rotating file | `true` |
 | `NEO_LOG_FILE_PATH` | File path | `logs/neo-api-client.log` |
-| `NEO_LOG_FILE_LEVEL` | File log level | `WARNING` |
+| `NEO_LOG_FILE_LEVEL` | File log level (same values as `NEO_LOG_LEVEL`, or `NOLOG` to disable the file entirely) | `WARNING` |
 | `NEO_LOG_FILE_BACKUP_COUNT` | Days of rotated files to keep | `7` |
 
 ## Log levels used by the SDK
 
 Set `level`/`file_level` to the lowest one you want to see — each level also includes
-everything above it.
+everything above it. `NOLOG` is the exception: it's not a severity, it's a sentinel that
+turns that output off entirely.
 
 | Level | What's logged |
 |-------|----------------|
+| `NOLOG` | Nothing — disables this output (console via `level="NOLOG"`, or the rotating file via `file_level="NOLOG"`) entirely. The two are independent, so e.g. `setup_logging(level="NOLOG", file_level="INFO")` silences the console while still writing to the file. |
 | `INFO` | Trade REST request/response tracing — one `api_request_success` line per successful call, written once the response comes back, carrying the request (method, URL, query params, body) *and* the response (status, duration, response body) together — a `function_call` (function name, params) plus a status-only `function_result` for `totp_login()`/`totp_validate()`, rate-limiter/circuit-breaker lifecycle events, a successful WebSocket connect/authenticate/reconnect/subscribe/unsubscribe (SFeed's `sfeed_subscribed`/`sfeed_unsubscribed` include the actual `instrument_tokens` list, not just a count), every SFeed message (`sfeed_message_received` per delivered tick, with `instrument_token`/`exchange_segment`/`trading_symbol`), and every order-feed packet (`orderfeed_order_update` with `order_id`+`order_status`, `orderfeed_position_update`, or `orderfeed_message_received` for anything else). |
 | `WARNING` | Recoverable issues: a WebSocket connect/reconnect attempt failing (before the next retry), a disconnect, a retried request, or a circuit breaker reopening/rejecting a call. |
 | `ERROR` | Failures: REST 4xx/5xx responses (`api_error_response` — logged even if you don't pass `raise_on_error`, which only controls whether it's *also* raised — one line, carrying the same request+response fields as `api_request_success`), request timeouts/connection errors (`api_request_timeout`/`api_request_connection_error`/`api_request_failed`, each carrying the request's method/URL/query params/body since there's no separate response to log), WebSocket authentication/connect/subscribe/unsubscribe failures, exhausted reconnect attempts, and circuit breaker opening. |

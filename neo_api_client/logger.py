@@ -59,12 +59,13 @@ def _level_value(name: str) -> int | None:
     return getattr(logging, name.upper())
 
 
-# Handlers setup_logging() itself has attached to the root logger. Tracked so
-# each call can remove exactly its own previous handlers before adding new
-# ones -- otherwise repeated calls (e.g. a caller reconfiguring the level at
-# runtime) would keep piling up handlers instead of replacing them, causing
-# duplicate log lines and a later setup_logging(level="NOLOG") failing to
-# actually silence anything an earlier call had already attached.
+# Handlers setup_logging() itself has attached to the "neo_api_client"
+# logger. Tracked so each call can remove exactly its own previous handlers
+# before adding new ones -- otherwise repeated calls (e.g. a caller
+# reconfiguring the level at runtime) would keep piling up handlers instead
+# of replacing them, causing duplicate log lines and a later
+# setup_logging(level="NOLOG") failing to actually silence anything an
+# earlier call had already attached.
 _managed_handlers: list[logging.Handler] = []
 
 
@@ -240,13 +241,12 @@ def setup_logging(
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("httpcore").setLevel(logging.WARNING)
 
-    # Third-party libraries (httpx, httpcore, ...) log through plain stdlib
-    # `logging`, not structlog, and propagate up to the root logger same as
-    # our own events. Without this, ProcessorFormatter renders those "foreign"
-    # records straight from their raw message -- skipping the whole
-    # shared_processors chain above -- so they show up with no timestamp, no
-    # level, and no censoring. foreign_pre_chain runs just for those records,
-    # before the same final render step our own events get.
+    # Any raw (non-structlog) stdlib record that reaches our handler --
+    # e.g. a dependency logging directly under our namespace -- skips the
+    # shared_processors chain above, so ProcessorFormatter would otherwise
+    # render it straight from its raw message with no timestamp, level, or
+    # censoring. foreign_pre_chain runs just for those records, before the
+    # same final render step our own events get.
     foreign_pre_chain = [
         structlog.stdlib.add_log_level,
         structlog.stdlib.add_logger_name,
@@ -255,14 +255,26 @@ def setup_logging(
         censor_sensitive_data,
     ]
 
-    root_logger = logging.getLogger()
+    # Attach our handlers to our OWN namespaced logger, never the root
+    # logger. A library that configures the root logger risks colliding with
+    # whatever the host application (or another library, or a notebook
+    # kernel) does with logging -- e.g. a bare `logging.basicConfig()`
+    # elsewhere in the process would add its own handler to root, which
+    # would *also* fire for our records (since they still propagate up to
+    # root), rendering the same event twice: once correctly through our
+    # handler, once as a raw dict through theirs (it doesn't know how to
+    # finish structlog's rendering). Stopping propagation here means our
+    # logging is fully isolated from the host's root logger, regardless of
+    # what it does with it.
+    sdk_logger = logging.getLogger("neo_api_client")
+    sdk_logger.propagate = False
 
     # Remove exactly the handlers a previous setup_logging() call attached
     # (never a handler added by something else, e.g. pytest's own log
     # capture), so this call fully replaces the prior configuration instead
     # of accumulating on top of it.
     for old_handler in _managed_handlers:
-        root_logger.removeHandler(old_handler)
+        sdk_logger.removeHandler(old_handler)
         old_handler.close()
     _managed_handlers.clear()
 
@@ -285,7 +297,7 @@ def setup_logging(
         console_handler = logging.StreamHandler(sys.stdout)
         console_handler.setFormatter(console_formatter)
         console_handler.setLevel(console_level)
-        root_logger.addHandler(console_handler)
+        sdk_logger.addHandler(console_handler)
         _managed_handlers.append(console_handler)
         handler_levels.append(console_level)
 
@@ -311,16 +323,17 @@ def setup_logging(
             )
             file_handler.setFormatter(file_formatter)
             file_handler.setLevel(file_level_value)
-            root_logger.addHandler(file_handler)
+            sdk_logger.addHandler(file_handler)
             _managed_handlers.append(file_handler)
             handler_levels.append(file_level_value)
         except OSError:
             pass  # Logging setup must never break the SDK; console still works.
 
-    # Root level must be permissive enough for the noisiest handler, or its
-    # records never reach any handler regardless of that handler's own level.
-    # If every output is NOLOG, set it above CRITICAL so nothing is processed.
-    root_logger.setLevel(min(handler_levels) if handler_levels else logging.CRITICAL + 1)
+    # sdk_logger's own level must be permissive enough for the noisiest
+    # handler, or its records never reach any handler regardless of that
+    # handler's own level. If every output is NOLOG, set it above CRITICAL
+    # so nothing is processed.
+    sdk_logger.setLevel(min(handler_levels) if handler_levels else logging.CRITICAL + 1)
 
     # Return a bound logger
     return structlog.get_logger()

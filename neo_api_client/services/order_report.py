@@ -1,5 +1,9 @@
 import httpx
 
+from neo_api_client.logger import get_logger
+
+logger = get_logger(__name__)
+
 
 class OrderReportAPI:
     def __init__(self, api_client):
@@ -22,8 +26,7 @@ class OrderReportAPI:
             )
             return order_report.json()
         except httpx.HTTPError as e:
-            # handle any exceptions that might be raised here
-            print(f"Error occurred: {e}")
+            logger.error("order_report_request_failed", error=str(e))
 
     def ordered_book_by_id(self, order_id):
         """Fetch a single order from the order book by its order number.
@@ -46,5 +49,4 @@ class OrderReportAPI:
             )
             return order_report.json()
         except httpx.HTTPError as e:
-            # handle any exceptions that might be raised here
-            print(f"Error occurred: {e}")
+            logger.error("order_report_request_failed", error=str(e))

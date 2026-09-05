@@ -15,19 +15,32 @@ def test_order_report(api_client, requests_mock):
     assert response["data"] == []
 
 
-def test_order_report_request_exception(api_client, monkeypatch, capsys):
+def test_order_report_request_exception(api_client, monkeypatch):
     """An HTTP error in ordered_books() is caught and logged (returns None)."""
     import httpx
+
+    import neo_api_client.services.order_report as order_report_module
 
     def boom(*args, **kwargs):
         raise httpx.HTTPError("network down")
 
     monkeypatch.setattr(api_client.rest_client, "request", boom)
 
+    logged = {}
+    orig_error = order_report_module.logger.error
+
+    def capture_error(event, **kwargs):
+        logged["event"] = event
+        logged.update(kwargs)
+        return orig_error(event, **kwargs)
+
+    monkeypatch.setattr(order_report_module.logger, "error", capture_error)
+
     result = OrderReportAPI(api_client).ordered_books()
 
     assert result is None
-    assert "Error occurred" in capsys.readouterr().out
+    assert logged["event"] == "order_report_request_failed"
+    assert "network down" in logged["error"]
 
 
 def test_order_report_does_not_send_neo_fin_key(api_client, requests_mock):
@@ -56,16 +69,29 @@ def test_order_report_by_id(api_client, requests_mock):
     assert "neo-fin-key" not in requests_mock.last_request.headers
 
 
-def test_order_report_by_id_request_exception(api_client, monkeypatch, capsys):
+def test_order_report_by_id_request_exception(api_client, monkeypatch):
     """An HTTP error in the by-id path is caught and logged (returns None)."""
     import httpx
+
+    import neo_api_client.services.order_report as order_report_module
 
     def boom(*args, **kwargs):
         raise httpx.HTTPError("network down")
 
     monkeypatch.setattr(api_client.rest_client, "request", boom)
 
+    logged = {}
+    orig_error = order_report_module.logger.error
+
+    def capture_error(event, **kwargs):
+        logged["event"] = event
+        logged.update(kwargs)
+        return orig_error(event, **kwargs)
+
+    monkeypatch.setattr(order_report_module.logger, "error", capture_error)
+
     result = OrderReportAPI(api_client).ordered_book_by_id(order_id="123")
 
     assert result is None
-    assert "Error occurred" in capsys.readouterr().out
+    assert logged["event"] == "order_report_request_failed"
+    assert "network down" in logged["error"]

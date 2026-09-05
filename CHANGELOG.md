@@ -2,10 +2,10 @@
 
 All notable changes to this project are documented in this file.
 
-## [3.0.5] - 2026-09-05
+## [3.0.6] - 2026-09-05
 
 > Covers everything since the last tagged release, `v3.0.1` (2026-08-17). Versions
-> 3.0.2–3.0.4 were internal version bumps that were never tagged/released on their own.
+> 3.0.2–3.0.5 were internal version bumps that were never tagged/released on their own.
 
 ### New Functions
 - **`expiries()`, `option_chain()`, `historical_data()`** — new market-data endpoints
@@ -33,6 +33,9 @@ All notable changes to this project are documented in this file.
   internal logger to `WARNING` so it no longer duplicates every request in the log.
 - `totp_login()`/`totp_validate()`'s function-result log now records only a status, not
   the full response (avoids repeating the auth token across two log lines).
+- Our log handlers now attach to a dedicated `neo_api_client` logger instead of the root
+  logger, and no longer propagate past it — so they can't collide with (and duplicate)
+  whatever logging setup the host application itself uses.
 
 ### Dependencies
 - Routine `ruff` version bumps via Dependabot (0.16.2 → 0.16.5).

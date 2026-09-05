@@ -17,7 +17,9 @@ def test_positions(api_client, requests_mock):
     assert response["data"] == []
 
 
-def test_positions_request_exception(api_client, monkeypatch, capsys):
+def test_positions_request_exception(api_client, monkeypatch):
+    import neo_api_client.services.positions as positions_module
+
     def mock_request(*args, **kwargs):
         raise httpx.HTTPError("Connection error")
 
@@ -27,9 +29,18 @@ def test_positions_request_exception(api_client, monkeypatch, capsys):
         mock_request,
     )
 
+    logged = {}
+    orig_error = positions_module.logger.error
+
+    def capture_error(event, **kwargs):
+        logged["event"] = event
+        logged.update(kwargs)
+        return orig_error(event, **kwargs)
+
+    monkeypatch.setattr(positions_module.logger, "error", capture_error)
+
     response = PositionsAPI(api_client).position_init()
 
-    captured = capsys.readouterr()
-
     assert response is None
-    assert "Connection error" in captured.out
+    assert logged["event"] == "positions_request_failed"
+    assert "Connection error" in logged["error"]

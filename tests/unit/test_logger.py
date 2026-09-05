@@ -20,23 +20,24 @@ from neo_api_client.logger import (
 @pytest.fixture(autouse=True)
 def _restore_structlog_config():
     """Any test here calls setup_logging(), which reconfigures structlog
-    globally AND adds handlers to the stdlib root logger. Snapshot and
-    restore both so a test can't leak its logging setup (e.g. show_caller=True,
-    or a file handler pointed at a tmp_path that's about to be cleaned up)
-    into unrelated tests in the same session."""
+    globally AND adds handlers to the "neo_api_client" namespaced logger
+    (never the root logger -- see setup_logging()'s own docstring for why).
+    Snapshot and restore both so a test can't leak its logging setup (e.g.
+    show_caller=True, or a file handler pointed at a tmp_path that's about
+    to be cleaned up) into unrelated tests in the same session."""
     saved = structlog.get_config()
-    root_logger = logging.getLogger()
-    saved_handlers = root_logger.handlers[:]
-    saved_level = root_logger.level
+    sdk_logger = logging.getLogger("neo_api_client")
+    saved_handlers = sdk_logger.handlers[:]
+    saved_level = sdk_logger.level
     try:
         yield
     finally:
         structlog.configure(**saved)
-        for handler in root_logger.handlers[:]:
+        for handler in sdk_logger.handlers[:]:
             if handler not in saved_handlers:
-                root_logger.removeHandler(handler)
+                sdk_logger.removeHandler(handler)
                 handler.close()
-        root_logger.setLevel(saved_level)
+        sdk_logger.setLevel(saved_level)
 
 
 def test_get_logger_basic():
@@ -284,7 +285,7 @@ def test_file_logging_writes_warning_and_above(tmp_path):
     log_path = tmp_path / "neo_api_client.log"
     setup_logging(level="DEBUG", file_enabled=True, file_path=str(log_path), file_level="WARNING")
 
-    get_logger("test_file_logging").warning("something_went_wrong", detail="x")
+    get_logger("neo_api_client.test_file_logging").warning("something_went_wrong", detail="x")
 
     assert log_path.exists()
     lines = [line for line in log_path.read_text().splitlines() if line.strip()]
@@ -302,7 +303,7 @@ def test_file_logging_filters_below_its_own_level(tmp_path):
     log_path = tmp_path / "neo_api_client.log"
     setup_logging(level="DEBUG", file_enabled=True, file_path=str(log_path), file_level="WARNING")
 
-    test_logger = get_logger("test_file_logging_filter")
+    test_logger = get_logger("neo_api_client.test_file_logging_filter")
     test_logger.info("routine_info_event")
     test_logger.warning("actionable_warning_event")
 
@@ -317,7 +318,7 @@ def test_file_logging_disabled_creates_no_file(tmp_path):
     log_path = tmp_path / "should_not_exist.log"
     setup_logging(file_enabled=False, file_path=str(log_path))
 
-    get_logger("test_file_logging_disabled").warning("should_not_be_written_to_file")
+    get_logger("neo_api_client.test_file_logging_disabled").warning("should_not_be_written_to_file")
 
     assert not log_path.exists()
 
@@ -330,7 +331,7 @@ def test_file_logging_uses_timed_rotating_handler(tmp_path):
 
     file_handlers = [
         h
-        for h in logging.getLogger().handlers
+        for h in logging.getLogger("neo_api_client").handlers
         if isinstance(h, logging.handlers.TimedRotatingFileHandler)
     ]
     assert len(file_handlers) == 1
@@ -353,7 +354,7 @@ def test_file_logging_failure_is_swallowed_not_raised(tmp_path, monkeypatch):
     assert logger is not None
     assert not any(
         isinstance(h, logging.handlers.TimedRotatingFileHandler)
-        for h in logging.getLogger().handlers
+        for h in logging.getLogger("neo_api_client").handlers
     )
 
 
@@ -369,7 +370,7 @@ def test_file_logging_with_bare_filename_skips_makedirs(tmp_path, monkeypatch):
     monkeypatch.setattr("os.makedirs", _boom)
 
     setup_logging(file_enabled=True, file_path="bare.log")
-    get_logger("test_bare_filename").warning("written_next_to_cwd")
+    get_logger("neo_api_client.test_bare_filename").warning("written_next_to_cwd")
 
     assert (tmp_path / "bare.log").exists()
 
@@ -388,36 +389,36 @@ def test_file_level_nolog_disables_file_even_if_enabled(tmp_path):
     log_path = tmp_path / "neo-api-client.log"
     setup_logging(file_enabled=True, file_path=str(log_path), file_level="NOLOG")
 
-    get_logger("test_nolog_file").error("should_not_reach_the_file")
+    get_logger("neo_api_client.test_nolog_file").error("should_not_reach_the_file")
 
     assert not log_path.exists()
     assert not any(
         isinstance(h, logging.handlers.TimedRotatingFileHandler)
-        for h in logging.getLogger().handlers
+        for h in logging.getLogger("neo_api_client").handlers
     )
 
 
 def test_console_level_nolog_removes_console_handler():
     """level="NOLOG" disables console output entirely, symmetric to
     file_level="NOLOG" for the file -- no new handler is added."""
-    before = logging.getLogger().handlers[:]
+    before = logging.getLogger("neo_api_client").handlers[:]
     setup_logging(level="NOLOG", file_enabled=False)
 
-    assert logging.getLogger().handlers == before
+    assert logging.getLogger("neo_api_client").handlers == before
 
 
-def test_both_nolog_leaves_root_logger_silent(tmp_path):
-    """With both outputs set to NOLOG, no handler is added and the root
+def test_both_nolog_leaves_sdk_logger_silent(tmp_path):
+    """With both outputs set to NOLOG, no handler is added and the SDK's own
     logger level is pushed above CRITICAL so nothing is even processed."""
     log_path = tmp_path / "neo-api-client.log"
-    before = logging.getLogger().handlers[:]
+    before = logging.getLogger("neo_api_client").handlers[:]
     logger = setup_logging(
         level="NOLOG", file_enabled=True, file_path=str(log_path), file_level="NOLOG"
     )
 
     assert logger is not None
-    assert logging.getLogger().handlers == before
-    assert logging.getLogger().level > logging.CRITICAL
+    assert logging.getLogger("neo_api_client").handlers == before
+    assert logging.getLogger("neo_api_client").level > logging.CRITICAL
     assert not log_path.exists()
 
 
@@ -429,21 +430,21 @@ def test_setup_logging_replaces_rather_than_accumulates_handlers(tmp_path):
     call didn't actually silence the console, because the first call's
     console handler was still attached."""
     log_path = tmp_path / "neo-api-client.log"
-    before = logging.getLogger().handlers[:]
+    before = logging.getLogger("neo_api_client").handlers[:]
 
     # First call: both outputs active.
     setup_logging(level="DEBUG", file_enabled=True, file_path=str(log_path), file_level="WARNING")
-    count_after_first = len(logging.getLogger().handlers)
+    count_after_first = len(logging.getLogger("neo_api_client").handlers)
 
     # Second call: same file path. Must not add a second file handler.
     setup_logging(level="DEBUG", file_enabled=True, file_path=str(log_path), file_level="WARNING")
-    assert len(logging.getLogger().handlers) == count_after_first
+    assert len(logging.getLogger("neo_api_client").handlers) == count_after_first
 
-    get_logger("test_no_accumulation").warning("only_once")
+    get_logger("neo_api_client.test_no_accumulation").warning("only_once")
     lines = [line for line in log_path.read_text().splitlines() if "only_once" in line]
     assert len(lines) == 1
 
     # Third call: NOLOG must actually take effect, not be masked by a
     # handler either of the first two calls left attached.
     setup_logging(level="NOLOG", file_enabled=True, file_path=str(log_path), file_level="NOLOG")
-    assert logging.getLogger().handlers == before
+    assert logging.getLogger("neo_api_client").handlers == before

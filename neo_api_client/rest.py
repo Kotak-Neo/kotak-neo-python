@@ -1,7 +1,6 @@
 import contextlib
 import json
 import re
-import time
 import uuid
 from contextvars import ContextVar
 from typing import Any
@@ -239,11 +238,9 @@ class RESTClientObject:
 
         # Generate request ID for tracing (if enhanced features available)
         request_id = None
-        start_time = None
         if _ENHANCED_FEATURES:
             request_id = self._generate_request_id()
             correlation_id_context.set(request_id)
-            start_time = time.time()
 
         # Drop headers with None values. requests silently omitted them, but
         # httpx raises on a None value, so filter them to preserve behavior.
@@ -306,8 +303,7 @@ class RESTClientObject:
             # its result are never split across two writes. Error responses
             # (status >= 400) are always logged (for monitoring), independent
             # of raise_on_error, which only controls whether they also raise.
-            if _ENHANCED_FEATURES and request_id and start_time:
-                duration_ms = (time.time() - start_time) * 1000
+            if _ENHANCED_FEATURES and request_id:
                 is_error = response.status_code >= 400
                 (logger.error if is_error else logger.info)(
                     "api_error_response" if is_error else "api_request_success",
@@ -318,7 +314,6 @@ class RESTClientObject:
                     body=body,
                     status_code=response.status_code,
                     reason=response.reason_phrase if is_error else None,
-                    duration_ms=round(duration_ms, 2),
                     response_body=self._response_body_for_logging(response),
                 )
 
@@ -332,8 +327,7 @@ class RESTClientObject:
             return response
 
         except httpx.TimeoutException as exc:
-            if _ENHANCED_FEATURES and request_id and start_time:
-                duration_ms = (time.time() - start_time) * 1000
+            if _ENHANCED_FEATURES and request_id:
                 logger.error(
                     "api_request_timeout",
                     request_id=request_id,
@@ -342,7 +336,6 @@ class RESTClientObject:
                     query_params=query_params,
                     body=body,
                     timeout=timeout or self._timeout,
-                    duration_ms=round(duration_ms, 2),
                 )
             raise ApiException(
                 status=0,
@@ -350,8 +343,7 @@ class RESTClientObject:
             ) from exc
 
         except httpx.ConnectError as exc:
-            if _ENHANCED_FEATURES and request_id and start_time:
-                duration_ms = (time.time() - start_time) * 1000
+            if _ENHANCED_FEATURES and request_id:
                 logger.error(
                     "api_request_connection_error",
                     request_id=request_id,
@@ -359,7 +351,6 @@ class RESTClientObject:
                     url=self._sanitize_url_for_logging(url),
                     query_params=query_params,
                     body=body,
-                    duration_ms=round(duration_ms, 2),
                 )
             raise ApiException(
                 status=0,
@@ -367,8 +358,7 @@ class RESTClientObject:
             ) from exc
 
         except httpx.HTTPError as exc:
-            if _ENHANCED_FEATURES and request_id and start_time:
-                duration_ms = (time.time() - start_time) * 1000
+            if _ENHANCED_FEATURES and request_id:
                 logger.error(
                     "api_request_failed",
                     request_id=request_id,
@@ -377,7 +367,6 @@ class RESTClientObject:
                     query_params=query_params,
                     body=body,
                     error=str(exc),
-                    duration_ms=round(duration_ms, 2),
                     exc_info=True,
                 )
             raise ApiException(

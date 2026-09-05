@@ -1,5 +1,9 @@
 import httpx
 
+from neo_api_client.logger import get_logger
+
+logger = get_logger(__name__)
+
 
 class PositionsAPI:
     def __init__(self, api_client):
@@ -21,5 +25,4 @@ class PositionsAPI:
             )
             return position_report.json()
         except httpx.HTTPError as e:
-            # handle any exceptions that might be raised here
-            print(f"Error occurred: {e}")
+            logger.error("positions_request_failed", error=str(e))
