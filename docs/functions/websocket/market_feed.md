@@ -52,7 +52,7 @@ asyncio.run(main())
 | `subscribe_exchange()` | Market status (no tokens) | `SFeedMarketStatus` |
 
 `subscribe_scrips(tokens)` and `subscribe_depth(tokens)` may also deliver
-`SFeedCasChange` (call auction session reference-price/order-imbalance
+`SFeedCasChange` (closing auction session reference-price/order-imbalance
 updates, message code 104) for the same tokens — not a separate
 subscription. Outside the CAS window this arrives with `ref_price`,
 `imbalance_qty`, and `imbalance_qty_at_market` all zero; the SDK drops that

@@ -15,7 +15,7 @@ All notable changes to this project are documented in this file.
   as `GuiOrdId` in `order_report()`/`trade_report()`.
 
 ### WebSocket
-- **Market status / CAS support** on the SFeed — session open/close, pre-open, and Call
+- **Market status / CAS support** on the SFeed — session open/close, pre-open, and Closing
   Auction Session (CAS) transition notifications, plus CAS reference (imbalance) data.
 - New **Jupyter Notebook support**: install guide, a Jupyter compatibility CI workflow,
   and a smoke-test notebook.

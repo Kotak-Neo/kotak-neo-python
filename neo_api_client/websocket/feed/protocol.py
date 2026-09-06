@@ -42,7 +42,7 @@ MSG_MARKET_PICTURE = 7208
 # with an actual body (status_code + status string) instead of relying on the
 # message_code alone.
 MSG_MARKET_STATUS = 105
-# Call auction session (CAS) reference-price/imbalance update, delivered
+# Closing auction session (CAS) reference-price/imbalance update, delivered
 # while subscribed via subscribe_scrips()/subscribe_depth() (per-instrument,
 # not a separate subscription). Confirmed by the WebSocket team.
 MSG_CAS_CHANGE = 104
@@ -224,7 +224,7 @@ def _decode_market_status(packet: bytes, exchange: str) -> SFeedMarketStatus:
 
 
 def _decode_cas_change(packet: bytes, exchange: str, divider: int) -> SFeedCasChange | None:
-    """message_code 104 -- call auction session (CAS) reference-price and
+    """message_code 104 -- closing auction session (CAS) reference-price and
     order-imbalance update. Arrives per-instrument on subscribe_scrips()/
     subscribe_depth() (not a separate subscription).
 

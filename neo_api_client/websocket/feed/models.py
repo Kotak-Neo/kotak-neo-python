@@ -246,7 +246,7 @@ class SFeedMarketStatus(BaseModel):
 
 
 class SFeedCasChange(SFeedInstrumentMessage):
-    """Call auction session (CAS) reference-price/order-imbalance update —
+    """Closing auction session (CAS) reference-price/order-imbalance update —
     message_code 104.
 
     Unlike SFeedMarketStatus, this has a real per-instrument token, so it

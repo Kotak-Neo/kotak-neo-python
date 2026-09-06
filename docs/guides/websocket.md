@@ -252,7 +252,7 @@ async for message in ws:
 
 ### `SFeedCasChange`
 
-Call auction session (CAS) reference-price/order-imbalance update
+Closing auction session (CAS) reference-price/order-imbalance update
 (message code 104). Delivered on `subscribe_scrips()`/`subscribe_depth()`
 alongside normal touch-line/depth data — not a separate subscription:
 
