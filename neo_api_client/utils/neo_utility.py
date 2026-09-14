@@ -1,3 +1,5 @@
+from typing import Any
+
 import jwt
 from decouple import config
 
@@ -26,49 +28,49 @@ class NeoUtility:
         self,
         # consumer_key=None,
         # consumer_secret=None,
-        host=None,
-        access_token=None,
-        neo_fin_key=None,
+        host: str | None = None,
+        access_token: str | None = None,
+        neo_fin_key: str | None = None,
         # base_url=None
-        consumer_key=None,
+        consumer_key: str | None = None,
     ):
         # self.consumer_key = consumer_key
         # self.consumer_secret = consumer_secret
         self.host = host
         # self.base64_token = self.convert_base64()
         self.bearer_token = access_token
-        self.view_token = None
-        self.sid = None
-        self.userId = None
-        self.edit_token = None
-        self.edit_sid = None
-        self.edit_rid = None
-        self.login_params = None
+        self.view_token: str | None = None
+        self.sid: str | None = None
+        self.userId: str | None = None
+        self.edit_token: str | None = None
+        self.edit_sid: str | None = None
+        self.edit_rid: str | None = None
+        self.login_params: dict[str, Any] | None = None
         self.neo_fin_key = neo_fin_key
-        self.data_center = None
-        self.base_url = None
-        self.ucc = None
-        self.totp_session_id = None
+        self.data_center: str | None = None
+        self.base_url: str | None = None
+        self.ucc: str | None = None
+        self.totp_session_id: str | None = None
         # Resolved from the dynamic config service (see resolve_dynamic_urls);
         # None until that call succeeds, so callers fall back to the
         # hardcoded SFEED_WEBSOCKET_URL default.
-        self.sfeed_websocket_url = None
+        self.sfeed_websocket_url: str | None = None
         # Same idea for the order feed; None until resolve_dynamic_urls()
         # succeeds, so callers fall back to the base_url-derived URL (or, if
         # that's unavailable too, the hardcoded ORDER_FEED_URL_* default).
-        self.order_feed_url = None
+        self.order_feed_url: str | None = None
         # Secondary sources for the two feed URLs, from totp_validate()'s
         # feedUrl/rtUrl fields (set alongside base_url/data_center). Used
         # when the dynamic config service doesn't provide sfeed_websocket_url/
         # order_feed_url, ahead of each one's own further fallback.
-        self.feed_url = None
-        self.rt_url = None
+        self.feed_url: str | None = None
+        self.rt_url: str | None = None
         self.consumer_key = consumer_key
         # SDK developers only: an optional X-Forwarded-For value attached to
         # requests in the internal UAT environment. Read from the
         # NEO_UAT_X_FORWARDED_FOR variable (see .env.dev.example). Only applied
         # when host == "uat"; ignored (and irrelevant) in production.
-        self.uat_x_forwarded_for = config("NEO_UAT_X_FORWARDED_FOR", default=None)
+        self.uat_x_forwarded_for: str | None = config("NEO_UAT_X_FORWARDED_FOR", default=None)
 
     # def convert_base64(self):
     #     """The Base64 Token Generation.

@@ -8,6 +8,7 @@ from typing import Any
 import httpx
 
 from neo_api_client.exceptions import ApiException
+from neo_api_client.utils.neo_utility import NeoUtility
 
 try:
     from neo_api_client import __version__
@@ -50,7 +51,7 @@ class RESTClientObject:
 
     def __init__(
         self,
-        configuration,
+        configuration: NeoUtility,
         enable_rate_limiting: bool = False,
         raise_on_error: bool = False,
         transport: httpx.BaseTransport | None = None,
@@ -63,7 +64,7 @@ class RESTClientObject:
 
         Parameters
         ----------
-        configuration : dict
+        configuration : NeoUtility
             SDK configuration.
         enable_rate_limiting : bool, optional
             Enable rate limiting (default: False for backward compatibility)

@@ -511,6 +511,38 @@ def test_subscribe_exchange_rejects_any_argument(method_name, call_args, call_kw
         method(*call_args, **call_kwargs)
 
 
+def test_handle_disconnect_does_not_recurse_past_python_stack_limit(monkeypatch):
+    """Regression: _handle_disconnect() must retry via a loop, not
+    recursion. A recursive `await self._handle_disconnect()` on each failed
+    attempt would add one stack frame per attempt and crash with
+    RecursionError long before reaching a large max_reconnect_attempts (e.g.
+    a caller wanting the feed to keep retrying through a multi-hour outage).
+    Proven here by lowering the recursion limit far below the attempt count
+    -- if this were still recursive, it would hit RecursionError
+    immediately."""
+    import sys
+
+    async def always_fail(url, **kwargs):
+        raise OSError("down")
+
+    monkeypatch.setattr(_client_mod.websockets, "connect", always_fail)
+
+    async def run():
+        ws = SFeedWebSocket(url="wss://fake/feed", reconnect_delay=0, max_reconnect_attempts=500)
+        ws._reconnect_count = 0
+        await ws._handle_disconnect()
+        return ws._reconnect_count
+
+    original_limit = sys.getrecursionlimit()
+    sys.setrecursionlimit(150)
+    try:
+        count = asyncio.run(run())
+    finally:
+        sys.setrecursionlimit(original_limit)
+
+    assert count == 500  # ran all 500 attempts without RecursionError
+
+
 def test_reconnect_resends_subscribe_exchange(monkeypatch):
     """After a reconnect, subscribe_exchange is re-sent same as per-token
     subscriptions -- the server forgets it on close, same as everything else."""

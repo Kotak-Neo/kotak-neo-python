@@ -62,7 +62,7 @@ class OrderFeedWebSocket:
 
     def __init__(
         self,
-        base_url: str,
+        base_url: str | None,
         auth: str,
         sid: str,
         *,
@@ -147,12 +147,19 @@ class OrderFeedWebSocket:
     async def __anext__(self) -> Any:
         if not self._connected:
             raise NotConnectedError("WebSocket is not connected")
-        try:
-            return await asyncio.wait_for(self._message_queue.get(), timeout=1.0)
-        except asyncio.TimeoutError:
-            if not self._connected:
-                raise StopAsyncIteration from None
-            return await self.__anext__()
+        # A loop, not recursion: on an idle connection with no incoming
+        # messages, asyncio.wait_for times out every second indefinitely.
+        # A recursive `return await self.__anext__()` here would add one
+        # stack frame per timeout and eventually crash with RecursionError
+        # after enough uninterrupted silence (the exact number of timeouts
+        # before that happens is Python-version/environment-dependent) --
+        # this loop keeps the stack flat instead, so it can run indefinitely.
+        while True:
+            try:
+                return await asyncio.wait_for(self._message_queue.get(), timeout=1.0)
+            except asyncio.TimeoutError:
+                if not self._connected:
+                    raise StopAsyncIteration from None
 
     @property
     def is_connected(self) -> bool:
@@ -366,33 +373,40 @@ class OrderFeedWebSocket:
 
     async def _handle_disconnect(self) -> None:
         """Reconnect from scratch (server pushes state again on reconnect)."""
-        self._connected = False
-        logger.warning(
-            "orderfeed_disconnected", url=self.url, reconnect_count=self._reconnect_count
-        )
-        if self.on_disconnect:
-            self.on_disconnect()
-
-        if self._reconnect_count >= self.max_reconnect_attempts:
-            logger.error(
-                "orderfeed_reconnect_exhausted",
-                url=self.url,
-                max_reconnect_attempts=self.max_reconnect_attempts,
+        # A loop, not recursion: a run of consecutive failed reconnect
+        # attempts (e.g. a prolonged outage with a large
+        # max_reconnect_attempts) would otherwise add one stack frame per
+        # attempt via a recursive `await self._handle_disconnect()`, and
+        # eventually crash with RecursionError -- this loop keeps the stack
+        # flat instead, so it can retry indefinitely.
+        while True:
+            self._connected = False
+            logger.warning(
+                "orderfeed_disconnected", url=self.url, reconnect_count=self._reconnect_count
             )
-            return
-        self._reconnect_count += 1
-        await asyncio.sleep(self.reconnect_delay)
+            if self.on_disconnect:
+                self.on_disconnect()
 
-        try:
-            await self.connect()
-            logger.info(
-                "orderfeed_reconnected", url=self.url, reconnect_count=self._reconnect_count
-            )
-        except Exception as e:
-            logger.warning("orderfeed_reconnect_attempt_failed", url=self.url, error=str(e))
-            if self.on_error:
-                self.on_error(e)
-            await self._handle_disconnect()
+            if self._reconnect_count >= self.max_reconnect_attempts:
+                logger.error(
+                    "orderfeed_reconnect_exhausted",
+                    url=self.url,
+                    max_reconnect_attempts=self.max_reconnect_attempts,
+                )
+                return
+            self._reconnect_count += 1
+            await asyncio.sleep(self.reconnect_delay)
+
+            try:
+                await self.connect()
+                logger.info(
+                    "orderfeed_reconnected", url=self.url, reconnect_count=self._reconnect_count
+                )
+                return
+            except Exception as e:
+                logger.warning("orderfeed_reconnect_attempt_failed", url=self.url, error=str(e))
+                if self.on_error:
+                    self.on_error(e)
 
     async def close(self) -> None:
         """Close the socket and clean up."""

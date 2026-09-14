@@ -674,38 +674,50 @@ class SFeedWebSocket:
 
     async def _handle_disconnect(self) -> None:
         """Reconnect from scratch and re-send all subscriptions."""
-        self._connected = False
-        logger.warning("sfeed_disconnected", url=self.url, reconnect_count=self._reconnect_count)
-        if self.on_disconnect:
-            self.on_disconnect()
-
-        if self._reconnect_count >= self.max_reconnect_attempts:
-            logger.error(
-                "sfeed_reconnect_exhausted",
-                url=self.url,
-                max_reconnect_attempts=self.max_reconnect_attempts,
+        # A loop, not recursion: a run of consecutive failed reconnect
+        # attempts (e.g. a prolonged outage with a large
+        # max_reconnect_attempts) would otherwise add one stack frame per
+        # attempt via a recursive `await self._handle_disconnect()`, and
+        # eventually crash with RecursionError -- this loop keeps the stack
+        # flat instead, so it can retry indefinitely.
+        while True:
+            self._connected = False
+            logger.warning(
+                "sfeed_disconnected", url=self.url, reconnect_count=self._reconnect_count
             )
-            return
-        self._reconnect_count += 1
-        await asyncio.sleep(self.reconnect_delay)
+            if self.on_disconnect:
+                self.on_disconnect()
 
-        try:
-            await self.connect()
-            # Re-send every remembered subscription (server forgets on close),
-            # grouped by intent so each group goes out as one batched frame.
-            by_intent: dict[str, list[WsToken]] = {}
-            for token, intent in list(self._subscriptions):
-                by_intent.setdefault(intent, []).append(token)
-            for intent, tokens in by_intent.items():
-                await self._send_subscribe(_SUBSCRIBE_EVENTS[intent], tokens)
-            if self._exchange_subscribed:
-                await self._ws.send(json.dumps({"event": "subscribeExchange"}))
-            logger.info("sfeed_reconnected", url=self.url, reconnect_count=self._reconnect_count)
-        except Exception as e:
-            logger.warning("sfeed_reconnect_attempt_failed", url=self.url, error=str(e))
-            if self.on_error:
-                self.on_error(e)
-            await self._handle_disconnect()
+            if self._reconnect_count >= self.max_reconnect_attempts:
+                logger.error(
+                    "sfeed_reconnect_exhausted",
+                    url=self.url,
+                    max_reconnect_attempts=self.max_reconnect_attempts,
+                )
+                return
+            self._reconnect_count += 1
+            await asyncio.sleep(self.reconnect_delay)
+
+            try:
+                await self.connect()
+                # Re-send every remembered subscription (server forgets on
+                # close), grouped by intent so each group goes out as one
+                # batched frame.
+                by_intent: dict[str, list[WsToken]] = {}
+                for token, intent in list(self._subscriptions):
+                    by_intent.setdefault(intent, []).append(token)
+                for intent, tokens in by_intent.items():
+                    await self._send_subscribe(_SUBSCRIBE_EVENTS[intent], tokens)
+                if self._exchange_subscribed:
+                    await self._ws.send(json.dumps({"event": "subscribeExchange"}))
+                logger.info(
+                    "sfeed_reconnected", url=self.url, reconnect_count=self._reconnect_count
+                )
+                return
+            except Exception as e:
+                logger.warning("sfeed_reconnect_attempt_failed", url=self.url, error=str(e))
+                if self.on_error:
+                    self.on_error(e)
 
     @staticmethod
     def _inputtoken(tokens: list[WsToken]) -> str:

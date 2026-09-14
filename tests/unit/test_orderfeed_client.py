@@ -808,6 +808,82 @@ def test_anext_recurses_after_timeout_then_returns_message():
     assert asyncio.run(run()) == "late"
 
 
+def test_handle_disconnect_does_not_recurse_past_python_stack_limit(monkeypatch):
+    """Regression: _handle_disconnect() must retry via a loop, not recursion.
+
+    A recursive `await self._handle_disconnect()` on each failed attempt
+    would add one stack frame per attempt and crash with RecursionError
+    long before reaching a large max_reconnect_attempts (e.g. a caller
+    wanting the feed to keep retrying through a multi-hour outage). Proven
+    here by lowering the recursion limit far below the attempt count --
+    if this were still recursive, it would hit RecursionError immediately.
+    """
+    import sys
+
+    async def run():
+        async def always_fail(url, **kwargs):
+            raise OSError("down")
+
+        monkeypatch.setattr(_client_mod.websockets, "connect", always_fail)
+        ws = OrderFeedWebSocket(
+            base_url="https://e21.x.com",
+            auth="T",
+            sid="S",
+            reconnect_delay=0,
+            max_reconnect_attempts=500,
+        )
+        ws._reconnect_count = 0
+        await ws._handle_disconnect()
+        return ws._reconnect_count
+
+    original_limit = sys.getrecursionlimit()
+    sys.setrecursionlimit(150)
+    try:
+        count = asyncio.run(run())
+    finally:
+        sys.setrecursionlimit(original_limit)
+
+    assert count == 500  # ran all 500 attempts without RecursionError
+
+
+def test_anext_does_not_recurse_past_python_stack_limit(monkeypatch):
+    """Regression: __anext__() must retry idle timeouts via a loop, not
+    recursion. A recursive `return await self.__anext__()` on each timeout
+    would crash with RecursionError after enough uninterrupted silence on
+    an idle feed -- exactly what a multi-hour-running order feed with
+    infrequent updates would eventually hit. Proven the same way as above:
+    lowering the recursion limit far below the timeout count.
+    """
+    import sys
+
+    async def run():
+        ws = _ws()
+        ws._connected = True
+
+        calls = {"n": 0}
+        real_wait_for = asyncio.wait_for
+
+        async def fake_wait_for(aw, timeout):
+            calls["n"] += 1
+            if calls["n"] < 500:
+                aw.close() if hasattr(aw, "close") else None
+                raise asyncio.TimeoutError
+            return await real_wait_for(aw, timeout)
+
+        monkeypatch.setattr(_client_mod.asyncio, "wait_for", fake_wait_for)
+        ws._message_queue.put_nowait("finally")
+        return await ws.__anext__()
+
+    original_limit = sys.getrecursionlimit()
+    sys.setrecursionlimit(150)
+    try:
+        result = asyncio.run(run())
+    finally:
+        sys.setrecursionlimit(original_limit)
+
+    assert result == "finally"
+
+
 def test_handle_disconnect_retry_without_on_error_callback(monkeypatch):
     async def run():
         async def always_fail(url, **kwargs):

@@ -1,6 +1,7 @@
 import httpx
 
 from neo_api_client import rest
+from neo_api_client.utils.neo_utility import NeoUtility
 
 
 class ApiClient:
@@ -22,9 +23,9 @@ class ApiClient:
 
     def __init__(
         self,
-        configuration,
-        header_name=None,
-        header_value=None,
+        configuration: NeoUtility,
+        header_name: str | None = None,
+        header_value: str | None = None,
         transport: httpx.BaseTransport | None = None,
         limits: httpx.Limits | None = None,
         http2: bool = True,

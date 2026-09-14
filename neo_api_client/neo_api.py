@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import inspect
+from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, NoReturn
 
 import httpx
@@ -157,10 +158,10 @@ class NeoAPI:
             2. client.totp_validate(mpin)
         """
 
-        self.on_message = None
-        self.on_error = None
-        self.on_close = None
-        self.on_open = None
+        self.on_message: Callable[..., None] | None = None
+        self.on_error: Callable[..., None] | None = None
+        self.on_close: Callable[..., None] | None = None
+        self.on_open: Callable[..., None] | None = None
 
         if not access_token:
             # neo_api_client.req_data_validation.validate_configuration(consumer_key, consumer_secret)
@@ -183,7 +184,11 @@ class NeoAPI:
                 self.configuration, transport=transport, limits=limits, http2=http2, timeout=timeout
             )
 
-        self.NeoWebSocket = None
+        # Legacy v2 attribute -- the callback-based HSWebSocket/NeoWebSocket
+        # implementation it referred to has been removed (see create_websocket()
+        # below); kept as an always-None stub so v2 code checking for its
+        # presence doesn't hit AttributeError.
+        self.NeoWebSocket: Any = None
         self.configuration.neo_fin_key = neo_fin_key
         self.configuration.consumer_key = consumer_key
 

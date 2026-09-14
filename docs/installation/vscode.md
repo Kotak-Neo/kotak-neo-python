@@ -466,6 +466,15 @@ Add Neo API snippets:
 
 ## IntelliSense and Autocomplete
 
+### Method Autocomplete Works Out of the Box
+
+`kotakneoapi` ships a `py.typed` marker and full type annotations on every public
+method of `NeoAPI` (`place_order`, `totp_login`, `quotes`, etc.) — parameter names,
+types, defaults, and the method's docstring. Once your interpreter is selected (see
+[Python Interpreter Setup](#python-interpreter-setup)), typing `client.` and then a
+method name gives you real signature help and documentation with no extra
+configuration — Pylance (or PyCharm) reads this directly from the installed package.
+
 ### Trigger IntelliSense
 
 - Type and pause (auto-trigger)
