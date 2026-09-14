@@ -1,7 +1,5 @@
 from json import JSONDecodeError
 
-from neo_api_client.settings import PROD_URL
-
 
 class TotpAPI:
     def __init__(self, api_client):
@@ -15,11 +13,7 @@ class TotpAPI:
             "neo-fin-key": self.api_client.configuration.get_neo_fin_key(),
             "Content-Type": "application/json",
         }
-        URL = (
-            self.api_client.configuration.get_domain(session_init=True)
-            + "/"
-            + PROD_URL.get("totp_login")
-        )
+        URL = self.api_client.configuration.get_session_url("totp_login")
         body_params = {"mobileNumber": mobile_number, "ucc": ucc, "totp": totp}
         totp_login = self.rest_client.request(
             url=URL, method="POST", headers=header_params, body=body_params
@@ -47,11 +41,7 @@ class TotpAPI:
             "Auth": self.api_client.configuration.view_token,
             "neo-fin-key": self.api_client.configuration.get_neo_fin_key(),
         }
-        URL = (
-            self.api_client.configuration.get_domain(session_init=True)
-            + "/"
-            + PROD_URL.get("totp_validate")
-        )
+        URL = self.api_client.configuration.get_session_url("totp_validate")
         body_params = {"mpin": mpin}
         totp_validate = self.rest_client.request(
             url=URL, method="POST", headers=header_params, body=body_params

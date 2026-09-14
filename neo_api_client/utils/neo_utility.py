@@ -133,6 +133,32 @@ class NeoUtility:
 
         return f"{domain_info}/{endpoint}"
 
+    def get_session_url(self, api_info):
+        """Build a URL for login-service calls that use the SESSION_*_BASE_URL
+        domain (``get_domain(session_init=True)``) instead of the regular
+        per-environment domain -- currently ``totp_login``/``totp_validate``/
+        ``get_client_ip``.
+
+        Still needs the correct per-environment endpoint *path*: unlike the
+        domain, which ``get_domain(session_init=True)`` already resolves
+        correctly for uat, the path itself differs entirely between prod and
+        uat (e.g. totp_login is ``login/1.0/tradeApiLogin`` on prod but
+        ``api/1.0/login/v6/totp/login`` on uat) -- so this still selects
+        PROD_URL vs UAT_URL by host, exactly like get_url_details() does for
+        the regular domain.
+        """
+        domain_info = self.get_domain(session_init=True)
+
+        if self.host.lower().strip() == "prod":
+            endpoint = PROD_URL.get(api_info)
+        else:
+            endpoint = UAT_URL.get(api_info)
+
+        if not endpoint:
+            raise ValueError(f"Endpoint mapping not found for api_info '{api_info}'")
+
+        return f"{domain_info.rstrip('/')}/{endpoint.lstrip('/')}"
+
     def resolve_dynamic_urls(self, rest_client):
         """Fetch this account's data-center-specific feed URLs from the dynamic
         config service, called once right after totp_validate() learns

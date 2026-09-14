@@ -148,6 +148,48 @@ def test_get_url_details_uat():
     assert url == "https://d-mis.kotaksecurities.com/quick/user/limits"
 
 
+def test_get_session_url_prod():
+    """get_session_url() uses the session domain plus the PROD-specific path."""
+    utility = NeoUtility(host="prod")
+
+    url = utility.get_session_url("totp_login")
+
+    # Session domain (not the regular per-account base_url) + PROD_URL's path.
+    assert url == "https://mis.kotaksecurities.com/login/1.0/tradeApiLogin"
+
+
+def test_get_session_url_uat():
+    """Regression: get_session_url() must use the UAT-specific path on uat,
+    not silently fall back to the PROD path (which is a totally different
+    endpoint shape: "login/1.0/tradeApiLogin" vs
+    "api/1.0/login/v6/totp/login")."""
+    utility = NeoUtility(host="uat")
+
+    url = utility.get_session_url("totp_login")
+
+    assert url == "https://d-mis.kotaksecurities.com/api/1.0/login/v6/totp/login"
+
+
+def test_get_session_url_totp_validate_uat():
+    """Same regression, for totp_validate."""
+    utility = NeoUtility(host="uat")
+
+    url = utility.get_session_url("totp_validate")
+
+    assert url == "https://d-mis.kotaksecurities.com/api/1.0/login/v6/totp/validate"
+
+
+def test_get_session_url_invalid_api():
+    """get_session_url() raises a clear error for an unknown api_info, like
+    get_url_details() does."""
+    utility = NeoUtility(host="prod")
+
+    with pytest.raises(ValueError) as exc_info:
+        utility.get_session_url("invalid_api")
+
+    assert "Endpoint mapping not found" in str(exc_info.value)
+
+
 def test_get_url_details_invalid_api():
     """Test get_url_details raises error for invalid api_info."""
     utility = NeoUtility(host="prod")

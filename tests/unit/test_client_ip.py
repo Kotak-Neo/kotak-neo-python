@@ -56,6 +56,22 @@ def test_whatsmyip_uses_session_login_url(requests_mock):
     assert requests_mock.last_request.url.endswith("/login/1.0/get-client-ip")
 
 
+def test_whatsmyip_uses_uat_session_url_on_uat(requests_mock):
+    """get_client_ip's path happens to be identical on prod/uat, but this
+    still exercises get_session_url() picking the UAT session domain."""
+    client = NeoAPI(environment="uat", consumer_key="consumer-key-123")
+    client.configuration.edit_token = "trade_token_123"
+    client.configuration.edit_sid = "sid_123"
+    uat_ip_url = "https://d-mis.kotaksecurities.com/login/1.0/get-client-ip"
+
+    requests_mock.get(uat_ip_url, json=_IP_RESPONSE, status_code=200)
+
+    result = client.whatsmyip()
+
+    assert result["status"] == "success"
+    assert requests_mock.last_request.url == uat_ip_url
+
+
 def test_whatsmyip_without_2fa():
     client = NeoAPI(environment="prod", consumer_key="consumer-key-123")
 

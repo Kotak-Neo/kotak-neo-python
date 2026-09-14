@@ -1,7 +1,6 @@
 from json import JSONDecodeError
 
 from neo_api_client.exceptions import ApiException
-from neo_api_client.settings import PROD_URL
 
 
 class ClientIpAPI:
@@ -21,11 +20,7 @@ class ClientIpAPI:
             "Auth": self.api_client.configuration.edit_token,
             "accept": "application/json",
         }
-        URL = (
-            self.api_client.configuration.get_domain(session_init=True)
-            + "/"
-            + PROD_URL.get("get_client_ip")
-        )
+        URL = self.api_client.configuration.get_session_url("get_client_ip")
 
         try:
             response = self.rest_client.request(url=URL, method="GET", headers=header_params)

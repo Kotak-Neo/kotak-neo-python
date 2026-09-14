@@ -1,6 +1,45 @@
 """Unit tests for TOTP authentication service."""
 
+from neo_api_client import NeoAPI
 from neo_api_client.services.totp import TotpAPI
+
+
+def test_totp_login_uses_uat_path_on_uat(requests_mock):
+    """Regression: totp_login() must hit the UAT-specific endpoint path on
+    uat, not silently send the PROD path (a completely different shape --
+    "login/1.0/tradeApiLogin" vs "api/1.0/login/v6/totp/login")."""
+    client = NeoAPI(environment="uat", consumer_key="test_key")
+    uat_login_url = "https://d-mis.kotaksecurities.com/api/1.0/login/v6/totp/login"
+
+    requests_mock.post(
+        uat_login_url,
+        json={"data": {"token": "view_token_123", "sid": "view_sid_456"}},
+        status_code=200,
+    )
+
+    result = client.totp_login(mobile_number="+919999999999", ucc="TESTUSER", totp="123456")
+
+    assert result["data"]["token"] == "view_token_123"
+    assert requests_mock.last_request.url == uat_login_url
+
+
+def test_totp_validate_uses_uat_path_on_uat(requests_mock):
+    """Same regression, for totp_validate()."""
+    client = NeoAPI(environment="uat", consumer_key="test_key")
+    client.configuration.view_token = "view_token_123"
+    client.configuration.sid = "view_sid_456"
+    uat_validate_url = "https://d-mis.kotaksecurities.com/api/1.0/login/v6/totp/validate"
+
+    requests_mock.post(
+        uat_validate_url,
+        json={"data": {"token": "edit_token_123", "sid": "edit_sid_456"}},
+        status_code=200,
+    )
+
+    result = client.totp_validate(mpin="654321")
+
+    assert result["data"]["token"] == "edit_token_123"
+    assert requests_mock.last_request.url == uat_validate_url
 
 
 def test_totp_api_init(api_client):
