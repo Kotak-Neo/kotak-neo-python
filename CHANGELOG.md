@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented in this file.
 
+## [3.0.7] - 2026-09-15
+
+### Fixes
+- **Order feed / SFeed crash after running for hours** (`RecursionError: maximum
+  recursion depth exceeded`) — both WebSocket clients' idle-timeout retry
+  (`__anext__()`) and reconnect retry (`_handle_disconnect()`) used recursion
+  instead of a loop, so a long-idle connection or a run of failed reconnect
+  attempts would eventually blow the stack. Both are now implemented as loops,
+  so the feed can run indefinitely through idle periods or extended outages
+  without crashing.
+- Fixed `totp_login()`/`totp_validate()`/`whatsmyip()` sending the **prod** API
+  path even when `environment="uat"` — these previously hardcoded the prod
+  endpoint path regardless of environment; they now resolve the correct
+  UAT-specific path.
+
 ## [3.0.6] - 2026-09-05
 
 > Covers everything since the last tagged release, `v3.0.1` (2026-08-17). Versions
