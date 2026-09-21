@@ -23,6 +23,24 @@ def test_get_expiries_success(requests_mock, api_client):
     assert response["expiries"] == ["2026-06-25", "2026-06-30", "2026-07-31"]
 
 
+def test_get_expiries_429_surfaces_retry_after(requests_mock, api_client):
+    """A 429 that carries a Retry-After header surfaces it to the caller,
+    giving them a concrete value to back off on."""
+    url = "https://test-api.kotak.com/market-data/1.0/watchlist/expiries"
+
+    requests_mock.get(
+        url,
+        json={"stat": "Not_Ok", "emsg": "Rate limit exceeded"},
+        status_code=429,
+        headers={"Retry-After": "60"},
+    )
+
+    response = ExpiriesAPI(api_client).get_expiries(exchange="nse_fo", underlying="RELIANCE")
+
+    assert response["stat"] == "Not_Ok"
+    assert response["rateLimit"] == {"Retry-After": "60"}
+
+
 def test_get_expiries_with_instrument_type(requests_mock, api_client):
     url = "https://test-api.kotak.com/market-data/1.0/watchlist/expiries"
 

@@ -71,3 +71,19 @@ these directly as `option_chain()`'s `expiry` parameter.
 | 403 | Invalid session, please re-login |
 | 429 | Too many requests to the API |
 | 500 | Unexpected error |
+
+### Rate limiting
+
+This endpoint is rate-limited by the backend Trade APIs, same as
+[`quotes()`](./quotes.md). If you hit a `429`, the SDK surfaces any
+`Retry-After`/`X-RateLimit-*` headers the backend sends back on the response
+itself, under a `rateLimit` key:
+
+```python
+response = client.expiries(exchange="nse_fo", underlying="NIFTY")
+if "rateLimit" in response:
+    print(response["rateLimit"])  # e.g. {"Retry-After": "60"}
+```
+
+`rateLimit` is only present when the backend actually sends one of these
+headers — most responses won't have it.

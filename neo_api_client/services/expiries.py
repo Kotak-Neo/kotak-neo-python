@@ -1,5 +1,7 @@
 from json import JSONDecodeError
 
+from neo_api_client.rest import rate_limit_headers
+
 
 class ExpiriesAPI:
     def __init__(self, api_client):
@@ -26,7 +28,11 @@ class ExpiriesAPI:
         )
 
         try:
-            return expiries.json()
+            body = expiries.json()
+            limit_headers = rate_limit_headers(expiries)
+            if limit_headers and isinstance(body, dict):
+                body["rateLimit"] = limit_headers
+            return body
 
         except JSONDecodeError as e:
             return {

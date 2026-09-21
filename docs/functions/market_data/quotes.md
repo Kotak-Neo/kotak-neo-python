@@ -208,3 +208,16 @@ except Exception as e:
 | 502 | Not able to communicate with OMS |
 | 503 | Trade API service is unavailable |
 | 504 | Gateway timeout |
+
+If you do hit a `429` despite pacing to the 25 requests/second ceiling above,
+the SDK surfaces any `Retry-After`/`X-RateLimit-*` headers the backend Trade
+APIs send back on the response itself, under a `rateLimit` key:
+
+```python
+response = client.quotes(instrument_tokens=instrument_tokens)
+if "rateLimit" in response:
+    print(response["rateLimit"])  # e.g. {"Retry-After": "5"}
+```
+
+`rateLimit` is only present when the backend actually sends one of these
+headers — most responses won't have it.

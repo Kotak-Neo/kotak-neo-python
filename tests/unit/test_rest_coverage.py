@@ -6,7 +6,7 @@ import requests_mock
 
 from neo_api_client import rest as rest_module
 from neo_api_client.exceptions import ApiException
-from neo_api_client.rest import RESTClientObject
+from neo_api_client.rest import RESTClientObject, rate_limit_headers
 
 
 class DummyConfig:
@@ -599,3 +599,26 @@ def test_init_without_host_leaves_environment_unbound(monkeypatch):
     event_dict = structlog.contextvars.merge_contextvars(None, None, {})
     result = add_app_context(None, None, event_dict)
     assert result["environment"] == "unknown"
+
+
+# ---- rate_limit_headers() ----------------------------------------------------
+
+
+def test_rate_limit_headers_extracts_known_headers():
+    response = httpx.Response(
+        429,
+        headers={"Retry-After": "120", "X-RateLimit-Remaining": "0", "Unrelated-Header": "x"},
+    )
+    assert rate_limit_headers(response) == {"Retry-After": "120", "X-RateLimit-Remaining": "0"}
+
+
+def test_rate_limit_headers_empty_when_none_present():
+    response = httpx.Response(200, headers={"Content-Type": "application/json"})
+    assert rate_limit_headers(response) == {}
+
+
+def test_rate_limit_headers_is_case_insensitive():
+    """httpx.Headers is case-insensitive, so a lowercase header name from the
+    wire is still matched against RATE_LIMIT_HEADER_NAMES."""
+    response = httpx.Response(429, headers={"retry-after": "30"})
+    assert rate_limit_headers(response) == {"Retry-After": "30"}

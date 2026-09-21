@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented in this file.
 
+## [Unreleased]
+
+### Enhancements
+- `quotes()`, `expiries()`, `option_chain()`, `historical_data()` now surface any
+  `Retry-After`/`X-RateLimit-*` response headers the backend Trade APIs send,
+  under a `rateLimit` key on the returned dict — giving callers a concrete
+  value to back off on after a `429`. Only added when the backend actually
+  sends one of these headers; absent otherwise, so existing response shapes
+  are unaffected.
+
+### Docs
+- `historical_data.md`, `expiries.md`, `option_chain.md` now document that
+  these endpoints are backend-rate-limited (matching `quotes()`'s existing 25
+  requests/second note) and how to read the new `rateLimit` field.
+
 ## [3.0.7] - 2026-09-15
 
 ### Fixes

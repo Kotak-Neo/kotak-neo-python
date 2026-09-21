@@ -25,6 +25,24 @@ def test_get_option_chain_success(requests_mock, api_client):
     assert len(response["data"]["put"]) == 1
 
 
+def test_get_option_chain_429_surfaces_retry_after(requests_mock, api_client):
+    """A 429 that carries a Retry-After header surfaces it to the caller,
+    giving them a concrete value to back off on."""
+    url = "https://test-api.kotak.com/market-data/1.0/watchlist/option-chain"
+
+    requests_mock.get(
+        url,
+        json={"stat": "Not_Ok", "emsg": "Rate limit exceeded"},
+        status_code=429,
+        headers={"Retry-After": "60"},
+    )
+
+    response = OptionChainAPI(api_client).get_option_chain(exchange="nse_fo", underlying="RELIANCE")
+
+    assert response["stat"] == "Not_Ok"
+    assert response["rateLimit"] == {"Retry-After": "60"}
+
+
 def test_get_option_chain_with_all_params(requests_mock, api_client):
     url = "https://test-api.kotak.com/market-data/1.0/watchlist/option-chain"
 

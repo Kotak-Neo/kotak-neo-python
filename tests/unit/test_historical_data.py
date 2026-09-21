@@ -5,6 +5,42 @@ from neo_api_client import NeoAPI
 from neo_api_client.services.historical_data import HistoricalDataAPI
 
 
+def test_get_historical_data_429_surfaces_retry_after(requests_mock, api_client):
+    """A 429 that carries a Retry-After header surfaces it to the caller,
+    giving them a concrete value to back off on."""
+    url = "https://test-api.kotak.com/market-data/1.0/historical/details"
+
+    requests_mock.get(
+        url,
+        json={"code": 429, "error": "Rate limit exceeded", "message": "too many request received"},
+        status_code=429,
+        headers={"Retry-After": "180", "X-RateLimit-Remaining": "0"},
+    )
+
+    result = HistoricalDataAPI(api_client).get_historical_data(
+        neosymbol="nse_cm|1333", interval="1min", from_date="2026-09-01", to_date="2026-09-02"
+    )
+
+    assert result["code"] == 429
+    assert result["rateLimit"] == {"Retry-After": "180", "X-RateLimit-Remaining": "0"}
+
+
+def test_get_historical_data_success_without_rate_limit_headers_unchanged(
+    requests_mock, api_client
+):
+    """No rate-limit headers on a normal response -> no 'rateLimit' key
+    added; the response shape callers already depend on stays exactly as-is."""
+    url = "https://test-api.kotak.com/market-data/1.0/historical/details"
+
+    requests_mock.get(url, json={"status": "success", "data": {"candles": []}})
+
+    result = HistoricalDataAPI(api_client).get_historical_data(
+        neosymbol="nse_cm|1333", interval="1min", from_date="2026-09-01", to_date="2026-09-02"
+    )
+
+    assert "rateLimit" not in result
+
+
 def test_get_historical_data_success(requests_mock, api_client):
     url = "https://test-api.kotak.com/market-data/1.0/historical/details"
 

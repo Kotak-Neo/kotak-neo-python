@@ -1,6 +1,8 @@
 import urllib.parse
 from json import JSONDecodeError
 
+from neo_api_client.rest import rate_limit_headers
+
 
 class QuotesAPI:
     def __init__(self, api_client):
@@ -39,7 +41,11 @@ class QuotesAPI:
         )
 
         try:
-            return quotes.json()
+            body = quotes.json()
+            limit_headers = rate_limit_headers(quotes)
+            if limit_headers and isinstance(body, dict):
+                body["rateLimit"] = limit_headers
+            return body
 
         except JSONDecodeError as e:
             return {

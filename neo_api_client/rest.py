@@ -42,6 +42,26 @@ TRUNCATED_BODY_PREVIEW_CHARS = 1000
 # Context variable for request correlation
 correlation_id_context: ContextVar[str | None] = ContextVar("correlation_id", default=None)
 
+# Rate-limit-related headers the backend Trade APIs send back. Checked
+# case-insensitively (httpx.Headers already does this). Surfacing these
+# gives callers a concrete value to key a backoff off of whenever a 429 (or
+# a proactive limit warning on a 200) carries one.
+RATE_LIMIT_HEADER_NAMES = (
+    "Retry-After",
+    "X-RateLimit-Limit",
+    "X-RateLimit-Remaining",
+    "X-RateLimit-Reset",
+)
+
+
+def rate_limit_headers(response: httpx.Response) -> dict[str, str]:
+    """Any of RATE_LIMIT_HEADER_NAMES present on `response`, keyed by header
+    name -- empty if the backend didn't send any of them."""
+    return {
+        name: response.headers[name] for name in RATE_LIMIT_HEADER_NAMES if name in response.headers
+    }
+
+
 if _ENHANCED_FEATURES:  # pragma: no cover - always true in a valid install
     logger = get_logger(__name__)
 

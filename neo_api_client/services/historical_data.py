@@ -1,5 +1,7 @@
 from json import JSONDecodeError
 
+from neo_api_client.rest import rate_limit_headers
+
 
 class HistoricalDataAPI:
     def __init__(self, api_client):
@@ -32,7 +34,11 @@ class HistoricalDataAPI:
         )
 
         try:
-            return historical_data.json()
+            body = historical_data.json()
+            limit_headers = rate_limit_headers(historical_data)
+            if limit_headers and isinstance(body, dict):
+                body["rateLimit"] = limit_headers
+            return body
 
         except JSONDecodeError as e:
             return {

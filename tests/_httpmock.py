@@ -87,6 +87,7 @@ class RespxMock:
         status_code=200,
         reason=None,
         content=None,
+        headers=None,
         exc=None,
     ):
         # Match on scheme://host/path only, ignoring the query string — this
@@ -114,6 +115,9 @@ class RespxMock:
         if reason is not None:
             # httpx derives reason_phrase from the status code unless overridden.
             response_kwargs["extensions"] = {"reason_phrase": reason.encode("ascii")}
+
+        if headers is not None:
+            response_kwargs["headers"] = headers
 
         route.mock(return_value=httpx.Response(status_code, **response_kwargs))
         return route

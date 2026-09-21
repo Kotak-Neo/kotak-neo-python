@@ -1,5 +1,7 @@
 from json import JSONDecodeError
 
+from neo_api_client.rest import rate_limit_headers
+
 
 class OptionChainAPI:
     def __init__(self, api_client):
@@ -30,7 +32,11 @@ class OptionChainAPI:
         )
 
         try:
-            return option_chain.json()
+            body = option_chain.json()
+            limit_headers = rate_limit_headers(option_chain)
+            if limit_headers and isinstance(body, dict):
+                body["rateLimit"] = limit_headers
+            return body
 
         except JSONDecodeError as e:
             return {

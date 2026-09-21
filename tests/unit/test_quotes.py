@@ -34,6 +34,28 @@ def test_get_quotes_success(requests_mock, api_client):
     assert response["stat"] == "Ok"
 
 
+def test_get_quotes_429_surfaces_retry_after(requests_mock, api_client):
+    """A 429 that carries a Retry-After header surfaces it to the caller,
+    giving them a concrete value to back off on."""
+    instrument_tokens = [{"exchange_segment": "nse_cm", "instrument_token": "12345"}]
+    url = api_client.configuration.get_url_details("quotes_neo_symbol").format(
+        neo_symbols="nse_cm|12345",
+        quote_type="all",
+    )
+
+    requests_mock.get(
+        url,
+        json={"stat": "Not_Ok", "emsg": "Rate limit exceeded"},
+        status_code=429,
+        headers={"Retry-After": "60"},
+    )
+
+    response = QuotesAPI(api_client).get_quotes(instrument_tokens=instrument_tokens)
+
+    assert response["stat"] == "Not_Ok"
+    assert response["rateLimit"] == {"Retry-After": "60"}
+
+
 def test_get_quotes_custom_quote_type(requests_mock, api_client):
     instrument_tokens = [
         {
