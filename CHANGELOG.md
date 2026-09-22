@@ -11,6 +11,10 @@ All notable changes to this project are documented in this file.
   value to back off on after a `429`. Only added when the backend actually
   sends one of these headers; absent otherwise, so existing response shapes
   are unaffected.
+- `orderfeed_disconnected`/`sfeed_disconnected` log events now include
+  `close_code`/`close_reason` — the actual WebSocket close frame the server
+  (or the connection itself) sent, giving a concrete answer to why a
+  disconnect happened instead of just that one happened.
 
 ### Docs
 - `historical_data.md`, `expiries.md`, `option_chain.md` now document that

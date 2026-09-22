@@ -624,6 +624,103 @@ def test_reconnect_resubscribes(monkeypatch):
     assert len(resub) >= 1
 
 
+def test_disconnect_logs_close_code_and_reason_from_server(monkeypatch):
+    """When the server sends an actual close frame, its code/reason are
+    logged on sfeed_disconnected -- the concrete answer to why the
+    connection dropped, instead of that information being discarded."""
+    import websockets
+    from websockets.frames import Close
+
+    async def run():
+        class ClosingWS(FakeAsyncWS):
+            async def recv(self):
+                raise websockets.exceptions.ConnectionClosed(Close(1008, "policy violation"), None)
+
+        async def fake_connect(url, **kwargs):
+            return FakeAsyncWS(incoming=[_AUTH_OK])
+
+        monkeypatch.setattr(_client_mod.websockets, "connect", fake_connect)
+
+        ws = SFeedWebSocket(url="wss://fake/feed", reconnect_delay=0)
+        ws._ws = ClosingWS(incoming=[])
+        ws._connected = True
+
+        logged = {}
+        orig_warning = _client_mod.logger.warning
+
+        def capture_warning(event, **kwargs):
+            if event == "sfeed_disconnected":
+                logged.update(kwargs)
+            return orig_warning(event, **kwargs)
+
+        monkeypatch.setattr(_client_mod.logger, "warning", capture_warning)
+
+        await ws._receive_loop()
+        return logged
+
+    logged = asyncio.run(run())
+    assert logged["close_code"] == 1008
+    assert logged["close_reason"] == "policy violation"
+
+
+def test_disconnect_without_close_frame_logs_abnormal_closure(monkeypatch):
+    """No close frame at all (e.g. the connection just dropped) -> code 1006
+    (RFC 6455 "abnormal closure"), without tripping `websockets`' own
+    deprecated ConnectionClosed.code/.reason properties."""
+    import warnings
+
+    import websockets
+
+    async def run():
+        class ClosingWS(FakeAsyncWS):
+            async def recv(self):
+                raise websockets.exceptions.ConnectionClosed(None, None)
+
+        async def fake_connect(url, **kwargs):
+            return FakeAsyncWS(incoming=[_AUTH_OK])
+
+        monkeypatch.setattr(_client_mod.websockets, "connect", fake_connect)
+
+        ws = SFeedWebSocket(url="wss://fake/feed", reconnect_delay=0)
+        ws._ws = ClosingWS(incoming=[])
+        ws._connected = True
+
+        logged = {}
+        orig_warning = _client_mod.logger.warning
+
+        def capture_warning(event, **kwargs):
+            if event == "sfeed_disconnected":
+                logged.update(kwargs)
+            return orig_warning(event, **kwargs)
+
+        monkeypatch.setattr(_client_mod.logger, "warning", capture_warning)
+
+        await ws._receive_loop()
+        return logged
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        logged = asyncio.run(run())
+
+    assert logged["close_code"] == 1006
+    assert logged["close_reason"] == ""
+
+
+def test_connection_closed_info_falls_back_without_rcvd_attribute():
+    """`websockets` releases before 13.1 have no `.rcvd` attribute at all on
+    ConnectionClosed -- falls back to reading `.code`/`.reason` directly,
+    since there's nothing else available on those versions."""
+
+    class LegacyConnectionClosed:
+        code = 1011
+        reason = "internal error"
+
+    assert _client_mod._connection_closed_info(LegacyConnectionClosed()) == (
+        1011,
+        "internal error",
+    )
+
+
 def test_reconnect_gives_up_after_max_attempts(monkeypatch):
     """_handle_disconnect stops after max_reconnect_attempts."""
 

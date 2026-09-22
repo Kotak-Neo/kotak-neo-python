@@ -49,6 +49,35 @@ def _to_realtime_url(base_url: str) -> str:
     return urlunsplit((scheme, netloc, path, "", ""))
 
 
+_MISSING = object()
+
+
+def _connection_closed_info(
+    exc: "websockets.exceptions.ConnectionClosed",
+) -> tuple[int | None, str | None]:
+    """The close code/reason the server (or we) actually sent on the close
+    frame -- this is the concrete answer to "why did it disconnect"
+    (e.g. 1000 normal closure, 1001 going away, 1006 abnormal/no close frame,
+    1008 policy violation, or an application-specific code the backend uses).
+
+    Reads `websockets`' ConnectionClosed.rcvd (the close-frame object) on
+    versions that have it. When `.rcvd` is `None` -- no close frame was
+    received at all, e.g. an abnormal/ungraceful disconnect -- reports 1006
+    (RFC 6455's standard "abnormal closure" code), same as what the
+    library's own deprecated `.code`/`.reason` properties fall back to
+    internally; reading those directly would trigger a DeprecationWarning on
+    every such disconnect, so this replicates the fallback instead. On
+    versions old enough to have no `.rcvd` attribute at all, falls back to
+    those deprecated properties, since there's nothing else to read.
+    """
+    rcvd = getattr(exc, "rcvd", _MISSING)
+    if rcvd is _MISSING:
+        return getattr(exc, "code", None), getattr(exc, "reason", None)
+    if rcvd is None:
+        return 1006, ""
+    return rcvd.code, rcvd.reason
+
+
 class OrderFeedWebSocket:
     """Async/await client for the Order & Position streaming feed.
 
@@ -293,9 +322,10 @@ class OrderFeedWebSocket:
                     with contextlib.suppress(Exception):
                         self.on_message(message)
 
-            except websockets.exceptions.ConnectionClosed:
+            except websockets.exceptions.ConnectionClosed as exc:
                 self._connected = False
-                await self._handle_disconnect()
+                close_code, close_reason = _connection_closed_info(exc)
+                await self._handle_disconnect(close_code=close_code, close_reason=close_reason)
                 break
             except Exception as e:  # pragma: no cover - defensive
                 if self.on_error:
@@ -371,8 +401,18 @@ class OrderFeedWebSocket:
         else:
             logger.info("orderfeed_message_received", message_type=type(message).__name__)
 
-    async def _handle_disconnect(self) -> None:
-        """Reconnect from scratch (server pushes state again on reconnect)."""
+    async def _handle_disconnect(
+        self, close_code: int | None = None, close_reason: str | None = None
+    ) -> None:
+        """Reconnect from scratch (server pushes state again on reconnect).
+
+        `close_code`/`close_reason` are the WebSocket close frame's own code
+        and reason -- the concrete answer to "why did it disconnect" (see
+        `_connection_closed_info`). `None` when this is being called for a
+        reason other than the socket itself closing (there currently isn't
+        one, but keeping both optional means a future caller doesn't have to
+        fabricate values).
+        """
         # A loop, not recursion: a run of consecutive failed reconnect
         # attempts (e.g. a prolonged outage with a large
         # max_reconnect_attempts) would otherwise add one stack frame per
@@ -382,7 +422,11 @@ class OrderFeedWebSocket:
         while True:
             self._connected = False
             logger.warning(
-                "orderfeed_disconnected", url=self.url, reconnect_count=self._reconnect_count
+                "orderfeed_disconnected",
+                url=self.url,
+                reconnect_count=self._reconnect_count,
+                close_code=close_code,
+                close_reason=close_reason,
             )
             if self.on_disconnect:
                 self.on_disconnect()
