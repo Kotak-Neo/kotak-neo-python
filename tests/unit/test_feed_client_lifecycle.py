@@ -985,6 +985,56 @@ def test_handle_disconnect_fires_on_disconnect_and_stops_at_cap(monkeypatch):
     assert events  # on_disconnect fired
 
 
+def test_handle_disconnect_survives_raising_on_disconnect_callback(monkeypatch):
+    """Regression: a buggy on_disconnect() must not kill the reconnect loop.
+
+    Before this fix, on_disconnect() was called unguarded -- if it raised,
+    the exception propagated straight out of _handle_disconnect(), so
+    reconnection never happened and the receive task died silently with no
+    further log output (matching a real customer report of the feed just
+    going quiet after a disconnect)."""
+
+    async def run():
+        async def succeeds(url, **kwargs):
+            return FakeAsyncWS(incoming=[_AUTH_OK])
+
+        monkeypatch.setattr(_client_mod.websockets, "connect", succeeds)
+        ws = SFeedWebSocket(url="wss://fake/feed", reconnect_delay=0, max_reconnect_attempts=2)
+
+        def boom():
+            raise RuntimeError("user callback bug")
+
+        ws.on_disconnect = boom
+        ws._reconnect_count = 0
+        await ws._handle_disconnect()  # must not raise
+        return ws._connected
+
+    assert asyncio.run(run()) is True  # reconnected despite the callback bug
+
+
+def test_handle_disconnect_survives_raising_on_error_callback(monkeypatch):
+    """Regression: a buggy on_error() must not kill the reconnect loop
+    either -- same failure mode as on_disconnect() above, triggered on a
+    failed reconnect attempt instead of the initial disconnect."""
+
+    async def run():
+        async def always_fail(url, **kwargs):
+            raise OSError("down")
+
+        monkeypatch.setattr(_client_mod.websockets, "connect", always_fail)
+        ws = SFeedWebSocket(url="wss://fake/feed", reconnect_delay=0, max_reconnect_attempts=2)
+
+        def boom(e):
+            raise RuntimeError("user callback bug")
+
+        ws.on_error = boom
+        ws._reconnect_count = 0
+        await ws._handle_disconnect()  # must not raise
+        return ws._reconnect_count
+
+    assert asyncio.run(run()) == 2  # retried through the cap despite the callback bug
+
+
 # ---- _subscribe error wrapping ----------------------------------------------
 
 

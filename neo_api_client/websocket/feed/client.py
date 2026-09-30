@@ -532,7 +532,8 @@ class SFeedWebSocket:
                 break
             except Exception as e:  # pragma: no cover - defensive
                 if self.on_error:
-                    self.on_error(e)
+                    with contextlib.suppress(Exception):
+                        self.on_error(e)
 
     def _handle_text_frame(self, raw: str | bytes) -> None:
         """Handle a JSON control frame.
@@ -602,7 +603,8 @@ class SFeedWebSocket:
             return decode_packet(packet, self._dividers)
         except Exception as e:  # pragma: no cover - defensive
             if self.on_error:
-                self.on_error(e)
+                with contextlib.suppress(Exception):
+                    self.on_error(e)
             return None
 
     def _deliver_message(self, message: SFeedMessage) -> None:
@@ -731,7 +733,12 @@ class SFeedWebSocket:
                 close_reason=close_reason,
             )
             if self.on_disconnect:
-                self.on_disconnect()
+                # A callback that raises must not kill this loop -- otherwise
+                # reconnection silently stops (the task dies with no further
+                # log output) instead of retrying, matching on_raw in
+                # _receive_loop, which is guarded the same way.
+                with contextlib.suppress(Exception):
+                    self.on_disconnect()
 
             if self._reconnect_count >= self.max_reconnect_attempts:
                 logger.error(
@@ -762,7 +769,8 @@ class SFeedWebSocket:
             except Exception as e:
                 logger.warning("sfeed_reconnect_attempt_failed", url=self.url, error=str(e))
                 if self.on_error:
-                    self.on_error(e)
+                    with contextlib.suppress(Exception):
+                        self.on_error(e)
 
     @staticmethod
     def _inputtoken(tokens: list[WsToken]) -> str:
@@ -1020,4 +1028,5 @@ class SFeedWebSocket:
             self._ws = None
 
         if self.on_disconnect:
-            self.on_disconnect()
+            with contextlib.suppress(Exception):
+                self.on_disconnect()

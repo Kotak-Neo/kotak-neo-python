@@ -329,7 +329,8 @@ class OrderFeedWebSocket:
                 break
             except Exception as e:  # pragma: no cover - defensive
                 if self.on_error:
-                    self.on_error(e)
+                    with contextlib.suppress(Exception):
+                        self.on_error(e)
 
     def _parse_message(self, raw: Any) -> Any:
         """Decode a frame into a typed message, or None to skip it.
@@ -367,7 +368,8 @@ class OrderFeedWebSocket:
         except Exception as e:  # pragma: no cover - defensive
             # Fall back to the raw dict if the payload doesn't fit the model.
             if self.on_error:
-                self.on_error(e)
+                with contextlib.suppress(Exception):
+                    self.on_error(e)
             return data
 
         # Connection acknowledgement (type == "cn") is a control frame; the
@@ -429,7 +431,12 @@ class OrderFeedWebSocket:
                 close_reason=close_reason,
             )
             if self.on_disconnect:
-                self.on_disconnect()
+                # A callback that raises must not kill this loop -- otherwise
+                # reconnection silently stops (the task dies with no further
+                # log output) instead of retrying, matching on_message/on_raw
+                # in _receive_loop, which are guarded the same way.
+                with contextlib.suppress(Exception):
+                    self.on_disconnect()
 
             if self._reconnect_count >= self.max_reconnect_attempts:
                 logger.error(
@@ -450,7 +457,8 @@ class OrderFeedWebSocket:
             except Exception as e:
                 logger.warning("orderfeed_reconnect_attempt_failed", url=self.url, error=str(e))
                 if self.on_error:
-                    self.on_error(e)
+                    with contextlib.suppress(Exception):
+                        self.on_error(e)
 
     async def close(self) -> None:
         """Close the socket and clean up."""
@@ -467,4 +475,5 @@ class OrderFeedWebSocket:
             self._ws = None
 
         if self.on_disconnect:
-            self.on_disconnect()
+            with contextlib.suppress(Exception):
+                self.on_disconnect()

@@ -622,7 +622,9 @@ class NeoAPI:
             batch = tokens[i : i + 50]
             try:
                 response = self.quotes(instrument_tokens=batch, quote_type="ltp")
-            except Exception:
+            except Exception:  # nosec B112 -- best-effort: a failed LTP batch must not
+                # break positions() or the other batches; affected positions get
+                # pnlCalculationError from compute_position_metrics() below instead.
                 continue
             if isinstance(response, list):
                 quotes_list = response

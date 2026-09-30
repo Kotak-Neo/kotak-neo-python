@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented in this file.
 
+## [Unreleased]
+
+### Fixes
+- **Order feed / SFeed could silently stop reconnecting after a disconnect**
+  if a caller's `on_disconnect`/`on_error` callback raised — the exception
+  propagated out of the internal reconnect loop, killing the background
+  receive task with no further log output and no retry, while the caller's
+  `async for` loop over the feed just ended quietly (no error surfaced).
+  These callbacks are now exception-safe, matching `on_message`/`on_raw`
+  (already guarded the same way): a callback bug degrades gracefully
+  instead of silently stopping the feed.
+
 ## [3.0.8] - 2026-09-30
 
 ### Enhancements
