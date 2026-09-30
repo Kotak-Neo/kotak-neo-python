@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented in this file.
 
-## [Unreleased]
+## [3.0.8] - 2026-09-30
 
 ### Enhancements
 - `quotes()`, `expiries()`, `option_chain()`, `historical_data()` now surface any

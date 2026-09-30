@@ -86,7 +86,7 @@ synchronous, multi-process app (gunicorn/uWSGI sync workers, Celery).
 - **[API Functions](../functions/README.md)** - Complete API reference
 - **[Authentication](../functions/authentication/)** - Login & auth
 - **[Orders](../functions/orders/)** - Order management
-- **[Portfolio](../functions/portfolio/)** - Holdings & positions
+- **[Portfolio](../functions/portfolio/)** - Holdings & positions (including average price & P&L, computed automatically)
 - **[Market Data](../functions/market_data/)** - Quotes & scrips
 - **[WebSocket](../functions/websocket/)** - Real-time streaming
 - **[SFeed WebSocket Guide](websocket.md)** - Async streaming client & migration

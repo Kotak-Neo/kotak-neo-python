@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import inspect
 from collections.abc import Callable
+from datetime import date
 from typing import TYPE_CHECKING, Any, NoReturn
 
 import httpx
@@ -26,7 +27,9 @@ from neo_api_client.services.scrip_master import ScripMasterAPI
 from neo_api_client.services.scrip_search import ScripSearch
 from neo_api_client.services.totp import TotpAPI
 from neo_api_client.services.trade_report import TradeReportAPI
+from neo_api_client.utils import holdings_cache
 from neo_api_client.utils.neo_utility import NeoUtility
+from neo_api_client.utils.positions_pnl import compute_position_metrics
 from neo_api_client.utils.urls import (
     ORDER_FEED_URL_E21,
     ORDER_FEED_URL_E22,
@@ -191,6 +194,13 @@ class NeoAPI:
         self.NeoWebSocket: Any = None
         self.configuration.neo_fin_key = neo_fin_key
         self.configuration.consumer_key = consumer_key
+
+        # holdings() (per product: its response doesn't change intraday) is
+        # cached for the calendar day and reused by both a direct holdings()
+        # call and positions()'s internal P&L enrichment -- see
+        # _cache_holdings_response()/_get_cached_holdings_by_identifier().
+        self._holdings_cache: dict[str, Any] | None = None  # by exchangeIdentifier, for positions()
+        self._holdings_cache_date: date | None = None
 
     def place_order(
         self,
@@ -459,6 +469,35 @@ class NeoAPI:
         """
         Retrieves a list of positions using the NEO API.
 
+        Each position in the response is enriched in-place with computed
+        `netQty`, `averagePrice`, `positionPnl`, and `mtmPnl` fields, correctly
+        accounting for carry-forward positions -- unlike the raw Positions-API
+        fields alone (which give average=LTP/P&L=0 for a carry-forward
+        position with no fills today). See docs/functions/portfolio/positions.md.
+
+        Equity carry-forward positions need their actual cost basis from
+        holdings() (not available from positions() itself). Per product,
+        every position must get P&L info -- so holdings() is called
+        unconditionally, *before* the positions() REST call itself, rather
+        than lazily only when a carry-forward equity position is spotted in
+        the response: that guarantees holdings data is available regardless
+        of what positions() returns, and removes any risk of a "does this
+        need holdings" check missing a case. It's still cached for the
+        calendar day (since averagePrice doesn't change intraday) and reused
+        across every positions() call that day -- but only a *successful*
+        fetch is cached; a failed one is retried on the next call rather than
+        silently locking in "no holdings" for the rest of the day.
+
+        LTP uses the `ltp` field the Positions API (portfolio/v2/positions)
+        now returns directly on each position -- no extra call needed for
+        that in the common case. quotes() is only used as a fresh,
+        per-call fallback for any position missing (or with an unparseable)
+        `ltp`, e.g. an older backend response. If holdings() is still
+        unavailable after that retry, or a carry-forward equity position has
+        no matching holding, the affected position gets a
+        `pnlCalculationError` note instead of a wrong number -- it never
+        breaks positions() itself.
+
         Raises:
                 Exception: If there was an error retrieving the positions.
 
@@ -467,16 +506,158 @@ class NeoAPI:
         """
         if self.configuration.edit_token and self.configuration.edit_sid:
             try:
+                holdings_by_identifier = self._get_cached_holdings_by_identifier()
                 position_list = PositionsAPI(self.api_client).position_init()
+                self._enrich_positions_with_pnl(position_list, holdings_by_identifier)
                 return position_list
             except Exception as e:
                 return {"Error": e}
         else:
             return {"Error Message": "Complete the 2fa process before accessing this application"}
 
+    def _enrich_positions_with_pnl(
+        self, position_list: Any, holdings_by_identifier: dict[str, Any]
+    ) -> None:
+        """Add netQty/averagePrice/positionPnl/mtmPnl to each position dict
+        in `position_list["data"]`, in place. Best-effort: any failure
+        fetching quotes() is reported per-position via `pnlCalculationError`,
+        never raised -- it must not break positions().
+        """
+        if not isinstance(position_list, dict):
+            return
+        positions_data = position_list.get("data")
+        if not isinstance(positions_data, list) or not positions_data:
+            return
+
+        ltp_by_key = self._fetch_ltp_for_positions(positions_data)
+
+        for position in positions_data:
+            if not isinstance(position, dict):
+                continue
+            holding = holdings_by_identifier.get(str(position.get("tok")))
+            ltp = ltp_by_key.get(f"{position.get('exSeg')}|{position.get('tok')}")
+            position.update(compute_position_metrics(position, holding, ltp))
+
+    def _cache_holdings_response(self, holdings_response: Any) -> None:
+        """Cache a *successful* holdings() response for the calendar day, as
+        a lookup dict keyed by exchangeIdentifier (used by positions()'s P&L
+        enrichment). Populated as a side effect of every successful
+        holdings() call, and read by _get_cached_holdings_by_identifier() so
+        positions() only fetches holdings itself when nothing is cached yet
+        for today.
+
+        Persisted to disk (see neo_api_client.utils.holdings_cache), not just
+        held in memory -- an in-memory-only cache is lost as soon as the
+        process exits, so a separate run of the same script (e.g.
+        smoke_test.py invoked twice in a row) would otherwise always refetch
+        holdings even though it was already fetched today.
+
+        Only a proper `{"data": [...]}` shape is cached -- a failure
+        (network error, session issue, malformed response) leaves the cache
+        date unset, so the next call retries holdings() instead of assuming
+        "no holdings" for the rest of the day.
+        """
+        holdings_data = (
+            holdings_response.get("data") if isinstance(holdings_response, dict) else None
+        )
+        if isinstance(holdings_data, list):
+            self._holdings_cache = {
+                str(h.get("exchangeIdentifier")): h for h in holdings_data if isinstance(h, dict)
+            }
+            self._holdings_cache_date = date.today()
+            holdings_cache.write_holdings(self.configuration.ucc, self._holdings_cache)
+
+    def _get_cached_holdings_by_identifier(self) -> dict[str, Any]:
+        """positions()'s internal use of holdings(): reuse today's cache if
+        holdings() has already been fetched today -- checking the in-memory
+        cache first (this process), then the on-disk cache (written by any
+        successful holdings()/positions() call today, including a previous
+        run of the same script) -- and only calls holdings() (a live network
+        hit) if neither has it."""
+        if self._holdings_cache_date == date.today() and self._holdings_cache is not None:
+            return self._holdings_cache
+
+        disk_cached = holdings_cache.read_holdings(self.configuration.ucc)
+        if disk_cached is not None:
+            self._holdings_cache = disk_cached
+            self._holdings_cache_date = date.today()
+            return disk_cached
+
+        self.holdings()
+        return self._holdings_cache or {}
+
+    def _fetch_ltp_for_positions(self, positions_data: list[Any]) -> dict[str, float]:
+        """Get current LTP for every position, preferring the `ltp` field
+        positions() (portfolio/v2/positions) now returns directly, and only
+        falling back to a batched quotes() call for positions where it's
+        missing or unparseable -- e.g. older backend responses that predate
+        this field. quotes() is chunked at 50 instruments per call (its
+        documented per-call limit) and fetched fresh every time (unlike
+        holdings()): LTP moves constantly, so it can't be cached for the day.
+        """
+        ltp_by_key: dict[str, float] = {}
+        seen: set[str] = set()
+        tokens: list[dict[str, str]] = []
+        for position in positions_data:
+            if not isinstance(position, dict):
+                continue
+            exseg, tok = position.get("exSeg"), position.get("tok")
+            if not exseg or not tok:
+                continue
+            key = f"{exseg}|{tok}"
+            if key in seen:
+                continue
+            seen.add(key)
+
+            own_ltp = position.get("ltp")
+            if own_ltp is not None:
+                try:
+                    ltp_by_key[key] = float(own_ltp)
+                    continue
+                except (TypeError, ValueError):
+                    pass  # fall through to the quotes() batch below
+            tokens.append({"exchange_segment": exseg, "instrument_token": str(tok)})
+
+        for i in range(0, len(tokens), 50):
+            batch = tokens[i : i + 50]
+            try:
+                response = self.quotes(instrument_tokens=batch, quote_type="ltp")
+            except Exception:
+                continue
+            if isinstance(response, list):
+                quotes_list = response
+            elif isinstance(response, dict):
+                quotes_list = response.get("data")
+            else:
+                quotes_list = None
+            if not isinstance(quotes_list, list):
+                continue
+            for quote in quotes_list:
+                if not isinstance(quote, dict):
+                    continue
+                exchange, token, ltp = (
+                    quote.get("exchange"),
+                    quote.get("exchange_token"),
+                    quote.get("ltp"),
+                )
+                if exchange is None or token is None or ltp is None:
+                    continue
+                try:
+                    ltp_by_key[f"{exchange}|{token}"] = float(ltp)
+                except (TypeError, ValueError):
+                    continue
+        return ltp_by_key
+
     def holdings(self) -> dict[str, Any]:
         """
         Retrieves the current holdings for the portfolio using the NEO API.
+
+        A direct call always hits the network -- this is a live read, not a
+        cached one. A successful call also refreshes the same-day cache that
+        positions() checks internally before deciding whether it needs to
+        fetch holdings itself (see docs/functions/portfolio/positions.md), so
+        a positions() call right after this one reuses this response instead
+        of fetching it again.
 
         Raises:
              Exception: If there was an error retrieving the holdings.
@@ -484,14 +665,15 @@ class NeoAPI:
         Returns:
              A list of portfolio holding objects.
         """
-        if self.configuration.edit_token and self.configuration.edit_sid:
-            try:
-                portfolio_list = PortfolioAPI(self.api_client).portfolio_holdings()
-                return portfolio_list
-            except Exception as e:
-                return {"Error": e}
-        else:
+        if not (self.configuration.edit_token and self.configuration.edit_sid):
             return {"Error Message": "Complete the 2fa process before accessing this application"}
+
+        try:
+            portfolio_list = PortfolioAPI(self.api_client).portfolio_holdings()
+            self._cache_holdings_response(portfolio_list)
+            return portfolio_list
+        except Exception as e:
+            return {"Error": e}
 
     def margin_required(
         self,

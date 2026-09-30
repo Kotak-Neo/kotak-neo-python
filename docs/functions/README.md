@@ -45,7 +45,7 @@ client.totp_validate(mpin="123456")
 
 ### 3. Portfolio & Positions
 - [Holdings](./portfolio/holdings.md) - Get portfolio holdings
-- [Positions](./portfolio/positions.md) - Get current positions
+- [Positions](./portfolio/positions.md) - Get current positions, with average price & P&L computed automatically (including carry-forward)
 - [Limits](./portfolio/limits.md) - Check available limits
 - [Margin Required](./portfolio/margin_required.md) - Calculate margin for orders
 

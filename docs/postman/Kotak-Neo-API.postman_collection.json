@@ -308,9 +308,9 @@
               { "key": "accept", "value": "application/json" }
             ],
             "url": {
-              "raw": "{{base_url}}/quick/user/positions",
+              "raw": "{{base_url}}/portfolio/v2/positions",
               "host": ["{{base_url}}"],
-              "path": ["quick", "user", "positions"]
+              "path": ["portfolio", "v2", "positions"]
             },
             "description": "SDK: client.positions()."
           }

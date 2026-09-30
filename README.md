@@ -3,7 +3,7 @@
 Official Python SDK for Kotak Neo Trading APIs - a modern, well-tested trading client for the Kotak Neo platform.
 
 [![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
-[![PyPI Version](https://img.shields.io/badge/pypi-v3.0.7-green.svg)](https://pypi.org/project/kotakneoapi/)
+[![PyPI Version](https://img.shields.io/badge/pypi-v3.0.8-green.svg)](https://pypi.org/project/kotakneoapi/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/LICENSE)
 
 > **This is the actively maintained Python SDK**, superseding
@@ -15,7 +15,7 @@ Official Python SDK for Kotak Neo Trading APIs - a modern, well-tested trading c
 
 ✅ **Authentication** - TOTP-based secure login with 2FA  
 ✅ **Order Management** - Place, modify, cancel orders (Regular/AMO)  
-✅ **Portfolio & Positions** - Real-time holdings, positions, and limits  
+✅ **Portfolio & Positions** - Real-time holdings, positions, and limits, with correct average price/P&L computed automatically for carry-forward positions  
 ✅ **Market Data** - Live quotes, scrip master, search functionality, expiries, option chain, and historical candle data  
 ✅ **SFeed WebSocket Streaming** - Modern async/await live market feed with typed messages, enriched with `trading_symbol`  
 ✅ **HTTP/2 Transport** - REST calls use HTTP/2 (via httpx) with automatic HTTP/1.1 fallback  
@@ -116,7 +116,7 @@ Detailed documentation for all SDK functions with examples and real API response
 - [Order Report](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/orders/order_report.md) | [Order History](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/orders/order_history.md) | [Trade Report](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/orders/trade_report.md)
 
 **Portfolio & Positions**
-- [Holdings](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/portfolio/holdings.md) | [Positions](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/portfolio/positions.md)
+- [Holdings](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/portfolio/holdings.md) | [Positions](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/portfolio/positions.md) (average price & P&L computed automatically)
 - [Limits](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/portfolio/limits.md) | [Margin Required](https://github.com/Kotak-Neo/kotak-neo-python/blob/main/docs/functions/portfolio/margin_required.md)
 
 **Market Data**
@@ -517,6 +517,6 @@ See [CHANGELOG.md](CHANGELOG.md) for version history and updates.
 
 ---
 
-**Version**: 3.0.7  
+**Version**: 3.0.8  
 **Status**: Production/Stable  
 **Built with ❤️ by Kotak Neo Team**
