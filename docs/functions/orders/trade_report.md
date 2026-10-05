@@ -18,6 +18,13 @@ client.trade_report()
 > Order status and fill-level trade data are different concerns — use
 > `order_report()` to check where an order stands, and this endpoint
 > (filtered client-side as above) to reconcile what actually executed.
+>
+> **`tok` is always empty here** (see the sample response below) — unlike
+> `order_report()`, whose `tok` is populated. This is the backend
+> `quick/user/trades` response as-is; the SDK doesn't transform it. To
+> resolve the instrument token for a fill, match this trade's `nOrdNo`
+> against that same order's entry in `order_report()`'s `tok` field, or look
+> up `trdSym`/`exSeg` via [`search_scrip()`](../market_data/search_scrip.md).
 
 ### Example
 
