@@ -2,7 +2,30 @@
 
 All notable changes to this project are documented in this file.
 
-## [Unreleased]
+## [3.0.8] - 2026-10-05
+
+### New: automatic Positions P&L
+- **`positions()` now computes `netQty`, `averagePrice`, `positionPnl`, `mtmPnl`,
+  and `pnlCalculationError` for every position**, added alongside the raw broker
+  fields — no more silently-wrong `average = LTP` / `P&L = 0` for a carry-forward
+  position with no fills today. Equity carry-forward sources its true cost basis
+  from [Holdings](docs/functions/portfolio/holdings.md) (matched on
+  `positions.tok == holdings.exchangeIdentifier`); F&O carry-forward (no
+  Holdings entry) is valued at previous close. A failure to compute any of these
+  (e.g. no matching Holdings entry, or LTP unavailable) is reported per-position
+  via `pnlCalculationError` instead of a silently wrong number. Full calculation
+  breakdown: [docs/functions/portfolio/positions.md](docs/functions/portfolio/positions.md#positions-calculations--computed-automatically).
+- `positions()` now calls `portfolio/v2/positions` (previously `quick/user/positions`),
+  which returns its own `ltp` per position — used directly for the P&L fields above
+  with no extra call in the common case. `quotes()` is only used as a fallback batch
+  for any position missing (or with an unparseable) `ltp`.
+- **`holdings()`** is unchanged for a direct call — it always hits the network, live.
+  Internally, `positions()` now reuses a same-day cache of the last successful
+  `holdings()` fetch (whether triggered by `positions()` itself or by you calling
+  `holdings()` directly) instead of always re-fetching it — persisted to disk
+  (`~/.kotak_neo/holdings_cache`, overridable via `NEO_HOLDINGS_CACHE_DIR`), so the
+  cache survives across separate runs of the same script on the same day, not just
+  within one process.
 
 ### Fixes
 - **Order feed / SFeed could silently stop reconnecting after a disconnect**
@@ -23,8 +46,6 @@ All notable changes to this project are documented in this file.
   `max_reconnect_attempts` and giving up for good, against what was actually
   a live connection. `on_connect` is now exception-safe too.
 
-## [3.0.8] - 2026-09-30
-
 ### Enhancements
 - `quotes()`, `expiries()`, `option_chain()`, `historical_data()` now surface any
   `Retry-After`/`X-RateLimit-*` response headers the backend Trade APIs send,
@@ -41,6 +62,11 @@ All notable changes to this project are documented in this file.
 - `historical_data.md`, `expiries.md`, `option_chain.md` now document that
   these endpoints are backend-rate-limited (matching `quotes()`'s existing 25
   requests/second note) and how to read the new `rateLimit` field.
+- `positions.md`/`holdings.md` document the P&L calculation, the holdings
+  cache behavior, and the on-disk cache location/override above.
+- `trade_report.md` now notes that the backend always returns an empty `tok`
+  on this endpoint (unlike `order_report()`), and documents the workaround
+  (match `nOrdNo` against `order_report()`, or resolve via `search_scrip()`).
 
 ## [3.0.7] - 2026-09-15
 
