@@ -13,6 +13,15 @@ All notable changes to this project are documented in this file.
   These callbacks are now exception-safe, matching `on_message`/`on_raw`
   (already guarded the same way): a callback bug degrades gracefully
   instead of silently stopping the feed.
+- **Order feed / SFeed reconnect could falsely report failure (and burn
+  through `max_reconnect_attempts`) even when the reconnect actually
+  succeeded**, if a caller's `on_connect` callback raised. `on_connect()` is
+  called after the socket is already open and the receive task already
+  started, so letting it raise meant the internal reconnect loop's
+  `await self.connect()` call looked like a failed attempt and retried
+  against a connection that didn't need it — eventually exhausting
+  `max_reconnect_attempts` and giving up for good, against what was actually
+  a live connection. `on_connect` is now exception-safe too.
 
 ## [3.0.8] - 2026-09-30
 

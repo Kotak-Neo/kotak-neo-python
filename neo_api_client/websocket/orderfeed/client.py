@@ -301,7 +301,15 @@ class OrderFeedWebSocket:
         self._receive_task = asyncio.create_task(self._receive_loop())
         self._reconnect_count = 0
         if self.on_connect:
-            self.on_connect()
+            # A callback that raises must not look like a failed connect to
+            # our own caller -- the socket is already open and the receive
+            # task is already running at this point, so letting this
+            # exception escape would make _handle_disconnect() treat a
+            # successful reconnect as a failed attempt (retrying, and
+            # eventually exhausting max_reconnect_attempts, against a
+            # connection that actually came up fine).
+            with contextlib.suppress(Exception):
+                self.on_connect()
 
     async def _receive_loop(self) -> None:
         """Receive frames, decode (JSON when possible), and enqueue."""

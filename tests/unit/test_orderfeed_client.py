@@ -920,6 +920,46 @@ def test_handle_disconnect_survives_raising_on_error_callback(monkeypatch):
     assert asyncio.run(run()) == 2  # retried through the cap despite the callback bug
 
 
+def test_reconnect_succeeds_despite_raising_on_connect_callback(monkeypatch):
+    """Regression: a buggy on_connect() must not make a successful reconnect
+    look like a failed attempt.
+
+    on_connect() fires after the socket is already open and the receive
+    task already started -- before this fix, letting it raise meant
+    _handle_disconnect()'s `await self.connect()` call looked like it failed
+    (caught by its own except Exception), even though the connection
+    actually came up fine. That burned through max_reconnect_attempts
+    against a connection that didn't need retrying, and logged a false
+    "sfeed_reconnect_attempt_failed"/eventual exhaustion."""
+
+    async def run():
+        async def succeeds(url, **kwargs):
+            return FakeAsyncWS()
+
+        monkeypatch.setattr(_client_mod.websockets, "connect", succeeds)
+        ws = OrderFeedWebSocket(
+            base_url="https://e21.x.com",
+            auth="T",
+            sid="S",
+            reconnect_delay=0,
+            max_reconnect_attempts=2,
+        )
+
+        def boom():
+            raise RuntimeError("user callback bug")
+
+        ws.on_connect = boom
+        ws._reconnect_count = 0
+        await ws._handle_disconnect()
+        return ws._connected, ws._reconnect_count
+
+    connected, reconnect_count = asyncio.run(run())
+    assert connected is True
+    assert (
+        reconnect_count == 0
+    )  # reset on the successful reconnect, not left at a failed-attempt count
+
+
 def test_handle_disconnect_no_retry_when_cap_already_reached():
     async def run():
         ws = _ws()

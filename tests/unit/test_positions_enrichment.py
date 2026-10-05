@@ -410,3 +410,117 @@ def test_positions_without_2fa_returns_existing_error_unchanged():
     result = client.positions()
 
     assert result == {"Error Message": "Complete the 2fa process before accessing this application"}
+
+
+# ---- _enrich_positions_with_pnl / _fetch_ltp_for_positions edge cases ------
+
+
+def test_enrich_positions_with_pnl_non_dict_position_list_is_noop():
+    """A malformed (non-dict) position_list must be a no-op, not a crash --
+    defensive against a future backend response shape change."""
+    client = _authenticated_client()
+    assert client._enrich_positions_with_pnl(["not", "a", "dict"], {}) is None
+
+
+def test_enrich_positions_with_pnl_and_fetch_ltp_skip_non_dict_entries():
+    """A malformed (non-dict) entry inside positions_data must be skipped by
+    both _enrich_positions_with_pnl's own loop and _fetch_ltp_for_positions
+    (which it calls first), not crash either one."""
+    client = _authenticated_client()
+    positions_data = ["not-a-dict", {"exSeg": None, "tok": None}]
+
+    client._enrich_positions_with_pnl({"data": positions_data}, {})
+
+    # The non-dict entry is untouched; the dict entry got no exSeg/tok so no
+    # quotes() lookup was attempted, but it was still processed (not skipped).
+    assert positions_data[0] == "not-a-dict"
+    assert "pnlCalculationError" in positions_data[1]
+
+
+def test_fetch_ltp_dedupes_positions_sharing_the_same_key():
+    """Two positions with the same exSeg|tok (e.g. two legs of the same
+    instrument) must only generate one quotes() lookup, not one each."""
+    client = _authenticated_client()
+    captured = {}
+
+    def fake_quotes(instrument_tokens=None, quote_type=None):
+        captured["tokens"] = instrument_tokens
+        return {"data": [{"exchange": "nse_cm", "exchange_token": "61304", "ltp": "120.00"}]}
+
+    client.quotes = fake_quotes
+
+    positions_data = [
+        _equity_cf_position(tok="61304"),
+        _equity_cf_position(tok="61304"),
+    ]
+    result = client._fetch_ltp_for_positions(positions_data)
+
+    assert len(captured["tokens"]) == 1  # deduped, not one per position
+    assert result["nse_cm|61304"] == 120.0
+
+
+def test_fetch_ltp_quotes_call_raising_is_swallowed():
+    """A quotes() call that raises outright (not just an error dict) must
+    not break LTP resolution for other batches -- best-effort."""
+    client = _authenticated_client()
+
+    def raising_quotes(instrument_tokens=None, quote_type=None):
+        raise RuntimeError("boom")
+
+    client.quotes = raising_quotes
+
+    result = client._fetch_ltp_for_positions([_equity_cf_position(tok="61304")])
+
+    assert result == {}
+
+
+def test_fetch_ltp_quotes_response_of_unexpected_type_is_ignored():
+    """A quotes() response that's neither a list nor a dict (e.g. None, from
+    some unexpected backend shape) must be treated as "no quotes", not crash."""
+    client = _authenticated_client()
+    client.quotes = lambda instrument_tokens=None, quote_type=None: None
+
+    result = client._fetch_ltp_for_positions([_equity_cf_position(tok="61304")])
+
+    assert result == {}
+
+
+def test_fetch_ltp_skips_non_dict_quote_entries():
+    """A malformed (non-dict) entry in the quotes() response list must be
+    skipped, not crash -- other, well-formed entries in the same batch are
+    still processed."""
+    client = _authenticated_client()
+    client.quotes = lambda instrument_tokens=None, quote_type=None: {
+        "data": ["not-a-dict", {"exchange": "nse_cm", "exchange_token": "61304", "ltp": "120.00"}]
+    }
+
+    result = client._fetch_ltp_for_positions([_equity_cf_position(tok="61304")])
+
+    assert result == {"nse_cm|61304": 120.0}
+
+
+def test_fetch_ltp_skips_quote_entries_missing_exchange_token_or_ltp():
+    """A quote entry missing exchange/exchange_token/ltp must be skipped
+    rather than raising on the subsequent lookup."""
+    client = _authenticated_client()
+    client.quotes = lambda instrument_tokens=None, quote_type=None: {
+        "data": [{"exchange": "nse_cm", "exchange_token": "61304", "ltp": None}]
+    }
+
+    result = client._fetch_ltp_for_positions([_equity_cf_position(tok="61304")])
+
+    assert result == {}
+
+
+def test_fetch_ltp_skips_unparseable_ltp_in_quotes_response():
+    """An unparseable `ltp` string *in the quotes() response itself* (as
+    opposed to on the position, which has its own dedicated test) must be
+    skipped, not raise."""
+    client = _authenticated_client()
+    client.quotes = lambda instrument_tokens=None, quote_type=None: {
+        "data": [{"exchange": "nse_cm", "exchange_token": "61304", "ltp": "not-a-number"}]
+    }
+
+    result = client._fetch_ltp_for_positions([_equity_cf_position(tok="61304")])
+
+    assert result == {}
