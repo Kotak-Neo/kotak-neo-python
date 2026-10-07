@@ -5,6 +5,7 @@ Complete guide to install and set up the Kotak Neo SDK on Linux distributions.
 ## Table of Contents
 - [Prerequisites by Distribution](#prerequisites-by-distribution)
 - [Installation Methods](#installation-methods)
+- [Upgrading from the Legacy `neo-api-client` Package](#upgrading-from-the-legacy-neo-api-client-package)
 - [Setting Up Your Project](#setting-up-your-project)
 - [Visual Studio Code Setup](#visual-studio-code-setup)
 - [Verification](#verification-steps)
@@ -148,6 +149,42 @@ source venv/bin/activate
 
 # Install directly from GitHub
 pip install git+https://github.com/Kotak-Neo/kotak-neo-python.git
+```
+
+## Upgrading from the Legacy `neo-api-client` Package
+
+If this machine ever had the legacy SDK installed (`neo-api-client`, v2.0.2 or
+earlier, from `Kotak-Neo/Kotak-neo-api-v2`), **uninstall it before installing
+`kotakneoapi`.** Both packages install files under the same Python import
+name (`neo_api_client`), and pip has no way to detect or warn about the
+collision — installing one over the other without uninstalling the first
+leaves stale legacy files behind (e.g. `NeoWebSocket.py`, `HSWebSocketLib.py`)
+that can silently resolve old imports and hang/time out against decommissioned
+endpoints. See [Migration Guide §1.1](../guides/MIGRATION.md#11-package-coexistence-and-rollback)
+for the full explanation.
+
+**Step 1:** Check whether the legacy package is installed
+```bash
+pip show neo-api-client
+```
+If this prints package info (rather than "WARNING: Package(s) not found"), it's installed and must be removed first.
+
+**Step 2:** Uninstall it
+```bash
+pip uninstall neo-api-client
+```
+
+**Step 3:** Install (or re-run if already installed) the current SDK
+```bash
+pip install kotakneoapi
+```
+
+**When in doubt, use a fresh virtual environment instead** — it sidesteps
+this entirely:
+```bash
+python3 -m venv venv-clean
+source venv-clean/bin/activate
+pip install kotakneoapi
 ```
 
 ## Setting Up Your Project
