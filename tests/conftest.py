@@ -60,6 +60,14 @@ def _isolate_scrip_cache(tmp_path, monkeypatch):
     monkeypatch.setenv("NEO_SCRIP_CACHE_DIR", str(tmp_path / "scrip_cache"))
 
 
+@pytest.fixture(autouse=True)
+def _isolate_holdings_cache(tmp_path, monkeypatch):
+    """Give every test its own on-disk holdings() cache directory, for the
+    same reason as _isolate_scrip_cache above -- without this, tests would
+    read/write the real ~/.kotak_neo/holdings_cache used by positions()."""
+    monkeypatch.setenv("NEO_HOLDINGS_CACHE_DIR", str(tmp_path / "holdings_cache"))
+
+
 @pytest.fixture
 def api_client():
     utility = NeoUtility(

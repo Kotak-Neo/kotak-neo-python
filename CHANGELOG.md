@@ -2,54 +2,6 @@
 
 All notable changes to this project are documented in this file.
 
-## [3.0.9] - 2026-10-07
-
-### Changes
-- `positions()` now calls `portfolio/v2/positions` (previously
-  `quick/user/positions`), per a backend endpoint update — the response now
-  includes an `ltp` field per position.
-
-### Fixes
-- **Order feed / SFeed could silently stop reconnecting after a disconnect**
-  if a caller's `on_disconnect`/`on_error` callback raised — the exception
-  propagated out of the internal reconnect loop, killing the background
-  receive task with no further log output and no retry, while the caller's
-  `async for` loop over the feed just ended quietly (no error surfaced).
-  These callbacks are now exception-safe, matching `on_message`/`on_raw`
-  (already guarded the same way): a callback bug degrades gracefully
-  instead of silently stopping the feed.
-- **Order feed / SFeed reconnect could falsely report failure (and burn
-  through `max_reconnect_attempts`) even when the reconnect actually
-  succeeded**, if a caller's `on_connect` callback raised. `on_connect()` is
-  called after the socket is already open and the receive task already
-  started, so letting it raise meant the internal reconnect loop's
-  `await self.connect()` call looked like a failed attempt and retried
-  against a connection that didn't need it — eventually exhausting
-  `max_reconnect_attempts` and giving up for good, against what was actually
-  a live connection. `on_connect` is now exception-safe too.
-
-### Enhancements
-- `quotes()`, `expiries()`, `option_chain()`, `historical_data()` now surface any
-  `Retry-After`/`X-RateLimit-*` response headers the backend Trade APIs send,
-  under a `rateLimit` key on the returned dict — giving callers a concrete
-  value to back off on after a `429`. Only added when the backend actually
-  sends one of these headers; absent otherwise, so existing response shapes
-  are unaffected.
-- `orderfeed_disconnected`/`sfeed_disconnected` log events now include
-  `close_code`/`close_reason` — the actual WebSocket close frame the server
-  (or the connection itself) sent, giving a concrete answer to why a
-  disconnect happened instead of just that one happened.
-
-### Docs
-- `historical_data.md`, `expiries.md`, `option_chain.md` now document that
-  these endpoints are backend-rate-limited (matching `quotes()`'s existing 25
-  requests/second note) and how to read the new `rateLimit` field.
-- `positions.md` documents the `portfolio/v2/positions` endpoint and the new
-  `ltp` field.
-- `trade_report.md` now notes that the backend always returns an empty `tok`
-  on this endpoint (unlike `order_report()`), and documents the workaround
-  (match `nOrdNo` against `order_report()`, or resolve via `search_scrip()`).
-
 ## [3.0.7] - 2026-09-15
 
 ### Fixes
