@@ -57,4 +57,9 @@ All notable changes to this project are documented in this file.
 
 ## [3.0.1] - 2026-08-17
 
-Last previously tagged release.
+### Fixes
+- `NEO_LOG_LEVEL` now defaults to `WARNING` instead of `INFO` — the SDK is
+  quiet by default. Routine per-request tracing (`api_request_start`/
+  `api_request_success`, `rest_client_initialized`, etc.) now logs at
+  `DEBUG`, so only warnings and errors are visible unless you explicitly
+  opt into more verbosity via `NEO_LOG_LEVEL=INFO` or `DEBUG`.
