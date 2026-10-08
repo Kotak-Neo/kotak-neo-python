@@ -694,14 +694,20 @@ def test_anext_raises_when_not_connected():
 
 
 def test_anext_stops_iteration_when_disconnected_after_timeout():
+    """_stopped (not just _connected) is what ends the iteration -- a bare
+    disconnect alone must not end it, since the background auto-reconnect
+    may still be in progress (see test_anext_keeps_waiting_through_a_disconnect_still_being_retried)."""
+
     async def run():
         ws = _ws()
         ws._connected = True  # connected but queue empty and no socket
-        # First wait_for times out; _connected flipped to False -> StopAsyncIteration.
+        ws._stopped = False
+        # First wait_for times out; _stopped flipped to True -> StopAsyncIteration.
 
         async def flip():
             await asyncio.sleep(0.05)
             ws._connected = False
+            ws._stopped = True  # reconnect exhausted / gave up
 
         asyncio.create_task(flip())
         with pytest.raises(StopAsyncIteration):
@@ -710,10 +716,36 @@ def test_anext_stops_iteration_when_disconnected_after_timeout():
     asyncio.run(run())
 
 
+def test_anext_keeps_waiting_through_a_disconnect_still_being_retried():
+    """Regression: a disconnect alone (_connected=False) must not end the
+    iteration while a background reconnect is still in progress (_stopped
+    stays False) -- before this fix, __anext__() ended the iteration on the
+    very next 1s poll after any disconnect, regardless of whether the SDK's
+    own auto-reconnect was about to succeed."""
+
+    async def run():
+        ws = _ws()
+        ws._connected = True
+        ws._stopped = False
+
+        async def flaky():
+            await asyncio.sleep(0.05)
+            ws._connected = False
+            await asyncio.sleep(0.1)
+            ws._connected = True
+            ws._message_queue.put_nowait("recovered")
+
+        asyncio.create_task(flaky())
+        return await ws.__anext__()
+
+    assert asyncio.run(run()) == "recovered"
+
+
 def test_anext_returns_queued_message():
     async def run():
         ws = _ws()
         ws._connected = True
+        ws._stopped = False
         ws._message_queue.put_nowait("hello")
         return await ws.__anext__()
 
@@ -1000,6 +1032,7 @@ def test_anext_recurses_after_timeout_then_returns_message():
     async def run():
         ws = _ws()
         ws._connected = True
+        ws._stopped = False
 
         async def deliver():
             await asyncio.sleep(1.2)  # force one wait_for timeout first
@@ -1062,6 +1095,7 @@ def test_anext_does_not_recurse_past_python_stack_limit(monkeypatch):
     async def run():
         ws = _ws()
         ws._connected = True
+        ws._stopped = False
 
         calls = {"n": 0}
         real_wait_for = asyncio.wait_for

@@ -34,6 +34,7 @@ def _client_with_fake_socket():
     ws = SFeedWebSocket()
     ws._ws = FakeWebSocket()
     ws._connected = True
+    ws._stopped = False
     return ws, ws._ws
 
 

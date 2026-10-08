@@ -845,13 +845,19 @@ def test_anext_raises_when_not_connected():
 
 
 def test_anext_stops_iteration_when_disconnected_after_timeout():
+    """_stopped (not just _connected) is what ends the iteration -- a bare
+    disconnect alone must not end it, since the background auto-reconnect
+    may still be in progress (see the two tests directly below)."""
+
     async def run():
         ws = SFeedWebSocket(url="wss://fake/feed")
         ws._connected = True  # connected but queue stays empty, no socket
+        ws._stopped = False
 
         async def flip():
             await asyncio.sleep(0.05)
             ws._connected = False
+            ws._stopped = True  # reconnect exhausted / gave up
 
         asyncio.create_task(flip())
         with pytest.raises(StopAsyncIteration):
@@ -860,10 +866,38 @@ def test_anext_stops_iteration_when_disconnected_after_timeout():
     asyncio.run(run())
 
 
+def test_anext_keeps_waiting_through_a_disconnect_still_being_retried():
+    """Regression: a disconnect alone (_connected=False) must not end the
+    iteration while a background reconnect is still in progress (_stopped
+    stays False) -- only once reconnection actually succeeds (delivering a
+    message) or is exhausted (_stopped=True, covered above) should the
+    caller see that reflected. Before this fix, __anext__() ended the
+    iteration on the very next 1s poll after any disconnect, regardless of
+    whether the SDK's own auto-reconnect was about to succeed."""
+
+    async def run():
+        ws = SFeedWebSocket(url="wss://fake/feed")
+        ws._connected = True
+        ws._stopped = False
+
+        async def flaky():
+            await asyncio.sleep(0.05)
+            ws._connected = False  # disconnected, but _handle_disconnect() is "still retrying"
+            await asyncio.sleep(0.1)
+            ws._connected = True
+            ws._message_queue.put_nowait("recovered")
+
+        asyncio.create_task(flaky())
+        return await ws.__anext__()
+
+    assert asyncio.run(run()) == "recovered"
+
+
 def test_anext_loops_after_timeout_then_returns():
     async def run():
         ws = SFeedWebSocket(url="wss://fake/feed")
         ws._connected = True
+        ws._stopped = False
 
         async def deliver():
             await asyncio.sleep(1.2)  # force one wait_for timeout first
@@ -889,6 +923,7 @@ def test_anext_survives_many_timeouts_without_recursion_error(monkeypatch):
     async def run():
         ws = SFeedWebSocket(url="wss://fake/feed")
         ws._connected = True
+        ws._stopped = False
 
         # Real asyncio.wait_for with a 1.0s timeout would make this test
         # take hours; shrink the timeout only within the client module so

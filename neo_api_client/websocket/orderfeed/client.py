@@ -151,6 +151,14 @@ class OrderFeedWebSocket:
 
         self._ws: Any = None
         self._connected = False
+        # True whenever __anext__() should end the iteration instead of
+        # waiting for an in-progress auto-reconnect: before the first
+        # connect(), once reconnection is exhausted, or after close(). False
+        # for the whole lifetime of a connection, including the gap *during*
+        # a disconnect while a background reconnect is still being attempted
+        # -- see __anext__()/_handle_disconnect() for why this must be
+        # distinct from `_connected`.
+        self._stopped = True
         self._receive_task: asyncio.Task | None = None
         self._message_queue: asyncio.Queue = asyncio.Queue()
         self._reconnect_count = 0
@@ -174,7 +182,7 @@ class OrderFeedWebSocket:
         return self
 
     async def __anext__(self) -> Any:
-        if not self._connected:
+        if self._stopped:
             raise NotConnectedError("WebSocket is not connected")
         # A loop, not recursion: on an idle connection with no incoming
         # messages, asyncio.wait_for times out every second indefinitely.
@@ -183,11 +191,23 @@ class OrderFeedWebSocket:
         # after enough uninterrupted silence (the exact number of timeouts
         # before that happens is Python-version/environment-dependent) --
         # this loop keeps the stack flat instead, so it can run indefinitely.
+        #
+        # Checking `_stopped` here rather than `_connected` is deliberate: a
+        # disconnect sets `_connected = False` immediately, but the
+        # background auto-reconnect (_handle_disconnect()) may still succeed
+        # moments later on this same object. Ending the iteration the first
+        # time this loop notices `_connected` is False -- before that
+        # reconnect has had a chance to run -- would make every disconnect
+        # (even one the SDK recovers from in under a second) look identical
+        # to a real, exhausted, give-up-for-good disconnect to the caller,
+        # defeating the auto-reconnect this client otherwise provides.
+        # `_stopped` is only set once reconnection is actually exhausted or
+        # close() was called -- see _handle_disconnect()/close().
         while True:
             try:
                 return await asyncio.wait_for(self._message_queue.get(), timeout=1.0)
             except asyncio.TimeoutError:
-                if not self._connected:
+                if self._stopped:
                     raise StopAsyncIteration from None
 
     @property
@@ -300,6 +320,7 @@ class OrderFeedWebSocket:
         logger.info("orderfeed_authenticated", url=self.url)
         self._receive_task = asyncio.create_task(self._receive_loop())
         self._reconnect_count = 0
+        self._stopped = False
         if self.on_connect:
             # A callback that raises must not look like a failed connect to
             # our own caller -- the socket is already open and the receive
@@ -452,6 +473,7 @@ class OrderFeedWebSocket:
                     url=self.url,
                     max_reconnect_attempts=self.max_reconnect_attempts,
                 )
+                self._stopped = True
                 return
             self._reconnect_count += 1
             await asyncio.sleep(self.reconnect_delay)
@@ -471,6 +493,7 @@ class OrderFeedWebSocket:
     async def close(self) -> None:
         """Close the socket and clean up."""
         self._connected = False
+        self._stopped = True
 
         if self._receive_task:
             self._receive_task.cancel()
