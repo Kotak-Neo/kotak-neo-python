@@ -453,6 +453,59 @@ def iter_python_files(paths: list[Path]) -> list[Path]:
     return files
 
 
+# Files that only ever shipped in the legacy 'neo-api-client' (v2.0.2)
+# package, never in 'kotakneoapi'. Their presence means pip left them
+# behind from an old install that was never uninstalled -- see
+# MIGRATION.md §1.1 ("Package coexistence and rollback").
+_LEGACY_GHOST_FILES = ("NeoWebSocket.py", "HSWebSocketLib.py")
+
+
+def scan_installed_environment_for_ghost_files() -> list[Finding]:
+    """Check the *installed* neo_api_client package for leftover files from
+    a legacy 'neo-api-client' install, as opposed to scan_file()'s check of
+    the user's own source files.
+
+    'neo-api-client' (legacy) and 'kotakneoapi' (current) are different
+    PyPI package names that both install under the same import path,
+    site-packages/neo_api_client/. pip tracks installed files per
+    *package* name, not by the import path they populate, so installing
+    one over the other without uninstalling the first leaves the first
+    one's files behind with no warning from pip. Those leftover files
+    still import and run -- e.g. NeoWebSocket.py/HSWebSocketLib.py target
+    the decommissioned 'wss://mlhsm.kotaksecurities.com' gateway.
+
+    Returns one Finding per ghost file actually found. Returns an empty
+    list if neo_api_client isn't importable in this environment (e.g. the
+    scanner is run against a project without activating its venv first) --
+    this check is best-effort, not a hard requirement for the rest of the
+    scan.
+    """
+    try:
+        import neo_api_client
+
+        pkg_dir = Path(neo_api_client.__file__).resolve().parent
+    except Exception:
+        return []
+
+    findings = []
+    for name in _LEGACY_GHOST_FILES:
+        ghost_file = pkg_dir / name
+        if ghost_file.exists():
+            findings.append(
+                Finding(
+                    ghost_file,
+                    1,
+                    "warning",
+                    "Leftover file from a legacy 'neo-api-client' (v2.0.2) install, found "
+                    "in the active environment's installed neo_api_client package (not "
+                    "your source code). This happens when 'kotakneoapi' is installed over "
+                    "'neo-api-client' without uninstalling the legacy package first. Fix: "
+                    "pip uninstall neo-api-client && pip install kotakneoapi",
+                )
+            )
+    return findings
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("paths", nargs="+", type=Path, help="Files or directories to scan")
@@ -466,6 +519,7 @@ def main(argv: list[str] | None = None) -> int:
     all_findings: list[Finding] = []
     for file in files:
         all_findings.extend(scan_file(file))
+    all_findings.extend(scan_installed_environment_for_ghost_files())
 
     if not all_findings:
         print("No known v2 -> kotakneoapi migration issues found.")

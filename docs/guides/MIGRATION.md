@@ -29,8 +29,13 @@ looking for exactly the v2 → v3.0.X breakages described in this guide —
 removed methods and imports, dropped keyword arguments, unsafe positional
 `NeoAPI(...)` construction, rejected `exchange_segment`/`product`/`order_type`/
 `validity` alias literals (§3), `price="0"` on `L`/`SL` orders, and legacy
-WebSocket callback usage (§6). It **never modifies your files**; it only
-prints `file:line` findings so you can fix each one with full context.
+WebSocket callback usage (§6). It also checks the **active environment**
+(not just your source files) for leftover files from a legacy
+`neo-api-client` install that was never uninstalled (§1.1) — if
+`neo_api_client` is importable where the scanner runs, it looks for files
+like `NeoWebSocket.py`/`HSWebSocketLib.py` still sitting in the installed
+package. It **never modifies your files**; it only prints `file:line`
+findings so you can fix each one with full context.
 
 ```bash
 # From a clone of kotak-neo-python
