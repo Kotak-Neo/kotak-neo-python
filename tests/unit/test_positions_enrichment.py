@@ -1,6 +1,16 @@
-"""Unit tests for NeoAPI.positions()'s P&L enrichment: holdings() caching,
-LTP batching via quotes(), and graceful degradation. See
-docs/functions/portfolio/positions.md and neo_api_client/utils/positions_pnl.py."""
+"""Unit tests for the Positions P&L calculation logic -- _enrich_positions_with_pnl(),
+_fetch_ltp_for_positions(), and _get_cached_holdings_by_identifier() on NeoAPI.
+
+NOTE: positions() itself does not call any of this. Per product, the backend's
+`ltp` field is occasionally `0`, which fed directly into this calculation and
+produced incorrect P&L values, so it's intentionally not wired into positions()'s
+response (see positions()'s docstring). These tests exercise the calculation
+logic directly -- it's kept available for when the upstream LTP reliability
+issue is resolved, but not surfaced in the meantime. See
+docs/functions/portfolio/positions.md and neo_api_client/utils/positions_pnl.py.
+"""
+
+from datetime import timedelta
 
 from neo_api_client import NeoAPI
 from neo_api_client.utils import holdings_cache
@@ -44,70 +54,40 @@ def _equity_cf_position(tok="61304", cf_buy_qty="10", ltp=None):
     return position
 
 
-def test_positions_enriches_equity_carry_forward_with_holdings_and_ltp(requests_mock):
+# ---- positions(): raw passthrough, no P&L fields surfaced -------------------
+
+
+def test_positions_does_not_surface_pnl_fields(requests_mock):
+    """positions() must return the raw broker response untouched -- the
+    calculation logic is implemented (see the rest of this file) but
+    intentionally not wired in, since the backend's ltp is occasionally 0."""
     client = _authenticated_client()
-    requests_mock.get(POSITIONS_URL, json={"data": [_equity_cf_position()]})
-    requests_mock.get(
-        HOLDINGS_URL, json={"data": [{"exchangeIdentifier": "61304", "averagePrice": 100.0}]}
-    )
-    requests_mock.get(
-        QUOTES_URL_TEMPLATE.format("nse_cm|61304"),
-        json=[{"exchange": "nse_cm", "exchange_token": "61304", "ltp": "120.00"}],
-    )
+    requests_mock.get(POSITIONS_URL, json={"data": [_equity_cf_position(ltp="120.00")]})
 
     result = client.positions()
 
     position = result["data"][0]
-    assert position["averagePrice"] == 100.0
-    assert position["positionPnl"] == 200.0
-    assert position["pnlCalculationError"] is None
-    # Original raw fields are untouched, not replaced.
-    assert position["tok"] == "61304"
-    assert position["upldPrc"] == "0.00"
+    for field in ("netQty", "averagePrice", "positionPnl", "mtmPnl", "pnlCalculationError"):
+        assert field not in position
+    assert position["tok"] == "61304"  # raw fields pass through untouched
+    assert position["ltp"] == "120.00"
 
 
-def test_explicit_holdings_call_primes_the_cache_positions_reuses(requests_mock):
-    """If the caller already fetched holdings() themselves, positions()
-    should reuse that instead of fetching it again."""
-    client = _authenticated_client()
-    holdings_route = requests_mock.get(
-        HOLDINGS_URL, json={"data": [{"exchangeIdentifier": "61304", "averagePrice": 100.0}]}
-    )
-    requests_mock.get(POSITIONS_URL, json={"data": [_equity_cf_position(ltp="120.00")]})
-
-    client.holdings()
-    assert holdings_route.call_count == 1
+def test_positions_without_2fa_returns_existing_error_unchanged():
+    """positions() without 2FA must still return the pre-existing error."""
+    client = NeoAPI(environment="prod", consumer_key="test_key")
 
     result = client.positions()
 
-    assert holdings_route.call_count == 1  # not called again
-    assert result["data"][0]["averagePrice"] == 100.0
+    assert result == {"Error Message": "Complete the 2fa process before accessing this application"}
 
 
-def test_positions_then_explicit_holdings_call_still_goes_live(requests_mock):
-    """The exact smoke_test.py scenario: POSITIONS runs (triggering
-    holdings() internally), then a separate, explicit HOLDINGS call runs
-    right after -- an explicit holdings() call is a live read, so it must
-    hit the network again even though positions() just cached a response."""
-    client = _authenticated_client()
-    holdings_payload = {
-        "data": [{"exchangeIdentifier": "61304", "averagePrice": 100.0, "mktValue": 12345.0}]
-    }
-    holdings_route = requests_mock.get(HOLDINGS_URL, json=holdings_payload)
-    requests_mock.get(POSITIONS_URL, json={"data": [_equity_cf_position(ltp="120.00")]})
-
-    client.positions()
-    assert holdings_route.call_count == 1
-
-    result = client.holdings()
-
-    assert holdings_route.call_count == 2  # explicit call always goes live
-    assert result == holdings_payload
+# ---- holdings(): always live, caches as a side effect -----------------------
 
 
 def test_holdings_called_twice_in_a_row_always_hits_network_each_time(requests_mock):
     """A direct holdings() call is a live read every time -- it never serves
-    from the cache it populates, unlike positions()'s internal use of it."""
+    from the cache it populates."""
     client = _authenticated_client()
     holdings_route = requests_mock.get(HOLDINGS_URL, json={"data": []})
 
@@ -117,81 +97,106 @@ def test_holdings_called_twice_in_a_row_always_hits_network_each_time(requests_m
     assert holdings_route.call_count == 2
 
 
-def test_holdings_fetched_once_per_day_across_multiple_positions_calls(requests_mock, monkeypatch):
-    """The whole point of caching: two positions() calls the same day must
-    only trigger one holdings() request."""
+# ---- _get_cached_holdings_by_identifier(): same-day cache-then-fetch -------
+
+
+def test_get_cached_holdings_by_identifier_fetches_once_then_reuses_in_memory(requests_mock):
     client = _authenticated_client()
-    requests_mock.get(POSITIONS_URL, json={"data": [_equity_cf_position()]})
     holdings_route = requests_mock.get(
         HOLDINGS_URL, json={"data": [{"exchangeIdentifier": "61304", "averagePrice": 100.0}]}
     )
-    requests_mock.get(
-        QUOTES_URL_TEMPLATE.format("nse_cm|61304"),
-        json=[{"exchange": "nse_cm", "exchange_token": "61304", "ltp": "120.00"}],
-    )
 
-    client.positions()
-    client.positions()
-    client.positions()
+    first = client._get_cached_holdings_by_identifier()
+    second = client._get_cached_holdings_by_identifier()
 
     assert holdings_route.call_count == 1
+    assert first == second == {"61304": {"exchangeIdentifier": "61304", "averagePrice": 100.0}}
 
 
-def test_holdings_refetched_on_a_new_day(requests_mock, monkeypatch):
-    """Cross a simulated day boundary -- holdings() must be fetched again."""
-    client = _authenticated_client()
-    requests_mock.get(POSITIONS_URL, json={"data": [_equity_cf_position()]})
+def test_get_cached_holdings_by_identifier_reuses_disk_cache_across_clients(requests_mock):
+    """The on-disk cache -- not just the in-memory one -- lets a second,
+    unrelated NeoAPI instance (e.g. a separate process run the same day)
+    reuse holdings() without hitting the network again."""
     holdings_route = requests_mock.get(
         HOLDINGS_URL, json={"data": [{"exchangeIdentifier": "61304", "averagePrice": 100.0}]}
     )
-    requests_mock.get(
-        QUOTES_URL_TEMPLATE.format("nse_cm|61304"),
-        json=[{"exchange": "nse_cm", "exchange_token": "61304", "ltp": "120.00"}],
+    first_client = _authenticated_client()
+    first_client._get_cached_holdings_by_identifier()
+    assert holdings_route.call_count == 1
+
+    second_client = _authenticated_client()
+    result = second_client._get_cached_holdings_by_identifier()
+
+    assert holdings_route.call_count == 1  # reused the on-disk cache, not refetched
+    assert result["61304"]["averagePrice"] == 100.0
+
+
+def test_get_cached_holdings_by_identifier_refetches_on_a_new_day(requests_mock, monkeypatch):
+    """Cross a simulated day boundary -- holdings() must be fetched again."""
+    client = _authenticated_client()
+    holdings_route = requests_mock.get(
+        HOLDINGS_URL, json={"data": [{"exchangeIdentifier": "61304", "averagePrice": 100.0}]}
     )
 
-    client.positions()
+    client._get_cached_holdings_by_identifier()
     assert holdings_route.call_count == 1
 
     # Simulate the next calendar day by rewinding the in-memory cache date,
     # and treating the on-disk cache as if it weren't there yet either --
     # it's still written under *today's* real date, which the rewind above
     # doesn't affect.
-    from datetime import timedelta
-
     client._holdings_cache_date -= timedelta(days=1)
     monkeypatch.setattr(holdings_cache, "read_holdings", lambda ucc: None)
 
-    client.positions()
+    client._get_cached_holdings_by_identifier()
     assert holdings_route.call_count == 2
 
 
-def test_holdings_cache_survives_a_fresh_client_same_day(requests_mock):
-    """The on-disk cache -- not just the in-memory one -- must let a second,
-    unrelated NeoAPI instance (e.g. a separate run of smoke_test.py the same
-    day) reuse holdings() without hitting the network again."""
-    holdings_route = requests_mock.get(
-        HOLDINGS_URL, json={"data": [{"exchangeIdentifier": "61304", "averagePrice": 100.0}]}
-    )
-    requests_mock.get(POSITIONS_URL, json={"data": [_equity_cf_position(ltp="120.00")]})
+def test_get_cached_holdings_by_identifier_failure_not_cached_as_permanent(requests_mock):
+    """A transient holdings() failure must not poison the cache for the rest
+    of the day -- the next call should retry, and once it succeeds, get the
+    real data, not a permanently-cached error."""
+    client = _authenticated_client()
+    holdings_route = requests_mock.get(HOLDINGS_URL, status_code=500, text="boom")
 
-    first_client = _authenticated_client()
-    first_client.positions()
+    first = client._get_cached_holdings_by_identifier()
+    assert first == {}
+    assert client._holdings_cache_date is None  # failure must not be cached
     assert holdings_route.call_count == 1
 
-    # A brand-new client -- no in-memory state at all -- standing in for a
-    # fresh process, same account (UCC), same day.
-    second_client = _authenticated_client()
-    result = second_client.positions()
+    # Re-registering the same route updates what it returns on the next match.
+    requests_mock.get(
+        HOLDINGS_URL, json={"data": [{"exchangeIdentifier": "61304", "averagePrice": 100.0}]}
+    )
 
-    assert holdings_route.call_count == 1  # reused the on-disk cache, not refetched
-    assert result["data"][0]["averagePrice"] == 100.0
+    second = client._get_cached_holdings_by_identifier()
+    assert second["61304"]["averagePrice"] == 100.0
+    assert client._holdings_cache_date is not None  # now cached, since it succeeded
+    assert holdings_route.call_count == 2
 
 
-def test_fo_only_positions_still_call_holdings_but_dont_need_it(requests_mock):
-    """Per product: holdings() is called unconditionally (before positions()
-    itself), so every account pays for it once a day regardless of segment
-    mix -- but F&O carry-forward still correctly sources its cost from
-    cfBuyAmt/cfSellAmt, not from whatever (or nothing) holdings() returned."""
+# ---- _enrich_positions_with_pnl: the calculation itself ---------------------
+
+
+def test_enrich_positions_with_pnl_equity_carry_forward_with_holdings_and_ltp():
+    client = _authenticated_client()
+    position_list = {"data": [_equity_cf_position(ltp="120.00")]}
+    holdings_by_identifier = {"61304": {"exchangeIdentifier": "61304", "averagePrice": 100.0}}
+
+    client._enrich_positions_with_pnl(position_list, holdings_by_identifier)
+
+    position = position_list["data"][0]
+    assert position["averagePrice"] == 100.0
+    assert position["positionPnl"] == 200.0
+    assert position["pnlCalculationError"] is None
+    # Original raw fields are untouched, not replaced.
+    assert position["tok"] == "61304"
+    assert position["upldPrc"] == "0.00"
+
+
+def test_enrich_positions_with_pnl_fo_carry_forward_uses_cf_amounts_not_holdings():
+    """F&O carry-forward has no Holdings entry -- its cost comes from
+    cfBuyAmt/cfSellAmt instead, so positionPnl and mtmPnl end up equal."""
     client = _authenticated_client()
     fo_position = {
         "tok": "70001",
@@ -210,209 +215,63 @@ def test_fo_only_positions_still_call_holdings_but_dont_need_it(requests_mock):
         "prcNum": "1",
         "prcDen": "1",
         "precision": "2",
+        "ltp": "950.00",
     }
-    requests_mock.get(POSITIONS_URL, json={"data": [fo_position]})
-    holdings_route = requests_mock.get(HOLDINGS_URL, json={"data": []})
-    requests_mock.get(
-        QUOTES_URL_TEMPLATE.format("nse_fo|70001"),
-        json=[{"exchange": "nse_fo", "exchange_token": "70001", "ltp": "950.00"}],
-    )
+    position_list = {"data": [fo_position]}
 
-    result = client.positions()
+    client._enrich_positions_with_pnl(position_list, {})  # no Holdings entry needed for F&O
 
-    assert holdings_route.call_count == 1
-    position = result["data"][0]
+    position = position_list["data"][0]
     assert position["averagePrice"] == 1000.0
     assert position["positionPnl"] == position["mtmPnl"]
 
 
-def test_empty_positions_list_still_fetches_holdings_but_skips_quotes(requests_mock):
-    """holdings() is fetched before positions() even returns, so it happens
-    regardless of what positions() comes back with; quotes() has nothing to
-    fetch LTP for, so it's correctly skipped."""
+def test_enrich_positions_with_pnl_no_matching_holdings_reports_error():
+    """No matching Holdings entry for an equity carry-forward position must
+    degrade gracefully -- never a silently-wrong average=LTP."""
     client = _authenticated_client()
-    requests_mock.get(POSITIONS_URL, json={"data": []})
-    holdings_route = requests_mock.get(HOLDINGS_URL, json={"data": []})
+    position_list = {"data": [_equity_cf_position(ltp="120.00")]}
 
-    result = client.positions()
+    client._enrich_positions_with_pnl(position_list, {})  # no holdings entry
 
-    assert holdings_route.call_count == 1
-    assert result["data"] == []
-
-
-def test_holdings_failure_reports_error_without_breaking_positions(requests_mock):
-    """If holdings() itself comes back as an error dict (not {"data": [...]}),
-    enrichment must degrade gracefully -- not raise, not crash positions()."""
-    client = _authenticated_client()
-    requests_mock.get(POSITIONS_URL, json={"data": [_equity_cf_position()]})
-    requests_mock.get(HOLDINGS_URL, status_code=500, text="Internal Server Error")
-    requests_mock.get(
-        QUOTES_URL_TEMPLATE.format("nse_cm|61304"),
-        json=[{"exchange": "nse_cm", "exchange_token": "61304", "ltp": "120.00"}],
-    )
-
-    result = client.positions()
-
-    position = result["data"][0]
+    position = position_list["data"][0]
     assert position["averagePrice"] is None
     assert "No matching Holdings entry" in position["pnlCalculationError"]
 
 
-def test_holdings_failure_is_retried_on_next_call_same_day_not_cached_as_permanent(requests_mock):
-    """The actual bug this design avoids: a transient holdings() failure on
-    the first positions() call of the day must NOT poison the cache for the
-    rest of the day -- the next positions() call should retry holdings(),
-    and once it succeeds, positions get real P&L, not a permanently-cached
-    error."""
+def test_enrich_positions_with_pnl_quotes_failure_reports_ltp_unavailable():
     client = _authenticated_client()
-    requests_mock.get(POSITIONS_URL, json={"data": [_equity_cf_position()]})
-    requests_mock.get(
-        QUOTES_URL_TEMPLATE.format("nse_cm|61304"),
-        json=[{"exchange": "nse_cm", "exchange_token": "61304", "ltp": "120.00"}],
-    )
-    holdings_route = requests_mock.get(HOLDINGS_URL, status_code=500, text="boom")
 
-    first = client.positions()
-    assert first["data"][0]["averagePrice"] is None
-    assert client._holdings_cache_date is None  # failure must not be cached
-    assert holdings_route.call_count == 1
+    def raising_quotes(instrument_tokens=None, quote_type=None):
+        raise RuntimeError("boom")
 
-    # Second call, same day: holdings() now succeeds (re-registering the same
-    # route updates what it returns on the next match).
-    requests_mock.get(
-        HOLDINGS_URL, json={"data": [{"exchangeIdentifier": "61304", "averagePrice": 100.0}]}
-    )
+    client.quotes = raising_quotes
+    position_list = {"data": [_equity_cf_position()]}  # no own ltp -> needs quotes()
+    holdings_by_identifier = {"61304": {"averagePrice": 100.0}}
 
-    second = client.positions()
+    client._enrich_positions_with_pnl(position_list, holdings_by_identifier)
 
-    assert second["data"][0]["averagePrice"] == 100.0
-    assert second["data"][0]["positionPnl"] == 200.0
-    assert client._holdings_cache_date is not None  # now cached, since it succeeded
-
-
-def test_quotes_failure_reports_ltp_unavailable_but_keeps_average_price(requests_mock):
-    client = _authenticated_client()
-    requests_mock.get(POSITIONS_URL, json={"data": [_equity_cf_position()]})
-    requests_mock.get(
-        HOLDINGS_URL, json={"data": [{"exchangeIdentifier": "61304", "averagePrice": 100.0}]}
-    )
-    requests_mock.get(QUOTES_URL_TEMPLATE.format("nse_cm|61304"), status_code=500, text="boom")
-
-    result = client.positions()
-
-    position = result["data"][0]
+    position = position_list["data"][0]
     assert position["averagePrice"] == 100.0
     assert position["positionPnl"] is None
     assert "LTP unavailable" in position["pnlCalculationError"]
 
 
-def test_ltp_batched_across_multiple_positions_in_one_quotes_call(requests_mock):
-    """Two distinct instruments must go into ONE quotes() call, not two."""
-    client = _authenticated_client()
-    positions_data = [_equity_cf_position(tok="61304"), _equity_cf_position(tok="61305")]
-    requests_mock.get(POSITIONS_URL, json={"data": positions_data})
-    requests_mock.get(
-        HOLDINGS_URL,
-        json={
-            "data": [
-                {"exchangeIdentifier": "61304", "averagePrice": 100.0},
-                {"exchangeIdentifier": "61305", "averagePrice": 200.0},
-            ]
-        },
-    )
-    quotes_route = requests_mock.get(
-        QUOTES_URL_TEMPLATE.format("nse_cm|61304,nse_cm|61305"),
-        json=[
-            {"exchange": "nse_cm", "exchange_token": "61304", "ltp": "120.00"},
-            {"exchange": "nse_cm", "exchange_token": "61305", "ltp": "210.00"},
-        ],
-    )
-
-    result = client.positions()
-
-    assert quotes_route.call_count == 1
-    assert result["data"][0]["averagePrice"] == 100.0
-    assert result["data"][1]["averagePrice"] == 200.0
-
-
-def test_ltp_from_positions_response_used_directly_skips_quotes_entirely(requests_mock):
-    """portfolio/v2/positions now returns its own `ltp` per position -- when
+def test_enrich_positions_with_pnl_uses_own_ltp_field_skips_quotes_entirely(requests_mock):
+    """portfolio/v2/positions returns its own `ltp` per position -- when
     every position already carries it, quotes() must not be called at all."""
     client = _authenticated_client()
-    requests_mock.get(POSITIONS_URL, json={"data": [_equity_cf_position(ltp="120.00")]})
-    requests_mock.get(
-        HOLDINGS_URL, json={"data": [{"exchangeIdentifier": "61304", "averagePrice": 100.0}]}
-    )
+    position_list = {"data": [_equity_cf_position(ltp="120.00")]}
+    holdings_by_identifier = {"61304": {"averagePrice": 100.0}}
     # Deliberately no quotes() route registered -- if the code tried to call
     # it, respx would raise (no matching mock), failing this test.
 
-    result = client.positions()
+    client._enrich_positions_with_pnl(position_list, holdings_by_identifier)
 
-    position = result["data"][0]
+    position = position_list["data"][0]
     assert position["averagePrice"] == 100.0
     assert position["positionPnl"] == 200.0
     assert position["pnlCalculationError"] is None
-
-
-def test_ltp_mixed_only_positions_missing_it_go_to_quotes(requests_mock):
-    """One position carries its own ltp, the other doesn't (e.g. an older
-    backend response) -- only the latter should end up in the quotes() batch."""
-    client = _authenticated_client()
-    positions_data = [
-        _equity_cf_position(tok="61304", ltp="120.00"),  # has its own ltp
-        _equity_cf_position(tok="61305"),  # missing -- must fall back to quotes()
-    ]
-    requests_mock.get(POSITIONS_URL, json={"data": positions_data})
-    requests_mock.get(
-        HOLDINGS_URL,
-        json={
-            "data": [
-                {"exchangeIdentifier": "61304", "averagePrice": 100.0},
-                {"exchangeIdentifier": "61305", "averagePrice": 200.0},
-            ]
-        },
-    )
-    quotes_route = requests_mock.get(
-        QUOTES_URL_TEMPLATE.format("nse_cm|61305"),
-        json=[{"exchange": "nse_cm", "exchange_token": "61305", "ltp": "210.00"}],
-    )
-
-    result = client.positions()
-
-    assert quotes_route.call_count == 1  # only for the second position
-    assert result["data"][0]["averagePrice"] == 100.0
-    assert result["data"][1]["averagePrice"] == 200.0
-
-
-def test_ltp_unparseable_on_position_falls_back_to_quotes(requests_mock):
-    """A garbage `ltp` value on the position (e.g. a future backend quirk)
-    must not be trusted silently -- fall back to quotes() instead."""
-    client = _authenticated_client()
-    requests_mock.get(POSITIONS_URL, json={"data": [_equity_cf_position(ltp="not-a-number")]})
-    requests_mock.get(
-        HOLDINGS_URL, json={"data": [{"exchangeIdentifier": "61304", "averagePrice": 100.0}]}
-    )
-    quotes_route = requests_mock.get(
-        QUOTES_URL_TEMPLATE.format("nse_cm|61304"),
-        json=[{"exchange": "nse_cm", "exchange_token": "61304", "ltp": "120.00"}],
-    )
-
-    result = client.positions()
-
-    assert quotes_route.call_count == 1
-    assert result["data"][0]["positionPnl"] == 200.0
-
-
-def test_positions_without_2fa_returns_existing_error_unchanged():
-    """Enrichment must not change the pre-existing "complete 2FA" error path."""
-    client = NeoAPI(environment="prod", consumer_key="test_key")
-
-    result = client.positions()
-
-    assert result == {"Error Message": "Complete the 2fa process before accessing this application"}
-
-
-# ---- _enrich_positions_with_pnl / _fetch_ltp_for_positions edge cases ------
 
 
 def test_enrich_positions_with_pnl_non_dict_position_list_is_noop():
@@ -420,6 +279,15 @@ def test_enrich_positions_with_pnl_non_dict_position_list_is_noop():
     defensive against a future backend response shape change."""
     client = _authenticated_client()
     assert client._enrich_positions_with_pnl(["not", "a", "dict"], {}) is None
+
+
+def test_enrich_positions_with_pnl_empty_or_non_list_data_is_noop():
+    """A `data` key that's missing, empty, or not a list (e.g. a malformed
+    backend response) must be a no-op, not a crash."""
+    client = _authenticated_client()
+    assert client._enrich_positions_with_pnl({"data": []}, {}) is None
+    assert client._enrich_positions_with_pnl({"data": "not-a-list"}, {}) is None
+    assert client._enrich_positions_with_pnl({}, {}) is None
 
 
 def test_enrich_positions_with_pnl_and_fetch_ltp_skip_non_dict_entries():
@@ -435,6 +303,70 @@ def test_enrich_positions_with_pnl_and_fetch_ltp_skip_non_dict_entries():
     # quotes() lookup was attempted, but it was still processed (not skipped).
     assert positions_data[0] == "not-a-dict"
     assert "pnlCalculationError" in positions_data[1]
+
+
+# ---- _fetch_ltp_for_positions: LTP resolution (own field + quotes fallback) -
+
+
+def test_fetch_ltp_batched_across_multiple_positions_in_one_quotes_call():
+    """Two distinct instruments must go into ONE quotes() call, not two."""
+    client = _authenticated_client()
+    captured = {}
+
+    def fake_quotes(instrument_tokens=None, quote_type=None):
+        captured["tokens"] = instrument_tokens
+        return {
+            "data": [
+                {"exchange": "nse_cm", "exchange_token": "61304", "ltp": "120.00"},
+                {"exchange": "nse_cm", "exchange_token": "61305", "ltp": "210.00"},
+            ]
+        }
+
+    client.quotes = fake_quotes
+    positions_data = [_equity_cf_position(tok="61304"), _equity_cf_position(tok="61305")]
+
+    result = client._fetch_ltp_for_positions(positions_data)
+
+    assert len(captured["tokens"]) == 2  # one call, both tokens batched
+    assert result["nse_cm|61304"] == 120.0
+    assert result["nse_cm|61305"] == 210.0
+
+
+def test_fetch_ltp_mixed_only_positions_missing_it_go_to_quotes():
+    """One position carries its own ltp, the other doesn't (e.g. an older
+    backend response) -- only the latter should end up in the quotes() batch."""
+    client = _authenticated_client()
+    captured = {}
+
+    def fake_quotes(instrument_tokens=None, quote_type=None):
+        captured["tokens"] = instrument_tokens
+        return {"data": [{"exchange": "nse_cm", "exchange_token": "61305", "ltp": "210.00"}]}
+
+    client.quotes = fake_quotes
+    positions_data = [
+        _equity_cf_position(tok="61304", ltp="120.00"),  # has its own ltp
+        _equity_cf_position(tok="61305"),  # missing -- must fall back to quotes()
+    ]
+
+    result = client._fetch_ltp_for_positions(positions_data)
+
+    assert len(captured["tokens"]) == 1  # only the second position needed a lookup
+    assert captured["tokens"][0]["instrument_token"] == "61305"
+    assert result["nse_cm|61304"] == 120.0
+    assert result["nse_cm|61305"] == 210.0
+
+
+def test_fetch_ltp_unparseable_on_position_falls_back_to_quotes():
+    """A garbage `ltp` value on the position (e.g. a future backend quirk)
+    must not be trusted silently -- fall back to quotes() instead."""
+    client = _authenticated_client()
+    client.quotes = lambda instrument_tokens=None, quote_type=None: {
+        "data": [{"exchange": "nse_cm", "exchange_token": "61304", "ltp": "120.00"}]
+    }
+
+    result = client._fetch_ltp_for_positions([_equity_cf_position(tok="61304", ltp="not-a-number")])
+
+    assert result["nse_cm|61304"] == 120.0
 
 
 def test_fetch_ltp_dedupes_positions_sharing_the_same_key():
@@ -483,6 +415,19 @@ def test_fetch_ltp_quotes_response_of_unexpected_type_is_ignored():
     result = client._fetch_ltp_for_positions([_equity_cf_position(tok="61304")])
 
     assert result == {}
+
+
+def test_fetch_ltp_accepts_quotes_response_as_a_bare_list():
+    """quotes() can return a bare list (not wrapped in {"data": [...]}) --
+    this must be used directly, not treated as "no quotes"."""
+    client = _authenticated_client()
+    client.quotes = lambda instrument_tokens=None, quote_type=None: [
+        {"exchange": "nse_cm", "exchange_token": "61304", "ltp": "120.00"}
+    ]
+
+    result = client._fetch_ltp_for_positions([_equity_cf_position(tok="61304")])
+
+    assert result == {"nse_cm|61304": 120.0}
 
 
 def test_fetch_ltp_skips_non_dict_quote_entries():

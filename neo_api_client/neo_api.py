@@ -196,10 +196,12 @@ class NeoAPI:
         self.configuration.consumer_key = consumer_key
 
         # holdings() (per product: its response doesn't change intraday) is
-        # cached for the calendar day and reused by both a direct holdings()
-        # call and positions()'s internal P&L enrichment -- see
-        # _cache_holdings_response()/_get_cached_holdings_by_identifier().
-        self._holdings_cache: dict[str, Any] | None = None  # by exchangeIdentifier, for positions()
+        # cached for the calendar day as a side effect of a successful call
+        # -- see _cache_holdings_response()/_get_cached_holdings_by_identifier().
+        # Not currently consumed by positions() (see positions()'s docstring);
+        # kept for the P&L enrichment logic these support, which is
+        # implemented but not wired into positions() right now.
+        self._holdings_cache: dict[str, Any] | None = None  # by exchangeIdentifier
         self._holdings_cache_date: date | None = None
 
     def place_order(
@@ -469,34 +471,16 @@ class NeoAPI:
         """
         Retrieves a list of positions using the NEO API.
 
-        Each position in the response is enriched in-place with computed
-        `netQty`, `averagePrice`, `positionPnl`, and `mtmPnl` fields, correctly
-        accounting for carry-forward positions -- unlike the raw Positions-API
-        fields alone (which give average=LTP/P&L=0 for a carry-forward
-        position with no fills today). See docs/functions/portfolio/positions.md.
-
-        Equity carry-forward positions need their actual cost basis from
-        holdings() (not available from positions() itself). Per product,
-        every position must get P&L info -- so holdings() is called
-        unconditionally, *before* the positions() REST call itself, rather
-        than lazily only when a carry-forward equity position is spotted in
-        the response: that guarantees holdings data is available regardless
-        of what positions() returns, and removes any risk of a "does this
-        need holdings" check missing a case. It's still cached for the
-        calendar day (since averagePrice doesn't change intraday) and reused
-        across every positions() call that day -- but only a *successful*
-        fetch is cached; a failed one is retried on the next call rather than
-        silently locking in "no holdings" for the rest of the day.
-
-        LTP uses the `ltp` field the Positions API (portfolio/v2/positions)
-        now returns directly on each position -- no extra call needed for
-        that in the common case. quotes() is only used as a fresh,
-        per-call fallback for any position missing (or with an unparseable)
-        `ltp`, e.g. an older backend response. If holdings() is still
-        unavailable after that retry, or a carry-forward equity position has
-        no matching holding, the affected position gets a
-        `pnlCalculationError` note instead of a wrong number -- it never
-        breaks positions() itself.
+        Returns the raw broker response as-is -- no fields are added or
+        computed by the SDK. (The P&L calculation this method previously
+        computed automatically -- netQty/averagePrice/positionPnl/mtmPnl --
+        is intentionally not wired in here: the backend's `ltp` field is
+        occasionally `0`, which fed directly into that calculation and
+        produced incorrect values. The calculation logic itself is still
+        implemented and tested -- see _enrich_positions_with_pnl()/
+        _fetch_ltp_for_positions()/neo_api_client/utils/positions_pnl.py --
+        kept available for when the upstream LTP reliability issue is
+        resolved, but not called from here in the meantime.)
 
         Raises:
                 Exception: If there was an error retrieving the positions.
@@ -506,9 +490,7 @@ class NeoAPI:
         """
         if self.configuration.edit_token and self.configuration.edit_sid:
             try:
-                holdings_by_identifier = self._get_cached_holdings_by_identifier()
                 position_list = PositionsAPI(self.api_client).position_init()
-                self._enrich_positions_with_pnl(position_list, holdings_by_identifier)
                 return position_list
             except Exception as e:
                 return {"Error": e}
