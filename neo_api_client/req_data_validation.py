@@ -5,6 +5,8 @@ from neo_api_client.settings import (
     margin_exchange_segment_allowed_values,
     margin_order_type_allowed_values,
     order_type_allowed_values,
+    place_order_order_type_allowed_by_segment,
+    place_order_product_allowed_by_segment,
     place_order_product_allowed_values,
     price_required_order_types,
     validity_allowed_by_segment,
@@ -127,6 +129,12 @@ def place_order_validation(
     _require_non_blank(product, "product")
     if product not in place_order_product_allowed_values:
         raise ApiValueError("Invalid product. Allowed values are CNC, NRML, MIS, MTF.")
+    segment_products = place_order_product_allowed_by_segment.get(exchange_segment)
+    if segment_products is not None and product not in segment_products:
+        raise ApiValueError(
+            f"Invalid product '{product}' for exchange segment '{exchange_segment}'. "
+            f"Allowed values are {', '.join(segment_products)}."
+        )
 
     # Price validation (mandatory, non-blank numeric string)
     _require_non_blank(price, "price")
@@ -138,6 +146,12 @@ def place_order_validation(
     _require_non_blank(order_type, "order_type")
     if order_type not in order_type_allowed_values:
         raise ApiValueError("Invalid order type. Allowed values are L, MKT, SL, SL-M.")
+    segment_order_types = place_order_order_type_allowed_by_segment.get(exchange_segment)
+    if segment_order_types is not None and order_type not in segment_order_types:
+        raise ApiValueError(
+            f"Invalid order type '{order_type}' for exchange segment '{exchange_segment}'. "
+            f"Allowed values are {', '.join(segment_order_types)}."
+        )
 
     # L/SL orders need a real limit price; MKT/SL-M may legitimately use 0.
     _require_positive_price_for_order_type(price, order_type)

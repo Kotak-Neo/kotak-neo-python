@@ -566,3 +566,51 @@ def test_modify_order_validity_uses_default_set():
     modify_order_validation(**_valid_modify_kwargs(validity="IOC"))  # OK
     with pytest.raises(ApiValueError, match="Invalid validity"):
         modify_order_validation(**_valid_modify_kwargs(validity="GTC"))
+
+
+# ---- nse_com segment restrictions -------------------------------------------
+
+
+def _nse_com_kwargs(**overrides):
+    overrides.setdefault("product", "MIS")
+    return _valid_place_kwargs(exchange_segment="nse_com", **overrides)
+
+
+@pytest.mark.parametrize("product", ["MIS", "NRML"])
+def test_nse_com_allows_mis_and_nrml(product):
+    place_order_validation(**_nse_com_kwargs(product=product))
+
+
+@pytest.mark.parametrize("product", ["CNC", "MTF"])
+def test_nse_com_rejects_cnc_and_mtf(product):
+    with pytest.raises(ApiValueError, match="for exchange segment 'nse_com'"):
+        place_order_validation(**_nse_com_kwargs(product=product))
+
+
+@pytest.mark.parametrize("order_type", ["L", "MKT", "SL"])
+def test_nse_com_allows_l_mkt_sl(order_type):
+    place_order_validation(**_nse_com_kwargs(order_type=order_type, price="10"))
+
+
+def test_nse_com_rejects_sl_m():
+    with pytest.raises(ApiValueError, match="for exchange segment 'nse_com'"):
+        place_order_validation(**_nse_com_kwargs(order_type="SL-M", price="0", trigger_price="10"))
+
+
+@pytest.mark.parametrize("validity", ["DAY", "IOC"])
+def test_nse_com_allows_day_and_ioc(validity):
+    place_order_validation(**_nse_com_kwargs(validity=validity))
+
+
+def test_nse_com_rejects_other_validity():
+    with pytest.raises(ApiValueError, match="Invalid validity"):
+        place_order_validation(**_nse_com_kwargs(validity="GTD"))
+
+
+def test_nse_com_is_accepted_as_an_exchange_segment():
+    place_order_validation(**_nse_com_kwargs())
+
+
+def test_other_segments_unaffected_by_nse_com_restrictions():
+    """The nse_com product/order-type restrictions must not leak into other segments."""
+    place_order_validation(**_valid_place_kwargs(product="CNC", order_type="SL-M", price="0"))

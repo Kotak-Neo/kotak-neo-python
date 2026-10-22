@@ -68,6 +68,9 @@ except Exception as e:
 - `circuit_limits` - Circuit limit information
 - `scrip_details` - Basic scrip information
 
+### Supported Exchange Segments
+Commonly used `exchange_segment` values are `nse_cm`, `nse_com`, `bse_cm`, `nse_fo`, `bse_fo`, and `mcx_fo`. `quotes()` does not validate the segment client-side; the value is passed to the backend as-is, so the backend decides which segments are accepted.
+
 ### Instrument Token Format
 ```python
 [{"instrument_token": "1333", "exchange_segment": "nse_cm"}]

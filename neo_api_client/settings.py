@@ -54,11 +54,21 @@ PROD_URL = {
 # caller meant bse_fo).
 exchange_segment_allowed_values = [
     "nse_cm",
+    "nse_com",
     "bse_cm",
     "nse_fo",
     "bse_fo",
     "mcx_fo",
 ]
+
+# Per-segment restrictions on place_order, applied on top of the general
+# product/order_type rules above. Keyed by canonical exchange segment.
+place_order_product_allowed_by_segment = {
+    "nse_com": ["MIS", "NRML"],
+}
+place_order_order_type_allowed_by_segment = {
+    "nse_com": ["L", "MKT", "SL"],
+}
 
 product_allowed_values = [
     "NRML",
@@ -82,7 +92,14 @@ place_order_product_allowed_values = ["CNC", "NRML", "MIS", "MTF"]
 # Exchange segments accepted by the check-margin API. Only these exact
 # canonical codes are accepted — aliases (e.g. "NSE", "MCX") are rejected, not
 # resolved.
-margin_exchange_segment_allowed_values = ["bse_cm", "nse_cm", "nse_fo", "bse_fo", "mcx_fo"]
+margin_exchange_segment_allowed_values = [
+    "bse_cm",
+    "nse_cm",
+    "nse_com",
+    "nse_fo",
+    "bse_fo",
+    "mcx_fo",
+]
 
 # Order types accepted by the check-margin API. Only these exact canonical
 # codes are accepted — aliases (e.g. "Limit", "Market") are rejected, not
@@ -101,6 +118,7 @@ order_type_allowed_values = [
 
 exchange_segment = {
     "nse_cm": "nse_cm",
+    "nse_com": "nse_com",
     "NSE": "nse_cm",
     "nse": "nse_cm",
     "BSE": "bse_cm",
@@ -185,6 +203,7 @@ price_required_order_types = ["L", "SL"]
 # the default set below.
 validity_allowed_by_segment = {
     "nse_cm": ["DAY", "IOC"],
+    "nse_com": ["DAY", "IOC"],
     "bse_cm": ["DAY", "IOC"],
     "nse_fo": ["DAY", "IOC"],
     "bse_fo": ["DAY", "IOC"],

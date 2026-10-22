@@ -38,13 +38,15 @@ except Exception as e:
     print("Exception when calling margin_required->margin_required: %s\n" % e)
 ```
 
+> **Note (`nse_com`):** `margin_required()` accepts `nse_com` as an `exchange_segment`. The `nse_com` product and order-type restrictions (product `MIS`/`NRML` only; order type `L`/`MKT`/`SL` only) are enforced by `place_order()`, not here, so an order that passes this check can still be rejected at placement for those restrictions.
+
 ### Parameters
 
 All parameters below are mandatory unless noted otherwise, and are validated client-side before the request is sent.
 
 | Name               | Description                                                                | Type           |
 |--------------------|-----------------------------------------------------------------------------|----------------|
-| *exchange_segment* | Allowed values (exact match only, aliases are not accepted): `nse_cm`, `bse_cm`, `nse_fo`, `bse_fo`, `mcx_fo` | Str |
+| *exchange_segment* | Allowed values (exact match only, aliases are not accepted): `nse_cm`, `nse_com`, `bse_cm`, `nse_fo`, `bse_fo`, `mcx_fo` | Str |
 | *price*            | Zero or a positive value                                                    | Str            |
 | *order_type*       | Allowed values (exact match only, aliases are not accepted): `L`, `MKT`, `SL`, `SL-M` | Str            |
 | *product*          | Allowed values (exact match only, aliases are not accepted): `CNC`, `NRML`, `MIS`, `MTF` | Str |
