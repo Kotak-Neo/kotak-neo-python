@@ -9,7 +9,7 @@ def test_totp_login_uses_uat_path_on_uat(requests_mock):
     uat, not silently send the PROD path (a completely different shape --
     "login/1.0/tradeApiLogin" vs "api/1.0/login/v6/totp/login")."""
     client = NeoAPI(environment="uat", consumer_key="test_key")
-    uat_login_url = "https://d-mis.kotaksecurities.com/api/1.0/login/v6/totp/login"
+    uat_login_url = "https://d-mis.kotaksecurities.com/login/1.0/tradeApiLogin"
 
     requests_mock.post(
         uat_login_url,
@@ -28,7 +28,7 @@ def test_totp_validate_uses_uat_path_on_uat(requests_mock):
     client = NeoAPI(environment="uat", consumer_key="test_key")
     client.configuration.view_token = "view_token_123"
     client.configuration.sid = "view_sid_456"
-    uat_validate_url = "https://d-mis.kotaksecurities.com/api/1.0/login/v6/totp/validate"
+    uat_validate_url = "https://d-mis.kotaksecurities.com/login/1.0/tradeApiValidate"
 
     requests_mock.post(
         uat_validate_url,

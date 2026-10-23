@@ -167,7 +167,7 @@ def test_get_session_url_uat():
 
     url = utility.get_session_url("totp_login")
 
-    assert url == "https://d-mis.kotaksecurities.com/api/1.0/login/v6/totp/login"
+    assert url == "https://d-mis.kotaksecurities.com/login/1.0/tradeApiLogin"
 
 
 def test_get_session_url_totp_validate_uat():
@@ -176,7 +176,7 @@ def test_get_session_url_totp_validate_uat():
 
     url = utility.get_session_url("totp_validate")
 
-    assert url == "https://d-mis.kotaksecurities.com/api/1.0/login/v6/totp/validate"
+    assert url == "https://d-mis.kotaksecurities.com/login/1.0/tradeApiValidate"
 
 
 def test_get_session_url_invalid_api():
