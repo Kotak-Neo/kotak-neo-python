@@ -1,0 +1,32 @@
+# Kotak Neo API Credentials for Smoke Tests
+# Copy this file to .env and fill in your actual credentials
+
+# ===== ENVIRONMENT =====
+
+# Environment for tests: 'uat' (testing) or 'prod' (production)
+# Default: 'uat' for tests
+NEO_ENVIRONMENT=prod
+
+# ===== REQUIRED CREDENTIALS =====
+
+# Consumer Key (REQUIRED - Used in Authorization header)
+# How to get: Login to Kotak NEO app/web → Invest tab → Trade API card → Generate application
+# Copy the token shown with the default application and paste it here
+NEO_CONSUMER_KEY=bea95af0-6d9c-4d0e-95ef-f05993b4f77f
+
+# Mobile number registered with Kotak Neo (include country code)
+NEO_MOBILE_NUMBER=+919910075971
+
+# Your User Client Code (UCC)
+# Find this in NEO app/website under Profile section
+NEO_UCC=XXCM3
+
+# TOTP Secret Key (base32 encoded string from authenticator app)
+# This is the secret from QR code during TOTP registration (NOT the 6-digit code)
+# Used with pyotp library to generate 6-digit TOTP codes
+# How to get: Visit https://www.kotaksecurities.com/platform/kotak-neo-trade-api/
+# Register for TOTP → Scan QR code with authenticator app → Save the secret key
+NEO_TOTP_SECRET=P3UCJFSPRA2LL2WVBNK6FALECU
+
+# Your MPIN for 2FA validation
+NEO_MPIN=210786
