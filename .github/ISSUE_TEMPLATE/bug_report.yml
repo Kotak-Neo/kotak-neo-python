@@ -32,14 +32,13 @@ body:
     id: python-version
     attributes:
       label: Python version
-      description: The SDK supports Python 3.10–3.15. If you're on a different version, please upgrade before reporting.
+      description: The SDK supports Python 3.10–3.14. If you're on a different version, please upgrade before reporting.
       options:
         - "3.10"
         - "3.11"
         - "3.12"
         - "3.13"
         - "3.14"
-        - "3.15"
     validations:
       required: true
 

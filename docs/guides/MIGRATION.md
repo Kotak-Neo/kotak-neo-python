@@ -77,7 +77,7 @@ in static analysis," not "fully migrated" — still read §3 and test against
 
 | | v2.0.2 | v3.0.X |
 |---|---|---|
-| Python | 3.7+ | **3.10 – 3.15** |
+| Python | 3.7+ | **3.10 – 3.14** |
 | HTTP transport | `requests` | **`httpx` (HTTP/2)** |
 | Dependency pins | exact (`urllib3==1.26.14`, …) | loose ranges |
 
