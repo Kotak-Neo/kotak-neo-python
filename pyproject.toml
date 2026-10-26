@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "kotakneoapi"
-version = "3.0.10"
+version = "3.0.11"
 description = "Official Python SDK for Kotak Neo Trading APIs"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -41,6 +41,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
     "Topic :: Office/Business :: Financial :: Investment",
 ]
 

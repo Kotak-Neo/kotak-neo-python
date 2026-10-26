@@ -15,7 +15,7 @@ from datetime import timedelta
 from neo_api_client import NeoAPI
 from neo_api_client.utils import holdings_cache
 
-POSITIONS_URL = "https://mis.kotaksecurities.com/portfolio/v2/positions"
+POSITIONS_URL = "https://mis.kotaksecurities.com/quick/user/positions"
 HOLDINGS_URL = "https://mis.kotaksecurities.com/portfolio/v1/holdings"
 QUOTES_URL_TEMPLATE = "https://mis.kotaksecurities.com/script-details/1.0/quotes/neosymbol/{}/ltp"
 
@@ -258,8 +258,8 @@ def test_enrich_positions_with_pnl_quotes_failure_reports_ltp_unavailable():
 
 
 def test_enrich_positions_with_pnl_uses_own_ltp_field_skips_quotes_entirely(requests_mock):
-    """portfolio/v2/positions returns its own `ltp` per position -- when
-    every position already carries it, quotes() must not be called at all."""
+    """When a position already carries its own `ltp` field (some positions()
+    endpoints return one directly), quotes() must not be called at all."""
     client = _authenticated_client()
     position_list = {"data": [_equity_cf_position(ltp="120.00")]}
     holdings_by_identifier = {"61304": {"averagePrice": 100.0}}

@@ -569,11 +569,11 @@ class NeoAPI:
         return self._holdings_cache or {}
 
     def _fetch_ltp_for_positions(self, positions_data: list[Any]) -> dict[str, float]:
-        """Get current LTP for every position, preferring the `ltp` field
-        positions() (portfolio/v2/positions) now returns directly, and only
-        falling back to a batched quotes() call for positions where it's
-        missing or unparseable -- e.g. older backend responses that predate
-        this field. quotes() is chunked at 50 instruments per call (its
+        """Get current LTP for every position, preferring the position's own
+        `ltp` field when the backend provides one (some positions()
+        endpoints return it directly; the current `quick/user/positions`
+        endpoint does not), and otherwise falling back to a batched
+        quotes() call. quotes() is chunked at 50 instruments per call (its
         documented per-call limit) and fetched fresh every time (unlike
         holdings()): LTP moves constantly, so it can't be cached for the day.
         """

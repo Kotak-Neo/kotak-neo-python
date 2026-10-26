@@ -54,7 +54,7 @@ except Exception as e:
 
 | Name                | Description                     | Type           |
 |---------------------|---------------------------------|----------------|
-| *exchange_segment*  | Mandatory. Unlike `place_order`/`margin_required`, generic aliases are resolved here: `nse_cm`/`NSE`/`nse`, `bse_cm`/`BSE`/`bse`, `nse_fo`/`NFO`/`nfo`, `bse_fo`/`BFO`/`bfo`, `mcx_fo`/`MCX`/`mcx`. Currency derivatives (`CDS`/`cds`/`cde_fo`) and BSE currency derivatives (`BCD`/`bcd`/`bcs-fo`) are not supported and return an error. | Str            |
+| *exchange_segment*  | Mandatory. Unlike `place_order`/`margin_required`, generic aliases are resolved here: `nse_cm`/`NSE`/`nse`, `bse_cm`/`BSE`/`bse`, `nse_fo`/`NFO`/`nfo`, `bse_fo`/`BFO`/`bfo`, `mcx_fo`/`MCX`/`mcx`. `nse_com` is also accepted (exact match only, no alias). Currency derivatives (`CDS`/`cds`/`cde_fo`) and BSE currency derivatives (`BCD`/`bcd`/`bcs-fo`) are not supported and return an error. | Str            |
 | *symbol*            |                                 | Str            |
 | *expiry*            | User can search multiple expiry - DDMMMYYYY, ex. 28JUN2023 | Str [optional] |
 | *option_type*       | User can search option_type - `CE`/`PE`/`FUT` (comma-separated for multiple, e.g. `CE,PE`). `FUT` is an SDK-only alias for futures contracts — the scrip-master CSV marks these rows `XX` in `pOptionType` (not `CE`/`PE`), so the SDK maps `FUT` → `XX` internally before filtering. | Str [optional] |

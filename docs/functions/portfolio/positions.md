@@ -70,8 +70,7 @@ computed by the SDK.
             "genDen": "1",
             "dscQty": "",
             "upldPrc": "0.00",
-            "updRecvTm": 1784878066658915084,
-            "ltp": "2117.00"
+            "updRecvTm": 1784878066658915084
         }
     ]
 }
@@ -104,9 +103,10 @@ You need to calculate the average price to a specific number of decimal places t
 
 PnL = (Total Sell Amt - Total Buy Amt) + (Net qty * LTP *  `multiplier` * (<sup>`genNum`</sup>/<sub>`genDen`</sub>) * (<sup>`prcNum`</sup>/<sub>`prcDen`</sub>) )
 
-`ltp` is included directly in the response above; use it as `LTP` in the
-formula. Note that for a carry-forward position with no fills today, this
-formula alone does not reflect the true acquisition cost (it will give
+`positions()` does not return `ltp` — fetch the current price separately
+(e.g. via [`quotes()`](../market_data/quotes.md)) to use as `LTP` in the
+formula above. Note that for a carry-forward position with no fills today,
+this formula alone does not reflect the true acquisition cost (it will give
 `average = LTP` and `P&L = 0`) — the Kotak Neo app sources that from
 [Holdings](holdings.md)'s `averagePrice` instead, matched on
 `positions.tok == holdings.exchangeIdentifier`, if you need to replicate
@@ -114,7 +114,6 @@ that for a carry-forward position.
 
 ### HTTP request headers
 
- - **Endpoint**: `portfolio/v2/positions`
  - **Accept**: application/json
 
 

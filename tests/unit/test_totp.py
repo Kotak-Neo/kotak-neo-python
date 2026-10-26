@@ -5,9 +5,10 @@ from neo_api_client.services.totp import TotpAPI
 
 
 def test_totp_login_uses_uat_path_on_uat(requests_mock):
-    """Regression: totp_login() must hit the UAT-specific endpoint path on
-    uat, not silently send the PROD path (a completely different shape --
-    "login/1.0/tradeApiLogin" vs "api/1.0/login/v6/totp/login")."""
+    """totp_login() on uat must hit the UAT session domain with the
+    "login/1.0/tradeApiLogin" path -- the same path shape PROD_URL uses.
+    UAT previously had its own "api/1.0/login/v6/totp/login" path, but the
+    gateway now expects this path on both environments."""
     client = NeoAPI(environment="uat", consumer_key="test_key")
     uat_login_url = "https://d-mis.kotaksecurities.com/login/1.0/tradeApiLogin"
 
@@ -24,7 +25,7 @@ def test_totp_login_uses_uat_path_on_uat(requests_mock):
 
 
 def test_totp_validate_uses_uat_path_on_uat(requests_mock):
-    """Same regression, for totp_validate()."""
+    """Same as above, for totp_validate()."""
     client = NeoAPI(environment="uat", consumer_key="test_key")
     client.configuration.view_token = "view_token_123"
     client.configuration.sid = "view_sid_456"

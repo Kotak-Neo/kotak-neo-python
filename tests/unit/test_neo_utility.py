@@ -159,10 +159,10 @@ def test_get_session_url_prod():
 
 
 def test_get_session_url_uat():
-    """Regression: get_session_url() must use the UAT-specific path on uat,
-    not silently fall back to the PROD path (which is a totally different
-    endpoint shape: "login/1.0/tradeApiLogin" vs
-    "api/1.0/login/v6/totp/login")."""
+    """get_session_url() uses the UAT session domain, with the same
+    "login/1.0/tradeApiLogin" path PROD_URL uses -- UAT previously had its
+    own "api/1.0/login/v6/totp/login" path, but the gateway now expects the
+    same path shape on both environments."""
     utility = NeoUtility(host="uat")
 
     url = utility.get_session_url("totp_login")
@@ -171,7 +171,7 @@ def test_get_session_url_uat():
 
 
 def test_get_session_url_totp_validate_uat():
-    """Same regression, for totp_validate."""
+    """Same as above, for totp_validate."""
     utility = NeoUtility(host="uat")
 
     url = utility.get_session_url("totp_validate")

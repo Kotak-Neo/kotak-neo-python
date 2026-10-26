@@ -31,7 +31,7 @@ except Exception as e:
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `exchange` | str | Yes | Exchange segment. One of `nse_fo`, `bse_fo`, `mcx_fo`. |
+| `exchange` | str | Yes | Exchange segment. One of `nse_fo`, `bse_fo`, `mcx_fo`, `nse_com`. |
 | `underlying` | str | Yes | Underlying name, e.g. `RELIANCE`, `NIFTY`. Matches `pSymbolName` in the scrip master file. |
 | `instrument_type` | str | No | `option` (default) or `fut`. |
 
