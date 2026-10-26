@@ -2,6 +2,24 @@
 
 All notable changes to this project are documented in this file.
 
+## [3.0.11] - 2026-10-26
+
+### New
+- **`nse_com` (NSE Commodity) exchange segment support** — accepted by
+  `place_order()`, `margin_required()`, and `quotes()`. `place_order()`
+  enforces `nse_com`-specific restrictions: `product` must be `MIS` or
+  `NRML` (`CNC`/`MTF` rejected), and `order_type` must be `L`, `MKT`, or `SL`
+  (`SL-M` rejected); `validity` accepts `DAY`/`IOC`, same as other cash
+  segments. See
+  [place_order.md](docs/functions/orders/place_order.md#parameters) and
+  [margin_required.md](docs/functions/portfolio/margin_required.md).
+
+### Fixes
+- **UAT environment's `totp_login()`/`totp_validate()` were pointing to a
+  non-working path** (`api/1.0/login/v6/totp/login`) — now correctly resolve
+  to `login/1.0/tradeApiLogin`/`login/1.0/tradeApiValidate`, matching the
+  working endpoint shape.
+
 ## [3.0.9] - 2026-10-15
 
 ### Changes
