@@ -554,6 +554,32 @@ if isinstance(search_scrip_response, list):
     print(f"Matched {len(search_scrip_response)} scrip(s):")
 print(json.dumps(search_scrip_response, indent=2, default=str))
 
+# nse_com (NSE Commodity) is a newer exchange_segment (see settings.py's
+# exchange_segment alias map) -- no expiry/strike filter here since it's a
+# cash-like segment, same as nse_cm/bse_cm. This call is the actual
+# end-to-end check of whether the backend's scrip-master file-paths response
+# has a file search_scrip() can match against "nse_com" -- a client-side
+# KeyError (bad alias) and a downstream "no matching file" failure both
+# surface as the same generic {"Error": ..., "message": "Exchange Segment is
+# not available"}, so print the raw response to tell them apart.
+_nse_com_cache_path = scrip_cache._cache_path("nse_com", date.today())
+print(f"\n[SEARCH SCRIP NSE_COM CACHE FILE] {_nse_com_cache_path}")
+print(
+    "cached:",
+    "yes (reused, no download)" if _nse_com_cache_path.exists() else "no (will download)",
+)
+
+search_scrip_nse_com_response = runner.run_test(
+    "SEARCH SCRIP NSE_COM",
+    lambda: runner.client.search_scrip(exchange_segment="nse_com"),
+    request_params={"exchange_segment": "nse_com"},
+)
+
+print("\n[SEARCH SCRIP NSE_COM OUTPUT]")
+if isinstance(search_scrip_nse_com_response, list):
+    print(f"Matched {len(search_scrip_nse_com_response)} scrip(s):")
+print(json.dumps(search_scrip_nse_com_response, indent=2, default=str))
+
 # ---------------------------
 # ORDER MANAGEMENT (Place → Modify → Cancel)
 # ---------------------------

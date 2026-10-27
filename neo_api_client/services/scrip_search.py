@@ -87,7 +87,16 @@ class ScripSearch:
                         df["pExpiryDate"] = pd.to_datetime(df["pExpiryDate"], unit="s")
                         df["pExpiryDate"] = df["pExpiryDate"].dt.strftime("%d%b%Y")
                 else:
-                    if exchange_segment == "mcx" or exchange_segment == "mcx_fo":
+                    # nse_com (NSE Commodity derivatives) carries real expiry
+                    # dates despite not using the "_fo" naming convention --
+                    # without this, pExpiryDate is left as a raw epoch-seconds
+                    # string, and the expiry filter below fails trying to
+                    # parse it as "%d%b%Y" (e.g. ValueError on "1483885800").
+                    if (
+                        exchange_segment == "mcx"
+                        or exchange_segment == "mcx_fo"
+                        or exchange_segment == "nse_com"
+                    ):
                         df["pExpiryDate"] = pd.to_datetime(df["pExpiryDate"], unit="s")
                         df["pExpiryDate"] = df["pExpiryDate"].dt.strftime("%d%b%Y")
 

@@ -516,6 +516,46 @@ def test_scrip_search_mcx_plain_expiry_conversion(api_client, requests_mock):
     assert result is not None
 
 
+# "nse_com" (NSE Commodity derivatives) doesn't end with "fo", but -- unlike
+# nse_cm/bse_cm -- it carries real expiry dates. Regression test for a real
+# bug report: pExpiryDate was left as a raw epoch-seconds string for this
+# segment, so filtering by expiry raised ValueError trying to parse
+# "1795564800" as "%d%b%Y".
+_NSE_COM_CSV = (
+    "pSymbol,pTrdSymbol,pExchSeg,pSymbolName,pOptionType,dStrikePrice;,pExpiryDate,pInstType\n"
+    "1,SILVERM25NOV,nse_com,SILVERM,XX,0,1795564800,FUTCOM\n"
+)
+
+
+def test_scrip_search_nse_com_expiry_conversion(api_client, requests_mock):
+    """exchange_segment == 'nse_com' takes the same expiry conversion as 'mcx'."""
+    _mock_segment(api_client, requests_mock, _NSE_COM_CSV, "NSE_COM.csv")
+    result = ScripSearch(api_client).scrip_search(
+        symbol="silverm",
+        exchange_segment="nse_com",
+        expiry=None,
+        option_type=None,
+        strike_price=None,
+        ignore_50multiple=True,
+    )
+    assert result[0]["pExpiryDate"] == "25Nov2026"
+
+
+def test_scrip_search_nse_com_with_expiry_filter_does_not_raise(api_client, requests_mock):
+    """The exact real-world failure: filtering nse_com by expiry must not
+    raise ValueError trying to parse a raw epoch-seconds string as a date."""
+    _mock_segment(api_client, requests_mock, _NSE_COM_CSV, "NSE_COM.csv")
+    result = ScripSearch(api_client).scrip_search(
+        symbol="silverm",
+        exchange_segment="nse_com",
+        expiry="25Nov2026",
+        option_type=None,
+        strike_price=None,
+        ignore_50multiple=True,
+    )
+    assert result[0]["pExpiryDate"] == "25Nov2026"
+
+
 # ---- same-day CSV cache -----------------------------------------------------
 
 

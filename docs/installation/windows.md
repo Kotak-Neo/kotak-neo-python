@@ -357,7 +357,7 @@ Create `.vscode/launch.json`:
 # Check installed packages
 pip list | Select-String "kotakneoapi"
 
-# Should show the installed version, e.g.: kotakneoapi    3.0.11
+# Should show the installed version, e.g.: kotakneoapi    3.0.12
 ```
 
 ### 2. Test Import
