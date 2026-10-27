@@ -2,15 +2,15 @@
 
 All notable changes to this project are documented in this file.
 
-## [3.0.11] - 2026-10-26
+## [3.0.12] - 2026-10-27
 
 ### New
 - **`nse_com` (NSE Commodity) exchange segment support** — accepted by
-  `place_order()`, `margin_required()`, and `quotes()`. `place_order()`
-  enforces `nse_com`-specific restrictions: `product` must be `MIS` or
-  `NRML` (`CNC`/`MTF` rejected), and `order_type` must be `L`, `MKT`, or `SL`
-  (`SL-M` rejected); `validity` accepts `DAY`/`IOC`, same as other cash
-  segments. See
+  `place_order()`, `margin_required()`, `quotes()`, and `search_scrip()`.
+  `place_order()` enforces `nse_com`-specific restrictions: `product` must
+  be `MIS` or `NRML` (`CNC`/`MTF` rejected), and `order_type` must be `L`,
+  `MKT`, or `SL` (`SL-M` rejected); `validity` accepts `DAY`/`IOC`, same as
+  other cash segments. See
   [place_order.md](docs/functions/orders/place_order.md#parameters) and
   [margin_required.md](docs/functions/portfolio/margin_required.md).
 
@@ -19,6 +19,12 @@ All notable changes to this project are documented in this file.
   non-working path** (`api/1.0/login/v6/totp/login`) — now correctly resolve
   to `login/1.0/tradeApiLogin`/`login/1.0/tradeApiValidate`, matching the
   working endpoint shape.
+- **`search_scrip(exchange_segment="nse_com")` raised `ValueError`** when
+  filtering by `expiry` (e.g. `time data "1483885800" doesn't match format
+  "%d%b%Y"`). `nse_com` carries real expiry dates despite not using the
+  `_fo` naming convention, but wasn't included in the segments whose
+  `pExpiryDate` gets converted from the raw epoch-seconds value the backend
+  sends — it's now converted the same way `mcx` is.
 
 ## [3.0.9] - 2026-10-15
 
