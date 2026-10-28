@@ -520,7 +520,9 @@ def test_scrip_search_mcx_plain_expiry_conversion(api_client, requests_mock):
 # nse_cm/bse_cm -- it carries real expiry dates. Regression test for a real
 # bug report: pExpiryDate was left as a raw epoch-seconds string for this
 # segment, so filtering by expiry raised ValueError trying to parse
-# "1795564800" as "%d%b%Y".
+# "1795564800" as "%d%b%Y". Takes the same +315511200s (~10 year) adjustment
+# as nse_fo (not the un-shifted mcx/mcx_fo conversion), so the raw epoch
+# 1795564800 ("25Nov2026") becomes "23Nov2036" after the shift.
 _NSE_COM_CSV = (
     "pSymbol,pTrdSymbol,pExchSeg,pSymbolName,pOptionType,dStrikePrice;,pExpiryDate,pInstType\n"
     "1,SILVERM25NOV,nse_com,SILVERM,XX,0,1795564800,FUTCOM\n"
@@ -528,7 +530,8 @@ _NSE_COM_CSV = (
 
 
 def test_scrip_search_nse_com_expiry_conversion(api_client, requests_mock):
-    """exchange_segment == 'nse_com' takes the same expiry conversion as 'mcx'."""
+    """exchange_segment == 'nse_com' takes the same +10-year-shifted expiry
+    conversion as 'nse_fo', not the un-shifted 'mcx' one."""
     _mock_segment(api_client, requests_mock, _NSE_COM_CSV, "NSE_COM.csv")
     result = ScripSearch(api_client).scrip_search(
         symbol="silverm",
@@ -538,7 +541,7 @@ def test_scrip_search_nse_com_expiry_conversion(api_client, requests_mock):
         strike_price=None,
         ignore_50multiple=True,
     )
-    assert result[0]["pExpiryDate"] == "25Nov2026"
+    assert result[0]["pExpiryDate"] == "23Nov2036"
 
 
 def test_scrip_search_nse_com_with_expiry_filter_does_not_raise(api_client, requests_mock):
@@ -548,12 +551,12 @@ def test_scrip_search_nse_com_with_expiry_filter_does_not_raise(api_client, requ
     result = ScripSearch(api_client).scrip_search(
         symbol="silverm",
         exchange_segment="nse_com",
-        expiry="25Nov2026",
+        expiry="23Nov2036",
         option_type=None,
         strike_price=None,
         ignore_50multiple=True,
     )
-    assert result[0]["pExpiryDate"] == "25Nov2026"
+    assert result[0]["pExpiryDate"] == "23Nov2036"
 
 
 # ---- same-day CSV cache -----------------------------------------------------

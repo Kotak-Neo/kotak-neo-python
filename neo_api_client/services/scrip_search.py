@@ -92,11 +92,13 @@ class ScripSearch:
                     # without this, pExpiryDate is left as a raw epoch-seconds
                     # string, and the expiry filter below fails trying to
                     # parse it as "%d%b%Y" (e.g. ValueError on "1483885800").
-                    if (
-                        exchange_segment == "mcx"
-                        or exchange_segment == "mcx_fo"
-                        or exchange_segment == "nse_com"
-                    ):
+                    # Same +315511200s (~10 year) adjustment as the nse_fo
+                    # branch above, not the un-shifted mcx/mcx_fo one.
+                    if exchange_segment == "nse_com":
+                        df["pExpiryDate"] = pd.to_datetime(df["pExpiryDate"], unit="s")
+                        df["pExpiryDate"] = df["pExpiryDate"] + pd.to_timedelta(315511200, unit="s")
+                        df["pExpiryDate"] = df["pExpiryDate"].dt.strftime("%d%b%Y")
+                    elif exchange_segment == "mcx" or exchange_segment == "mcx_fo":
                         df["pExpiryDate"] = pd.to_datetime(df["pExpiryDate"], unit="s")
                         df["pExpiryDate"] = df["pExpiryDate"].dt.strftime("%d%b%Y")
 
