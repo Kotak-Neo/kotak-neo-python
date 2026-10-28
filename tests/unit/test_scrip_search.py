@@ -131,8 +131,8 @@ def test_scrip_search_error_response(api_client, requests_mock):
 
 # ---- Richer F&O CSV covering expiry / option_type / strike_price filters ----
 
-# Two NIFTY option rows: a CE @ 22000 and a PE @ 22500, both expiring 20 Jun 2024
-# (epoch 1718841600 in the exchange's shifted-epoch scheme handled by the code).
+# Two NIFTY option rows: a CE @ 22000 and a PE @ 22500, both expiring 20 Jun 2014
+# (raw epoch 1403222400 -- nse_fo takes the plain, un-shifted conversion).
 _FO_CSV = (
     "pSymbol,pTrdSymbol,pExchSeg,pSymbolName,pOptionType,dStrikePrice;,pExpiryDate,pInstType\n"
     "1,NIFTY24JUN22000CE,nse_fo,NIFTY,CE,2200000,1403222400,OPTIDX\n"
@@ -342,7 +342,7 @@ def test_scrip_search_expiry_and_strike_on_cash_segment(api_client, requests_moc
 
 # ---- expiry / single-strike / mcx / bse coverage ----------------------------
 
-# nse_fo rows in _FO_CSV resolve (after the +315511200s shift) to expiry 18Jun2024.
+# nse_fo rows in _FO_CSV resolve (no shift applied) to expiry 20Jun2014.
 
 
 def test_scrip_search_expiry_single_date(api_client, requests_mock):
@@ -351,7 +351,7 @@ def test_scrip_search_expiry_single_date(api_client, requests_mock):
     result = ScripSearch(api_client).scrip_search(
         symbol="nifty",
         exchange_segment="nse_fo",
-        expiry="18Jun2024",
+        expiry="20Jun2014",
         option_type=None,
         strike_price=None,
         ignore_50multiple=True,
@@ -366,7 +366,7 @@ def test_scrip_search_expiry_range(api_client, requests_mock):
     result = ScripSearch(api_client).scrip_search(
         symbol="nifty",
         exchange_segment="nse_fo",
-        expiry="01Jun2024-30Jun2024",
+        expiry="01Jun2014-30Jun2014",
         option_type=None,
         strike_price=None,
         ignore_50multiple=True,

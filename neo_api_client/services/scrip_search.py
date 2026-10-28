@@ -73,27 +73,16 @@ class ScripSearch:
                     }
 
                 if exchange_segment.endswith("fo"):
-                    if not (
-                        exchange_segment == "mcx"
-                        or exchange_segment == "mcx_fo"
-                        or exchange_segment == "bse"
-                        or exchange_segment == "bse_fo"
-                    ):
-                        df["pExpiryDate"] = pd.to_datetime(df["pExpiryDate"], unit="s")
-                        # df['pExpiryDate'] = df['pExpiryDate'] + pd.DateOffset(years=10)
-                        df["pExpiryDate"] = df["pExpiryDate"] + pd.to_timedelta(315511200, unit="s")
-                        df["pExpiryDate"] = df["pExpiryDate"].dt.strftime("%d%b%Y")
-                    else:
-                        df["pExpiryDate"] = pd.to_datetime(df["pExpiryDate"], unit="s")
-                        df["pExpiryDate"] = df["pExpiryDate"].dt.strftime("%d%b%Y")
+                    df["pExpiryDate"] = pd.to_datetime(df["pExpiryDate"], unit="s")
+                    df["pExpiryDate"] = df["pExpiryDate"].dt.strftime("%d%b%Y")
                 else:
                     # nse_com (NSE Commodity derivatives) carries real expiry
                     # dates despite not using the "_fo" naming convention --
                     # without this, pExpiryDate is left as a raw epoch-seconds
                     # string, and the expiry filter below fails trying to
                     # parse it as "%d%b%Y" (e.g. ValueError on "1483885800").
-                    # Same +315511200s (~10 year) adjustment as the nse_fo
-                    # branch above, not the un-shifted mcx/mcx_fo one.
+                    # nse_com-specific +315511200s (~10 year) adjustment --
+                    # not applied to any other segment.
                     if exchange_segment == "nse_com":
                         df["pExpiryDate"] = pd.to_datetime(df["pExpiryDate"], unit="s")
                         df["pExpiryDate"] = df["pExpiryDate"] + pd.to_timedelta(315511200, unit="s")

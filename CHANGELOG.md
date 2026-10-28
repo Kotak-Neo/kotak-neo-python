@@ -24,8 +24,9 @@ All notable changes to this project are documented in this file.
   "%d%b%Y"`). `nse_com` carries real expiry dates despite not using the
   `_fo` naming convention, but wasn't included in the segments whose
   `pExpiryDate` gets converted from the raw epoch-seconds value the backend
-  sends — it's now converted the same way `nse_fo` is (including the same
-  ~10-year adjustment applied there).
+  sends. `nse_com` now gets its own `pExpiryDate` conversion, including a
+  `nse_com`-specific ~10-year adjustment (not applied to any other segment,
+  including `nse_fo`).
 
 ## [3.0.9] - 2026-10-15
 
