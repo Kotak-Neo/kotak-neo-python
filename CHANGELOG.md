@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented in this file.
 
-## [3.0.12] - 2026-10-27
+## [3.0.13] - 2026-10-28
 
 ### New
 - **`nse_com` (NSE Commodity) exchange segment support** — accepted by
