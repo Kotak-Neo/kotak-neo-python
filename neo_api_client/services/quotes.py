@@ -1,7 +1,10 @@
 import urllib.parse
 from json import JSONDecodeError
 
+from neo_api_client.logger import get_logger
 from neo_api_client.rest import rate_limit_headers
+
+logger = get_logger(__name__)
 
 
 class QuotesAPI:
@@ -45,6 +48,33 @@ class QuotesAPI:
             limit_headers = rate_limit_headers(quotes)
             if limit_headers and isinstance(body, dict):
                 body["rateLimit"] = limit_headers
+
+            # The shared REST client's own request/response log (INFO level)
+            # size-caps large bodies to a truncated preview, which can hide
+            # per-quote fields (e.g. lstup_time) in a multi-instrument batch.
+            # Log them explicitly here instead, uncapped: a compact per-quote
+            # summary at INFO (small enough to never need truncating), and
+            # the full raw response at DEBUG for deeper investigation (e.g.
+            # diagnosing an unexpected lstup_time value from the backend).
+            quotes_list = body if isinstance(body, list) else None
+            if quotes_list is not None:
+                logger.info(
+                    "quotes_received",
+                    count=len(quotes_list),
+                    quotes=[
+                        {
+                            "exchange_token": q.get("exchange_token"),
+                            "display_symbol": q.get("display_symbol"),
+                            "exchange": q.get("exchange"),
+                            "ltp": q.get("ltp"),
+                            "lstup_time": q.get("lstup_time"),
+                        }
+                        for q in quotes_list
+                        if isinstance(q, dict)
+                    ],
+                )
+            logger.debug("quotes_response_raw", response=body)
+
             return body
 
         except JSONDecodeError as e:
