@@ -17,6 +17,23 @@ def test_positions(api_client, requests_mock):
     assert response["data"] == []
 
 
+def test_positions_surfaces_rate_limit_headers(api_client, requests_mock):
+    """A Retry-After/X-RateLimit-* header on the response is surfaced under
+    a `rateLimit` key, matching quotes()/expiries()/etc."""
+    url = api_client.configuration.get_url_details("positions")
+
+    requests_mock.get(
+        url,
+        json={"data": []},
+        status_code=200,
+        headers={"Retry-After": "30"},
+    )
+
+    response = PositionsAPI(api_client).position_init()
+
+    assert response["rateLimit"] == {"Retry-After": "30"}
+
+
 def test_positions_request_exception(api_client, monkeypatch):
     import neo_api_client.services.positions as positions_module
 

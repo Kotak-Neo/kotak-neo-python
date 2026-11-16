@@ -7,6 +7,11 @@ import pandas as pd
 from neo_api_client.exceptions import ApiException
 from neo_api_client.utils import scrip_cache
 
+try:
+    from neo_api_client import __version__
+except ImportError:  # pragma: no cover - fallback when version metadata is unavailable
+    __version__ = "unknown"
+
 
 class ScripSearch:
     def __init__(self, api_client):
@@ -39,10 +44,17 @@ class ScripSearch:
                         if exchange_segment.lower() in file.lower()
                     ]
 
+                    # This CSV download is a separate, unauthenticated request
+                    # straight to the file URL -- not routed through the
+                    # shared rest_client, so it doesn't inherit its
+                    # client-level User-Agent. Set it explicitly so this
+                    # traffic is attributable as SDK traffic server-side,
+                    # instead of httpx's own default ("python-httpx/x.y.z").
                     response = httpx.get(
                         exchange_segment_csv[0],
                         timeout=30,
                         follow_redirects=True,
+                        headers={"User-Agent": f"NeoSDK-Python/{__version__}"},
                     )
                     response.raise_for_status()
                     csv_content = response.content

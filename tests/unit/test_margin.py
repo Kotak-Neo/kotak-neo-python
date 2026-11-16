@@ -32,6 +32,37 @@ def test_margin(api_client, requests_mock):
     assert response["data"]["stat"] == "Ok"
 
 
+def test_margin_surfaces_rate_limit_headers(api_client, requests_mock):
+    """A Retry-After/X-RateLimit-* header on the response is surfaced under
+    a `rateLimit` key, matching quotes()/expiries()/etc."""
+    requests_mock.post(
+        "https://test-api.kotak.com/quick/user/check-margin",
+        text='{"stat":"Ok"}',
+        headers={"Retry-After": "30"},
+    )
+
+    response = MarginAPI(api_client).margin_init(
+        exchange_segment="nse_cm",
+        price="100",
+        order_type="MKT",
+        product="MIS",
+        quantity="1",
+        instrument_token="12345",
+        transaction_type="B",
+        trigger_price="0",
+        broker_name="KOTAK",
+        branch_id="1",
+        stop_loss_type="ABS",
+        stop_loss_value="0",
+        square_off_type="ABS",
+        square_off_value="0",
+        trailing_stop_loss="N",
+        trailing_sl_value="0",
+    )
+
+    assert response["rateLimit"] == {"Retry-After": "30"}
+
+
 def test_margin_api_exception(api_client, monkeypatch):
     def mock_request(*args, **kwargs):
         raise ApiException(status=500, reason="Test Error")

@@ -320,3 +320,14 @@ help_functions = {
 }
 
 ORDER_SOURCE = "NEOTRADEAPI"
+
+# Rolling window of currently-supported SDK versions: the current release
+# plus its immediate predecessor among *actual* PyPI releases -- not every
+# version bump gets tagged/published on its own (see CHANGELOG.md for which
+# ones are real releases vs. internal bumps folded into the next one).
+# NeoAPI() logs a deprecation warning at construction if the running
+# __version__ isn't in this set (see neo_api.py's __init__).
+#
+# Maintainers: update this on every real release to (previous_release,
+# new_release) -- e.g. when 3.0.14 ships, this becomes ("3.0.13", "3.0.14").
+SUPPORTED_SDK_VERSIONS = ("3.0.9", "3.0.13")

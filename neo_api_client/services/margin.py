@@ -1,6 +1,7 @@
 import json
 
 from neo_api_client.exceptions import ApiException
+from neo_api_client.rest import rate_limit_headers
 
 
 class MarginAPI:
@@ -64,7 +65,11 @@ class MarginAPI:
                 body=body_params,
             )
 
-            return {"data": json.loads(margin_resp.text)}
+            result = {"data": json.loads(margin_resp.text)}
+            limit_headers = rate_limit_headers(margin_resp)
+            if limit_headers:
+                result["rateLimit"] = limit_headers
+            return result
 
         except ApiException as ex:
             return {"error": ex}

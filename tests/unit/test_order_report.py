@@ -43,6 +43,37 @@ def test_order_report_request_exception(api_client, monkeypatch):
     assert "network down" in logged["error"]
 
 
+def test_order_report_surfaces_rate_limit_headers(api_client, requests_mock):
+    """A Retry-After/X-RateLimit-* header on the response is surfaced under
+    a `rateLimit` key, matching quotes()/expiries()/etc."""
+    url = api_client.configuration.get_url_details("order_book")
+    requests_mock.get(
+        url,
+        json={"data": []},
+        status_code=200,
+        headers={"Retry-After": "30"},
+    )
+
+    response = OrderReportAPI(api_client).ordered_books()
+
+    assert response["rateLimit"] == {"Retry-After": "30"}
+
+
+def test_order_report_by_id_surfaces_rate_limit_headers(api_client, requests_mock):
+    order_id = "250720000007242"
+    url = f"{api_client.configuration.get_url_details('order_book')}/{order_id}"
+    requests_mock.get(
+        url,
+        json={"stat": "Ok", "data": []},
+        status_code=200,
+        headers={"Retry-After": "30"},
+    )
+
+    response = OrderReportAPI(api_client).ordered_book_by_id(order_id=order_id)
+
+    assert response["rateLimit"] == {"Retry-After": "30"}
+
+
 def test_order_report_does_not_send_neo_fin_key(api_client, requests_mock):
     url = api_client.configuration.get_url_details("order_book")
     requests_mock.get(url, json={"data": []}, status_code=200)

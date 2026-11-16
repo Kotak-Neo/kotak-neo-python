@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any, NoReturn
 
 import httpx
 
-from neo_api_client import req_data_validation, settings
+from neo_api_client import __version__, req_data_validation, settings
 from neo_api_client.api_client import ApiClient
 from neo_api_client.logger import get_logger
 from neo_api_client.services.client_ip import ClientIpAPI
@@ -160,6 +160,18 @@ class NeoAPI:
             1. client.totp_login(mobile_number, ucc, totp)
             2. client.totp_validate(mpin)
         """
+
+        if __version__ not in settings.SUPPORTED_SDK_VERSIONS:
+            logger.warning(
+                "sdk_version_deprecated",
+                installed_version=__version__,
+                supported_versions=settings.SUPPORTED_SDK_VERSIONS,
+                message=(
+                    f"kotakneoapi {__version__} is no longer supported. "
+                    f"Supported versions: {', '.join(settings.SUPPORTED_SDK_VERSIONS)}. "
+                    "Run `pip install --upgrade kotakneoapi` -- see CHANGELOG.md for what's changed."
+                ),
+            )
 
         self.on_message: Callable[..., None] | None = None
         self.on_error: Callable[..., None] | None = None

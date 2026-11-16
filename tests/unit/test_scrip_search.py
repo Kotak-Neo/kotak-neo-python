@@ -1,5 +1,6 @@
 """Unit tests for ScripSearch service."""
 
+from neo_api_client import __version__
 from neo_api_client.services.scrip_search import ScripSearch
 
 
@@ -40,6 +41,32 @@ def test_scrip_search_nse_cm(api_client, requests_mock):
 
     # The method returns filtered CSV data
     assert result is not None
+
+
+def test_scrip_search_csv_download_sends_sdk_user_agent(api_client, requests_mock):
+    """The CSV download is a separate, unauthenticated httpx.get() straight
+    to the file URL -- not routed through the shared rest_client, so it
+    doesn't inherit its client-level User-Agent automatically. It must set
+    the SDK's own User-Agent explicitly, not fall back to httpx's default
+    ("python-httpx/x.y.z"), so this traffic is attributable server-side."""
+    url = api_client.configuration.get_url_details("scrip_master")
+    csv_url = (
+        "https://api.kotaksecurities.com/devapis/global/scripmaster/v1/file-paths/prod/NSE_CM.csv"
+    )
+    requests_mock.get(url, json={"stat": "Ok", "data": {"filesPaths": [csv_url]}}, status_code=200)
+    csv_content = "pSymbol,pTrdSymbol,pExchSeg,pSymbolName\nRELIANCE-EQ,RELIANCE-EQ,nse_cm,RELIANCE"
+    requests_mock.get(csv_url, text=csv_content, status_code=200)
+
+    ScripSearch(api_client).scrip_search(
+        symbol="RELIANCE",
+        exchange_segment="nse_cm",
+        expiry="",
+        option_type="",
+        strike_price="",
+        ignore_50multiple="",
+    )
+
+    assert requests_mock.last_request.headers["User-Agent"] == f"NeoSDK-Python/{__version__}"
 
 
 def test_scrip_search_nse_fo(api_client, requests_mock):

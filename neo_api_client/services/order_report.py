@@ -1,6 +1,7 @@
 import httpx
 
 from neo_api_client.logger import get_logger
+from neo_api_client.rest import rate_limit_headers
 
 logger = get_logger(__name__)
 
@@ -24,7 +25,11 @@ class OrderReportAPI:
             order_report = self.rest_client.request(
                 url=URL, method="GET", query_params=query_params, headers=header_params
             )
-            return order_report.json()
+            body = order_report.json()
+            limit_headers = rate_limit_headers(order_report)
+            if limit_headers and isinstance(body, dict):
+                body["rateLimit"] = limit_headers
+            return body
         except httpx.HTTPError as e:
             logger.error("order_report_request_failed", error=str(e))
 
@@ -47,6 +52,10 @@ class OrderReportAPI:
             order_report = self.rest_client.request(
                 url=URL, method="GET", query_params=query_params, headers=header_params
             )
-            return order_report.json()
+            body = order_report.json()
+            limit_headers = rate_limit_headers(order_report)
+            if limit_headers and isinstance(body, dict):
+                body["rateLimit"] = limit_headers
+            return body
         except httpx.HTTPError as e:
             logger.error("order_report_request_failed", error=str(e))

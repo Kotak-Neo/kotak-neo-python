@@ -389,3 +389,46 @@ def test_neo_api_order_history_without_login():
 
     assert "Error Message" in result
     assert "2fa" in result["Error Message"]
+
+
+# ---- SDK version deprecation warning ---------------------------------------
+
+
+def test_neo_api_init_warns_on_unsupported_version(monkeypatch):
+    """Constructing NeoAPI with a version outside settings.SUPPORTED_SDK_VERSIONS
+    logs a deprecation warning (see settings.SUPPORTED_SDK_VERSIONS)."""
+    import neo_api_client.neo_api as neo_api_module
+
+    monkeypatch.setattr(neo_api_module, "__version__", "3.0.1")
+
+    warned = []
+    monkeypatch.setattr(
+        neo_api_module.logger, "warning", lambda event, **kw: warned.append((event, kw))
+    )
+
+    NeoAPI(environment="prod", consumer_key="test_key")
+
+    assert len(warned) == 1
+    event, kw = warned[0]
+    assert event == "sdk_version_deprecated"
+    assert kw["installed_version"] == "3.0.1"
+    assert kw["supported_versions"] == neo_api_module.settings.SUPPORTED_SDK_VERSIONS
+
+
+def test_neo_api_init_no_warning_on_supported_version(monkeypatch):
+    """A version inside settings.SUPPORTED_SDK_VERSIONS (e.g. the currently
+    running one) must not trigger the deprecation warning."""
+    import neo_api_client.neo_api as neo_api_module
+
+    monkeypatch.setattr(
+        neo_api_module, "__version__", neo_api_module.settings.SUPPORTED_SDK_VERSIONS[-1]
+    )
+
+    warned = []
+    monkeypatch.setattr(
+        neo_api_module.logger, "warning", lambda event, **kw: warned.append((event, kw))
+    )
+
+    NeoAPI(environment="prod", consumer_key="test_key")
+
+    assert warned == []

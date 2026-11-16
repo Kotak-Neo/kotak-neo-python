@@ -1,6 +1,7 @@
 import httpx
 
 from neo_api_client.logger import get_logger
+from neo_api_client.rest import rate_limit_headers
 
 logger = get_logger(__name__)
 
@@ -23,6 +24,10 @@ class PositionsAPI:
             position_report = self.rest_client.request(
                 url=URL, method="GET", query_params=query_params, headers=header_params
             )
-            return position_report.json()
+            body = position_report.json()
+            limit_headers = rate_limit_headers(position_report)
+            if limit_headers and isinstance(body, dict):
+                body["rateLimit"] = limit_headers
+            return body
         except httpx.HTTPError as e:
             logger.error("positions_request_failed", error=str(e))

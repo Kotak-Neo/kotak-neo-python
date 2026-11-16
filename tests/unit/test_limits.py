@@ -16,6 +16,20 @@ def test_limits(requests_mock, api_client):
     assert response["stat"] == "Ok"
 
 
+def test_limits_surfaces_rate_limit_headers(requests_mock, api_client):
+    """A Retry-After/X-RateLimit-* header on the response is surfaced under
+    a `rateLimit` key, matching quotes()/expiries()/etc."""
+    requests_mock.post(
+        "https://test-api.kotak.com/quick/user/limits",
+        json={"stat": "Ok"},
+        headers={"Retry-After": "30"},
+    )
+
+    response = LimitsAPI(api_client).limit_init()
+
+    assert response["rateLimit"] == {"Retry-After": "30"}
+
+
 def test_limits_always_requests_all(requests_mock, api_client):
     """limit_init() takes no parameters and always sends seg/exch/prod=ALL."""
     requests_mock.post(
