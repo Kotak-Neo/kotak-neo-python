@@ -6,7 +6,7 @@ import requests_mock
 
 from neo_api_client import rest as rest_module
 from neo_api_client.exceptions import ApiException
-from neo_api_client.rest import RESTClientObject, rate_limit_headers
+from neo_api_client.rest import RESTClientObject, rate_limit_headers, session_expired_hint
 
 
 class DummyConfig:
@@ -622,3 +622,19 @@ def test_rate_limit_headers_is_case_insensitive():
     wire is still matched against RATE_LIMIT_HEADER_NAMES."""
     response = httpx.Response(429, headers={"retry-after": "30"})
     assert rate_limit_headers(response) == {"Retry-After": "30"}
+
+
+# ---- session_expired_hint() --------------------------------------------------
+
+
+def test_session_expired_hint_present_on_401():
+    response = httpx.Response(401)
+    hint = session_expired_hint(response)
+    assert hint is not None
+    assert "totp_login()" in hint
+    assert "totp_validate()" in hint
+
+
+def test_session_expired_hint_none_on_other_statuses():
+    for status in (200, 400, 403, 429, 500):
+        assert session_expired_hint(httpx.Response(status)) is None

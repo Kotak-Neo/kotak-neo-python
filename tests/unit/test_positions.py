@@ -34,6 +34,20 @@ def test_positions_surfaces_rate_limit_headers(api_client, requests_mock):
     assert response["rateLimit"] == {"Retry-After": "30"}
 
 
+def test_positions_surfaces_session_expired_hint_on_401(api_client, requests_mock):
+    """A 401 gets a clear, actionable hint under `sessionExpired`, so callers
+    don't mistake it for a generic failure and keep retrying with the same
+    stale session (see CHANGELOG)."""
+    url = api_client.configuration.get_url_details("positions")
+
+    requests_mock.get(url, json={"stat": "Not_Ok"}, status_code=401)
+
+    response = PositionsAPI(api_client).position_init()
+
+    assert "sessionExpired" in response
+    assert "totp_login()" in response["sessionExpired"]
+
+
 def test_positions_request_exception(api_client, monkeypatch):
     import neo_api_client.services.positions as positions_module
 

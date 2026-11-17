@@ -30,6 +30,22 @@ def test_limits_surfaces_rate_limit_headers(requests_mock, api_client):
     assert response["rateLimit"] == {"Retry-After": "30"}
 
 
+def test_limits_surfaces_session_expired_hint_on_401(requests_mock, api_client):
+    """A 401 gets a clear, actionable hint under `sessionExpired`, so callers
+    don't mistake it for a generic failure and keep retrying with the same
+    stale session (see CHANGELOG)."""
+    requests_mock.post(
+        "https://test-api.kotak.com/quick/user/limits",
+        json={"stat": "Not_Ok"},
+        status_code=401,
+    )
+
+    response = LimitsAPI(api_client).limit_init()
+
+    assert "sessionExpired" in response
+    assert "totp_login()" in response["sessionExpired"]
+
+
 def test_limits_always_requests_all(requests_mock, api_client):
     """limit_init() takes no parameters and always sends seg/exch/prod=ALL."""
     requests_mock.post(

@@ -74,6 +74,30 @@ def test_order_report_by_id_surfaces_rate_limit_headers(api_client, requests_moc
     assert response["rateLimit"] == {"Retry-After": "30"}
 
 
+def test_order_report_surfaces_session_expired_hint_on_401(api_client, requests_mock):
+    """A 401 gets a clear, actionable hint under `sessionExpired`, so callers
+    don't mistake it for a generic failure and keep retrying with the same
+    stale session (see CHANGELOG)."""
+    url = api_client.configuration.get_url_details("order_book")
+    requests_mock.get(url, json={"stat": "Not_Ok"}, status_code=401)
+
+    response = OrderReportAPI(api_client).ordered_books()
+
+    assert "sessionExpired" in response
+    assert "totp_login()" in response["sessionExpired"]
+
+
+def test_order_report_by_id_surfaces_session_expired_hint_on_401(api_client, requests_mock):
+    order_id = "250720000007242"
+    url = f"{api_client.configuration.get_url_details('order_book')}/{order_id}"
+    requests_mock.get(url, json={"stat": "Not_Ok"}, status_code=401)
+
+    response = OrderReportAPI(api_client).ordered_book_by_id(order_id=order_id)
+
+    assert "sessionExpired" in response
+    assert "totp_login()" in response["sessionExpired"]
+
+
 def test_order_report_does_not_send_neo_fin_key(api_client, requests_mock):
     url = api_client.configuration.get_url_details("order_book")
     requests_mock.get(url, json={"data": []}, status_code=200)

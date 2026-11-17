@@ -1,7 +1,7 @@
 import httpx
 
 from neo_api_client.logger import get_logger
-from neo_api_client.rest import rate_limit_headers
+from neo_api_client.rest import rate_limit_headers, session_expired_hint
 
 logger = get_logger(__name__)
 
@@ -28,6 +28,9 @@ class PositionsAPI:
             limit_headers = rate_limit_headers(position_report)
             if limit_headers and isinstance(body, dict):
                 body["rateLimit"] = limit_headers
+            hint = session_expired_hint(position_report)
+            if hint and isinstance(body, dict):
+                body["sessionExpired"] = hint
             return body
         except httpx.HTTPError as e:
             logger.error("positions_request_failed", error=str(e))

@@ -62,6 +62,23 @@ def rate_limit_headers(response: httpx.Response) -> dict[str, str]:
     }
 
 
+SESSION_EXPIRED_HINT = (
+    "Session expired or invalid (HTTP 401). The edit_token/edit_sid (or "
+    "view_token/sid) this call used are no longer valid on the backend -- "
+    "call totp_login() and totp_validate() again to get a fresh session "
+    "before retrying. Retrying with the same session will keep failing."
+)
+
+
+def session_expired_hint(response: httpx.Response) -> str | None:
+    """A clear, actionable hint for a 401 -- distinguishing "your session
+    expired, re-authenticate" from a generic auth failure, so callers don't
+    mistake it for something else and keep retrying with the same stale
+    token (see CHANGELOG -- this was flagged as a real source of sustained
+    401 volume)."""
+    return SESSION_EXPIRED_HINT if response.status_code == 401 else None
+
+
 if _ENHANCED_FEATURES:  # pragma: no cover - always true in a valid install
     logger = get_logger(__name__)
 
@@ -336,6 +353,7 @@ class RESTClientObject:
                     status_code=response.status_code,
                     reason=response.reason_phrase if is_error else None,
                     response_body=self._response_body_for_logging(response),
+                    hint=session_expired_hint(response) if is_error else None,
                 )
 
             if response.status_code >= 400 and _ENHANCED_FEATURES and self.raise_on_error:

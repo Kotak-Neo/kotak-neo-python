@@ -63,6 +63,39 @@ def test_margin_surfaces_rate_limit_headers(api_client, requests_mock):
     assert response["rateLimit"] == {"Retry-After": "30"}
 
 
+def test_margin_surfaces_session_expired_hint_on_401(api_client, requests_mock):
+    """A 401 gets a clear, actionable hint under `sessionExpired`, so callers
+    don't mistake it for a generic failure and keep retrying with the same
+    stale session (see CHANGELOG)."""
+    requests_mock.post(
+        "https://test-api.kotak.com/quick/user/check-margin",
+        text='{"stat":"Not_Ok"}',
+        status_code=401,
+    )
+
+    response = MarginAPI(api_client).margin_init(
+        exchange_segment="nse_cm",
+        price="100",
+        order_type="MKT",
+        product="MIS",
+        quantity="1",
+        instrument_token="12345",
+        transaction_type="B",
+        trigger_price="0",
+        broker_name="KOTAK",
+        branch_id="1",
+        stop_loss_type="ABS",
+        stop_loss_value="0",
+        square_off_type="ABS",
+        square_off_value="0",
+        trailing_stop_loss="N",
+        trailing_sl_value="0",
+    )
+
+    assert "sessionExpired" in response
+    assert "totp_login()" in response["sessionExpired"]
+
+
 def test_margin_api_exception(api_client, monkeypatch):
     def mock_request(*args, **kwargs):
         raise ApiException(status=500, reason="Test Error")

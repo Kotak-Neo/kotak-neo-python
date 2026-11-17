@@ -1,5 +1,5 @@
 from neo_api_client.exceptions import ApiException
-from neo_api_client.rest import rate_limit_headers
+from neo_api_client.rest import rate_limit_headers, session_expired_hint
 
 
 class LimitsAPI:
@@ -32,6 +32,9 @@ class LimitsAPI:
             limit_headers = rate_limit_headers(limits_report)
             if limit_headers and isinstance(body, dict):
                 body["rateLimit"] = limit_headers
+            hint = session_expired_hint(limits_report)
+            if hint and isinstance(body, dict):
+                body["sessionExpired"] = hint
             return body
         except ApiException as ex:
             return {"error": ex}

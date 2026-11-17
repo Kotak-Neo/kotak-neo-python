@@ -1,7 +1,7 @@
 import json
 
 from neo_api_client.exceptions import ApiException
-from neo_api_client.rest import rate_limit_headers
+from neo_api_client.rest import rate_limit_headers, session_expired_hint
 
 
 class MarginAPI:
@@ -69,6 +69,9 @@ class MarginAPI:
             limit_headers = rate_limit_headers(margin_resp)
             if limit_headers:
                 result["rateLimit"] = limit_headers
+            hint = session_expired_hint(margin_resp)
+            if hint:
+                result["sessionExpired"] = hint
             return result
 
         except ApiException as ex:
