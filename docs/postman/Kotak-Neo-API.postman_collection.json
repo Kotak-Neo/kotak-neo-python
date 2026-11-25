@@ -415,6 +415,69 @@
             },
             "description": "SDK: client.quotes(). Does not require 2FA — only consumer_key. Multiple instruments are comma-separated exchange|token pairs in a single path segment; keep '|' and ',' literal (unescaped)."
           }
+        },
+        {
+          "name": "Expiries",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "{{consumer_key}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/market-data/1.0/watchlist/expiries?exchange=nse_fo&underlying=RELIANCE",
+              "host": ["{{base_url}}"],
+              "path": ["market-data", "1.0", "watchlist", "expiries"],
+              "query": [
+                { "key": "exchange", "value": "nse_fo" },
+                { "key": "underlying", "value": "RELIANCE" },
+                { "key": "instrument_type", "value": "option", "disabled": true }
+              ]
+            },
+            "description": "SDK: client.expiries(exchange, underlying, instrument_type=None). Returns available expiry dates for an exchange + underlying. Like quotes()/scrip_master(), does NOT require a completed 2FA (TOTP) session — only consumer_key, since the backend authenticates via the Authorization header alone. instrument_type is optional (\"option\" or \"fut\"); omitted by default here."
+          }
+        },
+        {
+          "name": "Option Chain",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "{{consumer_key}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/market-data/1.0/watchlist/option-chain?exchange=nse_fo&underlying=NIFTY&expiry=2026-06-23&instrument_type=option&count=40",
+              "host": ["{{base_url}}"],
+              "path": ["market-data", "1.0", "watchlist", "option-chain"],
+              "query": [
+                { "key": "exchange", "value": "nse_fo" },
+                { "key": "underlying", "value": "NIFTY" },
+                { "key": "expiry", "value": "2026-06-23" },
+                { "key": "instrument_type", "value": "option" },
+                { "key": "count", "value": "40" }
+              ]
+            },
+            "description": "SDK: client.option_chain(exchange, underlying, expiry=None, instrument_type=None, count=None). Returns the option (or futures) chain for an underlying. Does NOT require 2FA, same as expiries() — only consumer_key. With expiry=None, returns every available expiry's contracts. count must be a multiple of 10 (backend-enforced, not validated by the SDK) — see docs/functions/market_data/option_chain.md."
+          }
+        },
+        {
+          "name": "Historical Data",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "{{consumer_key}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/market-data/1.0/historical/details?neosymbol=nse_cm|1333&interval=10min&fromdate=2026-08-20&todate=2026-09-01",
+              "host": ["{{base_url}}"],
+              "path": ["market-data", "1.0", "historical", "details"],
+              "query": [
+                { "key": "neosymbol", "value": "nse_cm|1333" },
+                { "key": "interval", "value": "10min" },
+                { "key": "fromdate", "value": "2026-08-20" },
+                { "key": "todate", "value": "2026-09-01" }
+              ]
+            },
+            "description": "SDK: client.historical_data(neosymbol, interval, from_date, to_date) — the SDK's snake_case from_date/to_date kwargs map to the wire's lowercase fromdate/todate shown here. Does NOT require 2FA, same as expiries()/option_chain() — only consumer_key. interval has a backend-enforced per-interval max date range (not validated by the SDK) — see docs/functions/market_data/historical_data.md."
+          }
         }
       ]
     },
