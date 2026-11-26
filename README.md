@@ -507,7 +507,7 @@ MIT License - see [LICENSE](https://github.com/Kotak-Neo/kotak-neo-python/blob/m
 
 ## Disclaimer
 
-This is the official SDK for Kotak Neo Trading APIs. Trading in financial markets involves substantial risk. Users are responsible for their own trading decisions and should thoroughly test their strategies before live trading.
+This is the official Python SDK for Kotak Neo Trading APIs. Trading in financial markets involves substantial risk. Users are responsible for their own trading decisions and should thoroughly test their strategies before live trading.
 
 **⚠️ Risk Warning**: As per SEBI study, 9 out of 10 individual traders in equity F&O segment incur net losses. Please trade responsibly.
 
